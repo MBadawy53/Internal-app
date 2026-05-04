@@ -1,0 +1,75 @@
+{
+  "app": {
+    "name": "Contact Financial",
+    "tagline": "Internal Employee Portal"
+  },
+  "common": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "logout": "Log out",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Welcome back. Use your Contact Financial credentials.",
+      "email": "Email",
+      "emailPlaceholder": "you@contact.eg",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "forgotPassword": "Forgot your password?",
+      "errors": {
+        "invalidCredentials": "Invalid email or password.",
+        "inactiveAccount": "Your account is inactive. Please contact your administrator.",
+        "unknown": "Something went wrong. Please try again."
+      }
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "catalog": "Product Catalog",
+    "calculator": "Loan Calculator",
+    "leads": "Leads",
+    "qr": "My QR Codes",
+    "notifications": "Notifications",
+    "reports": "Reports",
+    "admin": "Administration"
+  },
+  "dashboard": {
+    "title": "Welcome, {name}",
+    "phaseOne": "Phase 1 foundation is in place. Catalog, calculator, leads, QR, notifications, and reports arrive in subsequent phases.",
+    "yourReferralCode": "Your referral code",
+    "role": "Role"
+  },
+  "roles": {
+    "EMPLOYEE": "Employee",
+    "TEAM_MANAGER": "Team Manager",
+    "BUSINESS_LINE_OWNER": "Business Line Owner",
+    "ADMIN": "Administrator"
+  },
+  "public": {
+    "leadCapture": {
+      "comingSoon": "Public lead capture page — implemented in Phase 4."
+    }
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "notFoundDescription": "The page you’re looking for doesn’t exist or has been moved.",
+    "goHome": "Go to dashboard",
+    "unexpected": "An unexpected error occurred",
+    "tryAgain": "Try again"
+  }
+}

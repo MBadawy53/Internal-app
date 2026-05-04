@@ -1,0 +1,497 @@
+// Contact Financial Holding — Internal Employee Portal
+// Money is stored as BigInt piastres (1 EGP = 100). Never use Float for money.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  EMPLOYEE
+  TEAM_MANAGER
+  BUSINESS_LINE_OWNER
+  ADMIN
+}
+
+enum Locale {
+  EN
+  AR
+}
+
+enum ProductType {
+  PERSONAL_LOAN
+  AUTO_LOAN
+  MORTGAGE
+  HOME_FURNITURE
+  HOME_INTERIOR
+  MOTORCYCLE
+  INSURANCE_POLICY
+  LEASING
+  FACTORING
+}
+
+enum LeadSource {
+  QR_CODE
+  MANUAL_ENTRY
+  REFERRAL
+  IMPORT
+}
+
+enum LeadStatus {
+  NEW
+  ASSIGNED
+  CONTACTED
+  NO_ANSWER
+  APPLICATION_CREATED
+  CREDIT_APPROVED
+  CONTRACTED
+  LICENSING
+  CREDIT_REJECTED_FT
+  CREDIT_REJECTED_NT
+}
+
+enum LeadActivityType {
+  CALL
+  NOTE
+  EMAIL
+  WHATSAPP
+  SMS
+  FILE
+  STATUS_CHANGE
+}
+
+enum NotificationType {
+  NEW_LEAD_FROM_QR
+  LEAD_ASSIGNED
+  LEAD_STATUS_CHANGED
+  LEAD_REFERRED
+  SYSTEM
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum MessageTemplateKey {
+  LEAD_ACK_CUSTOMER
+  LEAD_STATUS_UPDATE_CUSTOMER
+  LEAD_ASSIGNED_EMPLOYEE
+  NEW_LEAD_FROM_QR_EMPLOYEE
+  LEAD_REFERRED_OWNER
+}
+
+enum IntegrationKey {
+  CRM
+  CORE_BANKING
+  SMS_PROVIDER
+  WHATSAPP_PROVIDER
+  EMAIL_PROVIDER
+}
+
+enum SyncDirection {
+  PUSH
+  PULL
+  BIDIRECTIONAL
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Identity & Org
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  nameEn          String
+  nameAr          String
+  phone           String?
+  photoUrl        String?
+  role            Role      @default(EMPLOYEE)
+  locale          Locale    @default(EN)
+  businessLineId  String?
+  managerId       String?
+  referralCode    String    @unique
+  shareConsent    Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  businessLine    BusinessLine? @relation(fields: [businessLineId], references: [id])
+  manager         User?         @relation("UserManager", fields: [managerId], references: [id])
+  reports         User[]        @relation("UserManager")
+
+  ownedLeads      Lead[]                  @relation("LeadOwner")
+  referredLeads   Lead[]                  @relation("LeadReferrer")
+  statusChanges   LeadStatusHistory[]
+  activities      LeadActivity[]
+  quotes          Quote[]
+  campaigns       QrCampaign[]
+  notifications   Notification[]
+  notifPrefs      NotificationPreference[]
+  auditLogs       AuditLog[]
+  productCreated  Product[]               @relation("ProductCreatedBy")
+  productUpdated  Product[]               @relation("ProductUpdatedBy")
+  integrationUpd  IntegrationConfig[]     @relation("IntegrationUpdatedBy")
+
+  @@index([businessLineId])
+  @@index([managerId])
+  @@index([role])
+  @@map("users")
+}
+
+model BusinessLine {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  nameEn        String
+  nameAr        String
+  descriptionEn String?
+  descriptionAr String?
+  iconKey       String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  users         User[]
+  products      Product[]
+  leads         Lead[]
+
+  @@map("business_lines")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Catalog
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Product {
+  id                   String       @id @default(cuid())
+  businessLineId       String
+  type                 ProductType
+  nameEn               String
+  nameAr               String
+  shortDescEn          String
+  shortDescAr          String
+  longDescEn           String
+  longDescAr           String
+  eligibilityEn        String?
+  eligibilityAr        String?
+  documentsEn          String[]     @default([])
+  documentsAr          String[]     @default([])
+  amountMinPiastres    BigInt
+  amountMaxPiastres    BigInt
+  tenureMinMonths      Int
+  tenureMaxMonths      Int
+  interestRateBps      Int
+  adminFeeBps          Int          @default(0)
+  adminFeeFlatPiastres BigInt       @default(0)
+  insuranceFeeBps      Int          @default(0)
+  heroImageUrl         String?
+  galleryImageUrls     String[]     @default([])
+  isFeatured           Boolean      @default(false)
+  isActive             Boolean      @default(true)
+  createdById          String?
+  updatedById          String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
+  createdBy    User?        @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  leads        Lead[]
+  quotes       Quote[]
+  campaigns    QrCampaign[]
+
+  @@index([businessLineId])
+  @@index([type])
+  @@index([isActive])
+  @@map("products")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Leads
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id                   String     @id @default(cuid())
+  customerName         String
+  customerPhone        String
+  customerEmailEnc     String?
+  nationalIdEnc        String?
+  source               LeadSource
+  referredByEmployeeId String?
+  ownerEmployeeId      String?
+  businessLineId       String
+  productId            String?
+  campaignId           String?
+  currentStatus        LeadStatus @default(NEW)
+  currentStatusReason  String?
+  preferredContactTime String?
+  customerNote         String?
+  externalCrmId        String?    @unique
+  consentGivenAt       DateTime
+  consentIp            String?
+  consentUserAgent     String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  referredBy   User?        @relation("LeadReferrer", fields: [referredByEmployeeId], references: [id])
+  owner        User?        @relation("LeadOwner", fields: [ownerEmployeeId], references: [id])
+  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
+  product      Product?     @relation(fields: [productId], references: [id])
+  campaign     QrCampaign?  @relation(fields: [campaignId], references: [id])
+  history      LeadStatusHistory[]
+  activities   LeadActivity[]
+  quotes       Quote[]
+  syncJobs     LeadSyncJob[]
+
+  @@index([ownerEmployeeId])
+  @@index([referredByEmployeeId])
+  @@index([businessLineId])
+  @@index([productId])
+  @@index([currentStatus])
+  @@index([createdAt])
+  @@index([customerPhone])
+  @@map("leads")
+}
+
+model LeadStatusHistory {
+  id         String      @id @default(cuid())
+  leadId     String
+  fromStatus LeadStatus?
+  toStatus   LeadStatus
+  reason     String?
+  note       String?
+  actorId    String
+  createdAt  DateTime    @default(now())
+
+  lead  Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([leadId])
+  @@index([actorId])
+  @@map("lead_status_history")
+}
+
+model LeadActivity {
+  id        String           @id @default(cuid())
+  leadId    String
+  type      LeadActivityType
+  content   String
+  metadata  Json?
+  actorId   String
+  createdAt DateTime         @default(now())
+
+  lead  Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([leadId])
+  @@map("lead_activities")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Calculator / Quotes
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Quote {
+  id                         String   @id @default(cuid())
+  employeeId                 String
+  productId                  String
+  principalPiastres          BigInt
+  tenureMonths               Int
+  monthlyRateBps             Int
+  monthlyInstallmentPiastres BigInt
+  totalPayablePiastres       BigInt
+  totalInterestPiastres      BigInt
+  insuranceIncluded          Boolean  @default(false)
+  adminFeeIncluded           Boolean  @default(false)
+  downPaymentPiastres        BigInt   @default(0)
+  snapshotJson               Json
+  leadId                     String?
+  createdAt                  DateTime @default(now())
+
+  employee User    @relation(fields: [employeeId], references: [id])
+  product  Product @relation(fields: [productId], references: [id])
+  lead     Lead?   @relation(fields: [leadId], references: [id])
+
+  @@index([employeeId])
+  @@index([leadId])
+  @@map("quotes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QR Campaigns
+// ─────────────────────────────────────────────────────────────────────────────
+
+model QrCampaign {
+  id         String   @id @default(cuid())
+  employeeId String
+  name       String
+  productId  String?
+  slug       String   @unique
+  scanCount  Int      @default(0)
+  leadCount  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  employee User     @relation(fields: [employeeId], references: [id])
+  product  Product? @relation(fields: [productId], references: [id])
+  scans    QrScan[]
+  leads    Lead[]
+
+  @@index([employeeId])
+  @@map("qr_campaigns")
+}
+
+model QrScan {
+  id           String   @id @default(cuid())
+  campaignId   String?
+  referralCode String
+  ip           String?
+  userAgent    String?
+  referer      String?
+  createdAt    DateTime @default(now())
+
+  campaign QrCampaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([referralCode])
+  @@index([createdAt])
+  @@map("qr_scans")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notifications & Templates
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  payloadJson Json
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id      String              @id @default(cuid())
+  userId  String
+  type    NotificationType
+  channel NotificationChannel
+  enabled Boolean             @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, channel])
+  @@map("notification_preferences")
+}
+
+model MessageTemplate {
+  id        String              @id @default(cuid())
+  key       MessageTemplateKey
+  channel   NotificationChannel
+  subjectEn String?
+  subjectAr String?
+  bodyEn    String
+  bodyAr    String
+  variables String[]            @default([])
+  isActive  Boolean             @default(true)
+  updatedAt DateTime            @updatedAt
+
+  @@unique([key, channel])
+  @@map("message_templates")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Integrations
+// ─────────────────────────────────────────────────────────────────────────────
+
+model IntegrationConfig {
+  id             String         @id @default(cuid())
+  key            IntegrationKey @unique
+  valueEncJson   String
+  isEnabled      Boolean        @default(false)
+  lastTestedAt   DateTime?
+  lastTestStatus String?
+  updatedById    String?
+  updatedAt      DateTime       @updatedAt
+
+  updatedBy User? @relation("IntegrationUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("integration_configs")
+}
+
+model LeadSyncJob {
+  id          String        @id @default(cuid())
+  leadId      String
+  direction   SyncDirection
+  status      SyncJobStatus @default(PENDING)
+  attempts    Int           @default(0)
+  lastError   String?
+  payloadJson Json?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime      @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([leadId])
+  @@map("lead_sync_jobs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entity     String
+  entityId   String?
+  beforeJson Json?
+  afterJson  Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@map("rate_limit_buckets")
+}
