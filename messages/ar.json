@@ -9,16 +9,28 @@
     "save": "حفظ",
     "delete": "حذف",
     "edit": "تعديل",
+    "create": "إنشاء",
+    "view": "عرض",
     "loading": "جارٍ التحميل…",
     "search": "بحث",
     "back": "رجوع",
     "next": "التالي",
+    "all": "الكل",
+    "yes": "نعم",
+    "no": "لا",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "featured": "مميز",
     "language": "اللغة",
     "english": "English",
     "arabic": "العربية",
     "logout": "تسجيل الخروج",
     "darkMode": "الوضع الليلي",
-    "lightMode": "الوضع النهاري"
+    "lightMode": "الوضع النهاري",
+    "saving": "جارٍ الحفظ…",
+    "deleting": "جارٍ الحذف…",
+    "confirm": "تأكيد",
+    "print": "طباعة"
   },
   "auth": {
     "login": {
@@ -46,11 +58,13 @@
     "qr": "رموز الـ QR الخاصة بي",
     "notifications": "الإشعارات",
     "reports": "التقارير",
-    "admin": "الإدارة"
+    "admin": "الإدارة",
+    "adminCategories": "الفئات",
+    "adminProducts": "المنتجات"
   },
   "dashboard": {
     "title": "مرحبًا، {name}",
-    "phaseOne": "تم إعداد المرحلة الأولى. تأتي وحدات الكتالوج والحاسبة والعملاء وأكواد QR والإشعارات والتقارير في المراحل التالية.",
+    "phaseOne": "المرحلة الأولى جاهزة. الكتالوج والحاسبة تعملان الآن؛ تأتي وحدات العملاء المحتملين وأكواد QR والإشعارات والتقارير في المراحل التالية.",
     "yourReferralCode": "كود الإحالة الخاص بك",
     "role": "الدور"
   },
@@ -59,6 +73,179 @@
     "TEAM_MANAGER": "مدير فريق",
     "BUSINESS_LINE_OWNER": "مسؤول قطاع",
     "ADMIN": "مسؤول النظام"
+  },
+  "catalog": {
+    "title": "كتالوج المنتجات",
+    "subtitle": "تصفح جميع المنتجات عبر قطاعات كونتكت المالية.",
+    "filters": {
+      "businessLine": "قطاع الأعمال",
+      "category": "الفئة",
+      "type": "نوع المنتج",
+      "amountRange": "نطاق المبلغ (ج.م.)",
+      "tenureRange": "المدة (شهر)",
+      "search": "ابحث في المنتجات",
+      "clear": "مسح المرشحات",
+      "any": "الكل"
+    },
+    "card": {
+      "amount": "المبلغ",
+      "tenure": "المدة",
+      "rate": "الفائدة",
+      "from": "من",
+      "to": "إلى",
+      "viewDetails": "عرض التفاصيل",
+      "calculate": "احسب"
+    },
+    "detail": {
+      "amountRange": "نطاق المبلغ",
+      "tenureRange": "نطاق المدة",
+      "flatRate": "نسبة الفائدة الثابتة",
+      "decliningRate": "نسبة الفائدة المتناقصة",
+      "adminFee": "الرسوم الإدارية",
+      "adminFeeFormula": "{pct} من قيمة التمويل، الحد الأدنى {min}، الحد الأقصى {max}",
+      "insurance": "التأمين",
+      "insuranceRequired": "إجباري",
+      "insuranceOptional": "اختياري",
+      "earlySettlementFee": "رسوم السداد المبكر",
+      "latePaymentFee": "رسوم التأخير في السداد",
+      "eligibility": "شروط الأهلية",
+      "documents": "المستندات المطلوبة",
+      "variables": "تفاصيل المنتج",
+      "openCalculator": "افتح في الحاسبة"
+    },
+    "empty": "لا توجد منتجات تطابق المرشحات.",
+    "monthsUnit": "شهر"
+  },
+  "calculator": {
+    "title": "حاسبة التمويل",
+    "subtitle": "احسب القسط الشهري والرسوم الإدارية وجدول الإطفاء لأي منتج.",
+    "selectProduct": "اختر منتجًا",
+    "principal": "قيمة التمويل (ج.م.)",
+    "tenure": "المدة (شهر)",
+    "calculate": "احسب",
+    "saveQuote": "حفظ التقدير",
+    "saved": "تم حفظ التقدير",
+    "share": "نسخ رابط المشاركة",
+    "copied": "تم النسخ!",
+    "result": {
+      "monthlyInstallment": "القسط الشهري",
+      "adminFee": "الرسوم الإدارية",
+      "totalInterest": "إجمالي الفوائد",
+      "totalPayable": "إجمالي المبلغ المستحق",
+      "flatRate": "نسبة الفائدة الثابتة",
+      "decliningRate": "نسبة الفائدة المتناقصة",
+      "earlySettlement": "رسوم السداد المبكر",
+      "latePayment": "رسوم التأخير",
+      "insurance": "التأمين",
+      "amortization": "جدول الإطفاء",
+      "month": "الشهر",
+      "installment": "القسط",
+      "interestPart": "الفائدة",
+      "principalPart": "أصل القرض",
+      "remainingBalance": "الرصيد المتبقي"
+    },
+    "errors": {
+      "principal_below_min": "المبلغ أقل من الحد الأدنى للمنتج.",
+      "principal_above_max": "المبلغ يتجاوز الحد الأقصى للمنتج.",
+      "principal_non_positive": "يجب أن يكون المبلغ أكبر من صفر.",
+      "tenure_below_min": "المدة أقل من الحد الأدنى للمنتج.",
+      "tenure_above_max": "المدة تتجاوز الحد الأقصى للمنتج.",
+      "tenure_non_integer": "يجب أن تكون المدة عددًا صحيحًا.",
+      "tenure_non_positive": "يجب أن تكون المدة أكبر من صفر.",
+      "selectProduct": "يرجى اختيار منتج أولاً."
+    }
+  },
+  "admin": {
+    "title": "الإدارة",
+    "categories": {
+      "title": "الفئات",
+      "subtitle": "اجمع المنتجات في فئات تحت كل قطاع.",
+      "new": "فئة جديدة",
+      "edit": "تعديل الفئة",
+      "fields": {
+        "slug": "المعرّف",
+        "businessLine": "قطاع الأعمال",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "descriptionEn": "الوصف (إنجليزي)",
+        "descriptionAr": "الوصف (عربي)",
+        "sortOrder": "ترتيب العرض",
+        "isActive": "نشط"
+      },
+      "deleteConfirm": "هل أنت متأكد من إلغاء تنشيط هذه الفئة؟",
+      "empty": "لا توجد فئات بعد. أنشئ واحدة للبدء."
+    },
+    "products": {
+      "title": "المنتجات",
+      "subtitle": "قم بتكوين المنتجات والرسوم والمتغيرات.",
+      "new": "منتج جديد",
+      "edit": "تعديل المنتج",
+      "deleteConfirm": "هل أنت متأكد من إلغاء تنشيط هذا المنتج؟",
+      "sections": {
+        "basics": "الأساسيات",
+        "descriptions": "الأوصاف",
+        "limits": "حدود التمويل",
+        "rates": "نسب الفائدة",
+        "fees": "الرسوم الإدارية",
+        "policy": "بنود السياسة",
+        "variables": "المتغيرات (سمات إعلامية)",
+        "media": "الوسائط"
+      },
+      "fields": {
+        "businessLine": "قطاع الأعمال",
+        "category": "الفئة",
+        "type": "نوع المنتج",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "shortDescEn": "وصف مختصر (إنجليزي)",
+        "shortDescAr": "وصف مختصر (عربي)",
+        "longDescEn": "وصف تفصيلي (إنجليزي)",
+        "longDescAr": "وصف تفصيلي (عربي)",
+        "eligibilityEn": "شروط الأهلية (إنجليزي)",
+        "eligibilityAr": "شروط الأهلية (عربي)",
+        "documentsEn": "المستندات المطلوبة (إنجليزي) — مفصولة بفواصل",
+        "documentsAr": "المستندات المطلوبة (عربي) — مفصولة بفواصل",
+        "amountMinEgp": "الحد الأدنى للمبلغ (ج.م.)",
+        "amountMaxEgp": "الحد الأقصى للمبلغ (ج.م.)",
+        "tenureMinMonths": "الحد الأدنى للمدة (شهر)",
+        "tenureMaxMonths": "الحد الأقصى للمدة (شهر)",
+        "flatInterestRateBps": "نسبة الفائدة الثابتة (نقطة أساس)",
+        "decliningInterestRateBps": "نسبة الفائدة المتناقصة (نقطة أساس)",
+        "adminFeeBps": "نسبة الرسوم الإدارية (نقطة أساس)",
+        "adminFeeMinEgp": "الحد الأدنى للرسوم الإدارية (ج.م.)",
+        "adminFeeMaxEgp": "الحد الأقصى للرسوم الإدارية (ج.م.)",
+        "insuranceRequired": "التأمين إجباري",
+        "earlySettlementFeeBps": "رسوم السداد المبكر (نقطة أساس)",
+        "latePaymentFeeBps": "رسوم التأخير (نقطة أساس)",
+        "heroImageUrl": "الصورة الرئيسية",
+        "isFeatured": "مميز",
+        "isActive": "نشط"
+      },
+      "variables": {
+        "addRow": "إضافة متغير",
+        "removeRow": "حذف",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "descriptionEn": "الوصف (إنجليزي)",
+        "descriptionAr": "الوصف (عربي)",
+        "empty": "لا توجد متغيرات بعد. استخدم «إضافة متغير» لإنشاء سمات إعلامية."
+      },
+      "uploadImage": "رفع صورة",
+      "uploadingImage": "جارٍ الرفع…",
+      "uploadFailed": "فشل رفع الصورة",
+      "rateHelp": "نقطة أساس: 1850 = 18.50%."
+    }
+  },
+  "productTypes": {
+    "PERSONAL_LOAN": "تمويل شخصي",
+    "AUTO_LOAN": "تمويل سيارات",
+    "MORTGAGE": "تمويل عقاري",
+    "HOME_FURNITURE": "أثاث منزلي",
+    "HOME_INTERIOR": "تشطيبات منزلية",
+    "MOTORCYCLE": "تمويل دراجات نارية",
+    "INSURANCE_POLICY": "وثيقة تأمين",
+    "LEASING": "تأجير تمويلي",
+    "FACTORING": "تخصيم"
   },
   "public": {
     "leadCapture": {
@@ -70,6 +257,7 @@
     "notFoundDescription": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
     "goHome": "العودة إلى لوحة التحكم",
     "unexpected": "حدث خطأ غير متوقع",
-    "tryAgain": "حاول مرة أخرى"
+    "tryAgain": "حاول مرة أخرى",
+    "forbidden": "ليس لديك صلاحية للقيام بذلك."
   }
 }

@@ -6,7 +6,10 @@ import type { Role } from "@prisma/client";
 export const RESOURCES = [
   "catalog",
   "product",
+  "productCategory",
+  "productVariable",
   "calculator",
+  "quote",
   "lead",
   "qr",
   "notification",
@@ -38,8 +41,15 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:catalog": "all",
     "list:product": "all",
     "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productVariable": "all",
+    "read:productVariable": "all",
 
     "read:calculator": "all",
+    "create:quote": "own",
+    "read:quote": "own",
+    "list:quote": "own",
 
     "create:lead": "own",
     "read:lead": "own",
@@ -65,8 +75,15 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:catalog": "all",
     "list:product": "all",
     "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productVariable": "all",
+    "read:productVariable": "all",
 
     "read:calculator": "all",
+    "create:quote": "own",
+    "read:quote": "team",
+    "list:quote": "team",
 
     "create:lead": "team",
     "read:lead": "team",
@@ -96,7 +113,24 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:product": "businessLine",
     "delete:product": "businessLine",
 
+    // Categories — global per Q9: any BL Owner can manage any category.
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "create:productCategory": "all",
+    "update:productCategory": "all",
+    "delete:productCategory": "all",
+
+    // Variables piggyback on the product they belong to.
+    "list:productVariable": "all",
+    "read:productVariable": "all",
+    "create:productVariable": "businessLine",
+    "update:productVariable": "businessLine",
+    "delete:productVariable": "businessLine",
+
     "read:calculator": "all",
+    "create:quote": "own",
+    "read:quote": "businessLine",
+    "list:quote": "businessLine",
 
     "create:lead": "businessLine",
     "read:lead": "businessLine",
@@ -126,7 +160,23 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:product": "all",
     "delete:product": "all",
 
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "create:productCategory": "all",
+    "update:productCategory": "all",
+    "delete:productCategory": "all",
+
+    "list:productVariable": "all",
+    "read:productVariable": "all",
+    "create:productVariable": "all",
+    "update:productVariable": "all",
+    "delete:productVariable": "all",
+
     "read:calculator": "all",
+    "create:quote": "all",
+    "read:quote": "all",
+    "list:quote": "all",
+    "delete:quote": "all",
 
     "create:lead": "all",
     "read:lead": "all",

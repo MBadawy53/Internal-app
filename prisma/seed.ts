@@ -1,4 +1,3 @@
- 
 import { PrismaClient, Role, ProductType, LeadSource, LeadStatus } from "@prisma/client";
 import * as argon2 from "argon2";
 import { randomBytes } from "node:crypto";
@@ -131,14 +130,30 @@ async function main() {
     }
     userCount += 2;
 
+    // ── Default category for this BL ──────────────────────────────────────────
+    const categorySlug = `${bl.slug}-standard`;
+    const category = await prisma.productCategory.upsert({
+      where: { slug: categorySlug },
+      update: {},
+      create: {
+        slug: categorySlug,
+        businessLineId: bl.id,
+        nameEn: `${bl.nameEn} — Standard`,
+        nameAr: `${bl.nameAr} — قياسي`,
+        descriptionEn: `Standard ${bl.nameEn} category`,
+        descriptionAr: `فئة ${bl.nameAr} القياسية`,
+      },
+    });
+
     // ── Sample product per BL ─────────────────────────────────────────────────
     const productExists = await prisma.product.findFirst({
       where: { businessLineId: bl.id, type: productTypeBySlug[bl.slug] },
     });
     if (!productExists) {
-      await prisma.product.create({
+      const product = await prisma.product.create({
         data: {
           businessLineId: bl.id,
+          categoryId: category.id,
           type: productTypeBySlug[bl.slug] ?? ProductType.PERSONAL_LOAN,
           nameEn: `${bl.nameEn} — Standard`,
           nameAr: `${bl.nameAr} — قياسي`,
@@ -154,12 +169,47 @@ async function main() {
           amountMaxPiastres: BigInt(2_000_000_00), // EGP 2,000,000
           tenureMinMonths: 12,
           tenureMaxMonths: 60,
-          interestRateBps: 1850, // 18.50%
-          adminFeeBps: 100, //  1.00%
-          insuranceFeeBps: 50, //  0.50%
+          flatInterestRateBps: 1200, // 12% flat
+          decliningInterestRateBps: 2300, // 23% reducing-balance equivalent (admin-entered)
+          adminFeeBps: 100, // 1%
+          adminFeeMinPiastres: BigInt(500_00), // EGP 500
+          adminFeeMaxPiastres: BigInt(10_000_00), // EGP 10,000
+          insuranceRequired: bl.slug === "auto-loan" || bl.slug === "mortgage",
+          earlySettlementFeeBps: 200, // 2%
+          latePaymentFeeBps: 300, // 3%
           isFeatured: true,
           isActive: true,
         },
+      });
+
+      // Sample variables (informational attributes)
+      await prisma.productVariable.createMany({
+        data: [
+          {
+            productId: product.id,
+            sortOrder: 1,
+            nameEn: "Grace period",
+            nameAr: "فترة السماح",
+            descriptionEn: "Up to 30 days from contract date before first installment.",
+            descriptionAr: "حتى 30 يومًا من تاريخ التعاقد قبل أول قسط.",
+          },
+          {
+            productId: product.id,
+            sortOrder: 2,
+            nameEn: "Co-borrower",
+            nameAr: "شريك في الاقتراض",
+            descriptionEn: "Optional. Adds to combined income calculation.",
+            descriptionAr: "اختياري. يُضاف إلى احتساب الدخل المشترك.",
+          },
+          {
+            productId: product.id,
+            sortOrder: 3,
+            nameEn: "Disbursement",
+            nameAr: "الصرف",
+            descriptionEn: "Direct bank transfer within 3 business days of approval.",
+            descriptionAr: "تحويل بنكي مباشر خلال 3 أيام عمل من الموافقة.",
+          },
+        ],
       });
     }
   }
