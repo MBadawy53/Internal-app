@@ -117,40 +117,40 @@ enum SyncJobStatus {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  passwordHash    String
-  nameEn          String
-  nameAr          String
-  phone           String?
-  photoUrl        String?
-  role            Role      @default(EMPLOYEE)
-  locale          Locale    @default(EN)
-  businessLineId  String?
-  managerId       String?
-  referralCode    String    @unique
-  shareConsent    Boolean   @default(false)
-  isActive        Boolean   @default(true)
-  lastLoginAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  nameEn         String
+  nameAr         String
+  phone          String?
+  photoUrl       String?
+  role           Role      @default(EMPLOYEE)
+  locale         Locale    @default(EN)
+  businessLineId String?
+  managerId      String?
+  referralCode   String    @unique
+  shareConsent   Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  businessLine    BusinessLine? @relation(fields: [businessLineId], references: [id])
-  manager         User?         @relation("UserManager", fields: [managerId], references: [id])
-  reports         User[]        @relation("UserManager")
+  businessLine BusinessLine? @relation(fields: [businessLineId], references: [id])
+  manager      User?         @relation("UserManager", fields: [managerId], references: [id])
+  reports      User[]        @relation("UserManager")
 
-  ownedLeads      Lead[]                  @relation("LeadOwner")
-  referredLeads   Lead[]                  @relation("LeadReferrer")
-  statusChanges   LeadStatusHistory[]
-  activities      LeadActivity[]
-  quotes          Quote[]
-  campaigns       QrCampaign[]
-  notifications   Notification[]
-  notifPrefs      NotificationPreference[]
-  auditLogs       AuditLog[]
-  productCreated  Product[]               @relation("ProductCreatedBy")
-  productUpdated  Product[]               @relation("ProductUpdatedBy")
-  integrationUpd  IntegrationConfig[]     @relation("IntegrationUpdatedBy")
+  ownedLeads     Lead[]                   @relation("LeadOwner")
+  referredLeads  Lead[]                   @relation("LeadReferrer")
+  statusChanges  LeadStatusHistory[]
+  activities     LeadActivity[]
+  quotes         Quote[]
+  campaigns      QrCampaign[]
+  notifications  Notification[]
+  notifPrefs     NotificationPreference[]
+  auditLogs      AuditLog[]
+  productCreated Product[]                @relation("ProductCreatedBy")
+  productUpdated Product[]                @relation("ProductUpdatedBy")
+  integrationUpd IntegrationConfig[]      @relation("IntegrationUpdatedBy")
 
   @@index([businessLineId])
   @@index([managerId])
@@ -159,22 +159,45 @@ model User {
 }
 
 model BusinessLine {
-  id            String    @id @default(cuid())
-  slug          String    @unique
+  id            String   @id @default(cuid())
+  slug          String   @unique
   nameEn        String
   nameAr        String
   descriptionEn String?
   descriptionAr String?
   iconKey       String?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  users         User[]
-  products      Product[]
-  leads         Lead[]
+  users      User[]
+  products   Product[]
+  categories ProductCategory[]
+  leads      Lead[]
 
   @@map("business_lines")
+}
+
+model ProductCategory {
+  id             String   @id @default(cuid())
+  businessLineId String
+  slug           String   @unique
+  nameEn         String
+  nameAr         String
+  descriptionEn  String?
+  descriptionAr  String?
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdById    String?
+  updatedById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
+  products     Product[]
+
+  @@index([businessLineId])
+  @@map("product_categories")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -182,47 +205,83 @@ model BusinessLine {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Product {
-  id                   String       @id @default(cuid())
-  businessLineId       String
-  type                 ProductType
-  nameEn               String
-  nameAr               String
-  shortDescEn          String
-  shortDescAr          String
-  longDescEn           String
-  longDescAr           String
-  eligibilityEn        String?
-  eligibilityAr        String?
-  documentsEn          String[]     @default([])
-  documentsAr          String[]     @default([])
-  amountMinPiastres    BigInt
-  amountMaxPiastres    BigInt
-  tenureMinMonths      Int
-  tenureMaxMonths      Int
-  interestRateBps      Int
-  adminFeeBps          Int          @default(0)
-  adminFeeFlatPiastres BigInt       @default(0)
-  insuranceFeeBps      Int          @default(0)
-  heroImageUrl         String?
-  galleryImageUrls     String[]     @default([])
-  isFeatured           Boolean      @default(false)
-  isActive             Boolean      @default(true)
-  createdById          String?
-  updatedById          String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  id             String      @id @default(cuid())
+  businessLineId String
+  categoryId     String
+  type           ProductType
+  nameEn         String
+  nameAr         String
+  shortDescEn    String
+  shortDescAr    String
+  longDescEn     String
+  longDescAr     String
+  eligibilityEn  String?
+  eligibilityAr  String?
+  documentsEn    String[]    @default([])
+  documentsAr    String[]    @default([])
 
-  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
-  createdBy    User?        @relation("ProductCreatedBy", fields: [createdById], references: [id])
-  updatedBy    User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  // Loan limits
+  amountMinPiastres BigInt
+  amountMaxPiastres BigInt
+  tenureMinMonths   Int
+  tenureMaxMonths   Int
+
+  // Rates — admin enters BOTH independently. No conversion is performed.
+  flatInterestRateBps      Int @default(0)
+  decliningInterestRateBps Int @default(0)
+
+  // Admin fee = clamp(amount × adminFeeBps/10000, min, max)
+  adminFeeBps         Int    @default(0)
+  adminFeeMinPiastres BigInt @default(0)
+  adminFeeMaxPiastres BigInt @default(0)
+
+  // Insurance is just a boolean flag — no fee math.
+  insuranceRequired Boolean @default(false)
+
+  // Policy lines (admin-entered, displayed; not factored into EMI).
+  earlySettlementFeeBps Int @default(0)
+  latePaymentFeeBps     Int @default(0)
+
+  heroImageUrl     String?
+  galleryImageUrls String[] @default([])
+  isFeatured       Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdById      String?
+  updatedById      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  businessLine BusinessLine      @relation(fields: [businessLineId], references: [id])
+  category     ProductCategory   @relation(fields: [categoryId], references: [id])
+  createdBy    User?             @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?             @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  variables    ProductVariable[]
   leads        Lead[]
   quotes       Quote[]
   campaigns    QrCampaign[]
 
   @@index([businessLineId])
+  @@index([categoryId])
   @@index([type])
   @@index([isActive])
   @@map("products")
+}
+
+model ProductVariable {
+  id            String   @id @default(cuid())
+  productId     String
+  nameEn        String
+  nameAr        String
+  descriptionEn String?
+  descriptionAr String?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_variables")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -252,11 +311,11 @@ model Lead {
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
-  referredBy   User?        @relation("LeadReferrer", fields: [referredByEmployeeId], references: [id])
-  owner        User?        @relation("LeadOwner", fields: [ownerEmployeeId], references: [id])
-  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
-  product      Product?     @relation(fields: [productId], references: [id])
-  campaign     QrCampaign?  @relation(fields: [campaignId], references: [id])
+  referredBy   User?               @relation("LeadReferrer", fields: [referredByEmployeeId], references: [id])
+  owner        User?               @relation("LeadOwner", fields: [ownerEmployeeId], references: [id])
+  businessLine BusinessLine        @relation(fields: [businessLineId], references: [id])
+  product      Product?            @relation(fields: [productId], references: [id])
+  campaign     QrCampaign?         @relation(fields: [campaignId], references: [id])
   history      LeadStatusHistory[]
   activities   LeadActivity[]
   quotes       Quote[]

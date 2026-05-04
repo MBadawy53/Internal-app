@@ -9,16 +9,28 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
+    "create": "Create",
+    "view": "View",
     "loading": "Loading…",
     "search": "Search",
     "back": "Back",
     "next": "Next",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive",
+    "featured": "Featured",
     "language": "Language",
     "english": "English",
     "arabic": "العربية",
     "logout": "Log out",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "confirm": "Confirm",
+    "print": "Print"
   },
   "auth": {
     "login": {
@@ -46,11 +58,13 @@
     "qr": "My QR Codes",
     "notifications": "Notifications",
     "reports": "Reports",
-    "admin": "Administration"
+    "admin": "Administration",
+    "adminCategories": "Categories",
+    "adminProducts": "Products"
   },
   "dashboard": {
     "title": "Welcome, {name}",
-    "phaseOne": "Phase 1 foundation is in place. Catalog, calculator, leads, QR, notifications, and reports arrive in subsequent phases.",
+    "phaseOne": "Phase 1 foundation is in place. Catalog and calculator are now live; leads, QR, notifications, and reports arrive in subsequent phases.",
     "yourReferralCode": "Your referral code",
     "role": "Role"
   },
@@ -59,6 +73,179 @@
     "TEAM_MANAGER": "Team Manager",
     "BUSINESS_LINE_OWNER": "Business Line Owner",
     "ADMIN": "Administrator"
+  },
+  "catalog": {
+    "title": "Product Catalog",
+    "subtitle": "Browse all products across Contact Financial business lines.",
+    "filters": {
+      "businessLine": "Business line",
+      "category": "Category",
+      "type": "Product type",
+      "amountRange": "Amount range (EGP)",
+      "tenureRange": "Tenure (months)",
+      "search": "Search products",
+      "clear": "Clear filters",
+      "any": "Any"
+    },
+    "card": {
+      "amount": "Amount",
+      "tenure": "Tenure",
+      "rate": "Rate",
+      "from": "from",
+      "to": "to",
+      "viewDetails": "View details",
+      "calculate": "Calculate"
+    },
+    "detail": {
+      "amountRange": "Amount range",
+      "tenureRange": "Tenure range",
+      "flatRate": "Flat interest rate",
+      "decliningRate": "Declining interest rate",
+      "adminFee": "Admin fee",
+      "adminFeeFormula": "{pct} of loan amount, min {min}, max {max}",
+      "insurance": "Insurance",
+      "insuranceRequired": "Required",
+      "insuranceOptional": "Optional",
+      "earlySettlementFee": "Early settlement fee",
+      "latePaymentFee": "Late payment fee",
+      "eligibility": "Eligibility",
+      "documents": "Required documents",
+      "variables": "Product details",
+      "openCalculator": "Open in calculator"
+    },
+    "empty": "No products match your filters.",
+    "monthsUnit": "months"
+  },
+  "calculator": {
+    "title": "Loan Calculator",
+    "subtitle": "Compute monthly installment, admin fees, and amortization for any product.",
+    "selectProduct": "Select a product",
+    "principal": "Loan amount (EGP)",
+    "tenure": "Tenure (months)",
+    "calculate": "Calculate",
+    "saveQuote": "Save quote",
+    "saved": "Quote saved",
+    "share": "Copy share link",
+    "copied": "Copied!",
+    "result": {
+      "monthlyInstallment": "Monthly installment",
+      "adminFee": "Admin fee",
+      "totalInterest": "Total interest",
+      "totalPayable": "Total payable",
+      "flatRate": "Flat interest rate",
+      "decliningRate": "Declining interest rate",
+      "earlySettlement": "Early settlement fee",
+      "latePayment": "Late payment fee",
+      "insurance": "Insurance",
+      "amortization": "Amortization schedule",
+      "month": "Month",
+      "installment": "Installment",
+      "interestPart": "Interest",
+      "principalPart": "Principal",
+      "remainingBalance": "Remaining balance"
+    },
+    "errors": {
+      "principal_below_min": "Amount is below the product minimum.",
+      "principal_above_max": "Amount exceeds the product maximum.",
+      "principal_non_positive": "Amount must be greater than zero.",
+      "tenure_below_min": "Tenure is below the product minimum.",
+      "tenure_above_max": "Tenure exceeds the product maximum.",
+      "tenure_non_integer": "Tenure must be a whole number.",
+      "tenure_non_positive": "Tenure must be greater than zero.",
+      "selectProduct": "Please select a product first."
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "categories": {
+      "title": "Categories",
+      "subtitle": "Group products into categories under each business line.",
+      "new": "New category",
+      "edit": "Edit category",
+      "fields": {
+        "slug": "Slug",
+        "businessLine": "Business line",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "descriptionEn": "Description (English)",
+        "descriptionAr": "Description (Arabic)",
+        "sortOrder": "Sort order",
+        "isActive": "Active"
+      },
+      "deleteConfirm": "Are you sure you want to deactivate this category?",
+      "empty": "No categories yet. Create one to get started."
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Configure products, fees, and variables.",
+      "new": "New product",
+      "edit": "Edit product",
+      "deleteConfirm": "Are you sure you want to deactivate this product?",
+      "sections": {
+        "basics": "Basics",
+        "descriptions": "Descriptions",
+        "limits": "Loan limits",
+        "rates": "Interest rates",
+        "fees": "Admin fee",
+        "policy": "Policy lines",
+        "variables": "Variables (informational attributes)",
+        "media": "Media"
+      },
+      "fields": {
+        "businessLine": "Business line",
+        "category": "Category",
+        "type": "Product type",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "shortDescEn": "Short description (English)",
+        "shortDescAr": "Short description (Arabic)",
+        "longDescEn": "Long description (English)",
+        "longDescAr": "Long description (Arabic)",
+        "eligibilityEn": "Eligibility (English)",
+        "eligibilityAr": "Eligibility (Arabic)",
+        "documentsEn": "Required documents (English) — comma-separated",
+        "documentsAr": "Required documents (Arabic) — comma-separated",
+        "amountMinEgp": "Minimum amount (EGP)",
+        "amountMaxEgp": "Maximum amount (EGP)",
+        "tenureMinMonths": "Minimum tenure (months)",
+        "tenureMaxMonths": "Maximum tenure (months)",
+        "flatInterestRateBps": "Flat interest rate (basis points)",
+        "decliningInterestRateBps": "Declining interest rate (basis points)",
+        "adminFeeBps": "Admin fee percentage (basis points)",
+        "adminFeeMinEgp": "Admin fee minimum (EGP)",
+        "adminFeeMaxEgp": "Admin fee maximum (EGP)",
+        "insuranceRequired": "Insurance required",
+        "earlySettlementFeeBps": "Early settlement fee (basis points)",
+        "latePaymentFeeBps": "Late payment fee (basis points)",
+        "heroImageUrl": "Hero image",
+        "isFeatured": "Featured",
+        "isActive": "Active"
+      },
+      "variables": {
+        "addRow": "Add variable",
+        "removeRow": "Remove",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "descriptionEn": "Description (English)",
+        "descriptionAr": "Description (Arabic)",
+        "empty": "No variables yet. Use «Add variable» to create informational attributes."
+      },
+      "uploadImage": "Upload image",
+      "uploadingImage": "Uploading…",
+      "uploadFailed": "Image upload failed",
+      "rateHelp": "Basis points: 1850 = 18.50%."
+    }
+  },
+  "productTypes": {
+    "PERSONAL_LOAN": "Personal loan",
+    "AUTO_LOAN": "Auto loan",
+    "MORTGAGE": "Mortgage",
+    "HOME_FURNITURE": "Home furniture",
+    "HOME_INTERIOR": "Home interior",
+    "MOTORCYCLE": "Motorcycle",
+    "INSURANCE_POLICY": "Insurance policy",
+    "LEASING": "Leasing",
+    "FACTORING": "Factoring"
   },
   "public": {
     "leadCapture": {
@@ -70,6 +257,7 @@
     "notFoundDescription": "The page you’re looking for doesn’t exist or has been moved.",
     "goHome": "Go to dashboard",
     "unexpected": "An unexpected error occurred",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "forbidden": "You don’t have permission to do that."
   }
 }
