@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.18.1"
+  PNPM_VERSION: "9.15.0"
+
+jobs:
+  ci:
+    name: Lint · Typecheck · Test · Build · Migrate
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: contact
+          POSTGRES_PASSWORD: contact
+          POSTGRES_DB: contact_portal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U contact -d contact_portal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Deterministic test secrets — never reuse outside CI.
+      DATABASE_URL: postgresql://contact:contact@localhost:5432/contact_portal?schema=public
+      AUTH_SECRET: ci-auth-secret-ci-auth-secret-ci-auth
+      APP_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm exec prisma generate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit & integration tests
+        run: pnpm test
+
+      - name: Apply Prisma migrations
+        # Validates the schema against a real Postgres instance. Uses migrate deploy
+        # if migrations exist, otherwise falls back to db push so the schema is
+        # exercised even before the first migration is committed.
+        run: |
+          if [ -d prisma/migrations ] && [ "$(ls -A prisma/migrations 2>/dev/null)" ]; then
+            pnpm exec prisma migrate deploy
+          else
+            pnpm exec prisma db push --skip-generate --accept-data-loss
+          fi
+
+      - name: Seed database
+        run: pnpm db:seed
+
+      - name: Build
+        run: pnpm build
