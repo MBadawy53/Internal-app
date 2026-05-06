@@ -205,6 +205,25 @@
         "sortOrder": "Sort order",
         "isActive": "Active"
       },
+      "attributes": {
+        "title": "Product attributes",
+        "help": "Pick which attributes appear on products in this category, and which are required.",
+        "attribute": "Attribute",
+        "visible": "Visible",
+        "required": "Required",
+        "labels": {
+          "amountRange": "Loan amount range (min / max)",
+          "tenureRange": "Tenure range (months)",
+          "flatRate": "Flat interest rate",
+          "decliningRate": "Declining interest rate",
+          "adminFee": "Admin fee (% + min / max)",
+          "insurance": "Insurance",
+          "earlySettlement": "Early settlement fee",
+          "latePayment": "Late payment fee",
+          "eligibility": "Eligibility text",
+          "documents": "Required documents list"
+        }
+      },
       "deleteConfirm": "Are you sure you want to deactivate this category?",
       "empty": "No categories yet. Create one to get started."
     },

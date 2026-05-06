@@ -47,6 +47,8 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           descriptionAr: category.descriptionAr,
           sortOrder: category.sortOrder,
           isActive: category.isActive,
+          enabledAttributes: category.enabledAttributes,
+          requiredAttributes: category.requiredAttributes,
         }}
       />
     </div>

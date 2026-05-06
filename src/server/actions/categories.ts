@@ -7,6 +7,7 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
+import { isProductAttributeKey } from "@/lib/catalog/attributes";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
@@ -19,6 +20,8 @@ const CategoryInputSchema = z.object({
   descriptionAr: z.string().max(2000).optional().nullable(),
   sortOrder: z.coerce.number().int().min(0).default(0),
   isActive: z.coerce.boolean().default(true),
+  enabledAttributes: z.array(z.string()).default([]),
+  requiredAttributes: z.array(z.string()).default([]),
 });
 
 export type CategoryActionState =
@@ -26,6 +29,18 @@ export type CategoryActionState =
   | { ok: false; fieldErrors?: Record<string, string[]>; message?: string };
 
 function fromFormData(fd: FormData) {
+  // Form sends one hidden input per enabled / required attribute, all named
+  // identically. Filter to only the keys we recognise (defensive against
+  // tampered submissions).
+  const enabledAttributes = fd
+    .getAll("enabledAttributes")
+    .map((v) => v.toString())
+    .filter((s) => isProductAttributeKey(s));
+  const requiredAttributes = fd
+    .getAll("requiredAttributes")
+    .map((v) => v.toString())
+    .filter((s) => isProductAttributeKey(s) && enabledAttributes.includes(s));
+
   return {
     slug: fd.get("slug")?.toString() ?? "",
     businessLineId: fd.get("businessLineId")?.toString() ?? "",
@@ -35,6 +50,8 @@ function fromFormData(fd: FormData) {
     descriptionAr: (fd.get("descriptionAr")?.toString() ?? "") || null,
     sortOrder: fd.get("sortOrder")?.toString() ?? "0",
     isActive: fd.get("isActive") === "on" || fd.get("isActive") === "true",
+    enabledAttributes,
+    requiredAttributes,
   };
 }
 
@@ -59,6 +76,8 @@ export async function createCategoryAction(
       descriptionAr: parsed.data.descriptionAr,
       sortOrder: parsed.data.sortOrder,
       isActive: parsed.data.isActive,
+      enabledAttributes: parsed.data.enabledAttributes,
+      requiredAttributes: parsed.data.requiredAttributes,
       businessLine: { connect: { id: parsed.data.businessLineId } },
     });
     revalidatePath("/admin/categories");
@@ -96,6 +115,8 @@ export async function updateCategoryAction(
       descriptionAr: parsed.data.descriptionAr,
       sortOrder: parsed.data.sortOrder,
       isActive: parsed.data.isActive,
+      enabledAttributes: parsed.data.enabledAttributes,
+      requiredAttributes: parsed.data.requiredAttributes,
       businessLine: { connect: { id: parsed.data.businessLineId } },
       updatedById: actor.id,
     });

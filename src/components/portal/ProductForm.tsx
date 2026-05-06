@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ProductType } from "@prisma/client";
+import type { ProductAttributeKey } from "@/lib/catalog/attributes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ interface Cat {
   id: string;
   name: string;
   businessLineId: string;
+  enabledAttributes: ProductAttributeKey[];
+  requiredAttributes: ProductAttributeKey[];
 }
 interface Variable {
   nameEn: string;
@@ -94,6 +97,20 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
     [categories, businessLineId],
   );
 
+  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? "");
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.id === categoryId) ?? null,
+    [categories, categoryId],
+  );
+
+  // Helpers: is this attribute visible/required in the active category?
+  // When no category is picked yet, default to all visible (so admins can see
+  // every field while filling in basics).
+  const isVisible = (key: ProductAttributeKey): boolean =>
+    activeCategory ? activeCategory.enabledAttributes.includes(key) : true;
+  const isRequired = (key: ProductAttributeKey): boolean =>
+    activeCategory ? activeCategory.requiredAttributes.includes(key) : false;
+
   const [variables, setVariables] = useState<Variable[]>(initial?.variables ?? []);
   const [heroImageUrl, setHeroImageUrl] = useState(initial?.heroImageUrl ?? "");
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -157,7 +174,8 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             <Select
               id="categoryId"
               name="categoryId"
-              defaultValue={initial?.categoryId ?? ""}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
               required
             >
               <option value="" disabled>
@@ -252,185 +270,232 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
               rows={4}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="eligibilityEn">{tFields("eligibilityEn")}</Label>
-            <Textarea
-              id="eligibilityEn"
-              name="eligibilityEn"
-              defaultValue={initial?.eligibilityEn ?? ""}
-              rows={2}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="eligibilityAr">{tFields("eligibilityAr")}</Label>
-            <Textarea
-              id="eligibilityAr"
-              name="eligibilityAr"
-              defaultValue={initial?.eligibilityAr ?? ""}
-              dir="rtl"
-              rows={2}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="documentsEn">{tFields("documentsEn")}</Label>
-            <Input
-              id="documentsEn"
-              name="_documentsEnCsv"
-              defaultValue={(initial?.documentsEn ?? []).join(", ")}
-              onChange={(e) => {
-                // mirror into hidden multi-name fields
-                const items = e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                const form = e.currentTarget.form;
-                if (!form) return;
-                form.querySelectorAll('input[name="documentsEn"]').forEach((n) => n.remove());
-                for (const item of items) {
-                  const i = document.createElement("input");
-                  i.type = "hidden";
-                  i.name = "documentsEn";
-                  i.value = item;
-                  form.appendChild(i);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="documentsAr">{tFields("documentsAr")}</Label>
-            <Input
-              id="documentsAr"
-              name="_documentsArCsv"
-              defaultValue={(initial?.documentsAr ?? []).join(", ")}
-              dir="rtl"
-              onChange={(e) => {
-                const items = e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                const form = e.currentTarget.form;
-                if (!form) return;
-                form.querySelectorAll('input[name="documentsAr"]').forEach((n) => n.remove());
-                for (const item of items) {
-                  const i = document.createElement("input");
-                  i.type = "hidden";
-                  i.name = "documentsAr";
-                  i.value = item;
-                  form.appendChild(i);
-                }
-              }}
-            />
-          </div>
-          {/* Initial documents seeded as hidden inputs so the first submit also sends them */}
-          {(initial?.documentsEn ?? []).map((d, i) => (
-            <input key={`de-${i}`} type="hidden" name="documentsEn" value={d} />
-          ))}
-          {(initial?.documentsAr ?? []).map((d, i) => (
-            <input key={`da-${i}`} type="hidden" name="documentsAr" value={d} />
-          ))}
+          {isVisible("eligibility") ? (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="eligibilityEn">{tFields("eligibilityEn")}</Label>
+                <Textarea
+                  id="eligibilityEn"
+                  name="eligibilityEn"
+                  defaultValue={initial?.eligibilityEn ?? ""}
+                  rows={2}
+                  required={isRequired("eligibility")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="eligibilityAr">{tFields("eligibilityAr")}</Label>
+                <Textarea
+                  id="eligibilityAr"
+                  name="eligibilityAr"
+                  defaultValue={initial?.eligibilityAr ?? ""}
+                  dir="rtl"
+                  rows={2}
+                  required={isRequired("eligibility")}
+                />
+              </div>
+            </>
+          ) : null}
+          {isVisible("documents") ? (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="documentsEn">{tFields("documentsEn")}</Label>
+                <Input
+                  id="documentsEn"
+                  name="_documentsEnCsv"
+                  defaultValue={(initial?.documentsEn ?? []).join(", ")}
+                  onChange={(e) => {
+                    // mirror into hidden multi-name fields
+                    const items = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    const form = e.currentTarget.form;
+                    if (!form) return;
+                    form.querySelectorAll('input[name="documentsEn"]').forEach((n) => n.remove());
+                    for (const item of items) {
+                      const i = document.createElement("input");
+                      i.type = "hidden";
+                      i.name = "documentsEn";
+                      i.value = item;
+                      form.appendChild(i);
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="documentsAr">{tFields("documentsAr")}</Label>
+                <Input
+                  id="documentsAr"
+                  name="_documentsArCsv"
+                  defaultValue={(initial?.documentsAr ?? []).join(", ")}
+                  dir="rtl"
+                  onChange={(e) => {
+                    const items = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    const form = e.currentTarget.form;
+                    if (!form) return;
+                    form.querySelectorAll('input[name="documentsAr"]').forEach((n) => n.remove());
+                    for (const item of items) {
+                      const i = document.createElement("input");
+                      i.type = "hidden";
+                      i.name = "documentsAr";
+                      i.value = item;
+                      form.appendChild(i);
+                    }
+                  }}
+                />
+              </div>
+              {/* Initial documents seeded as hidden inputs so the first submit also sends them */}
+              {(initial?.documentsEn ?? []).map((d, i) => (
+                <input key={`de-${i}`} type="hidden" name="documentsEn" value={d} />
+              ))}
+              {(initial?.documentsAr ?? []).map((d, i) => (
+                <input key={`da-${i}`} type="hidden" name="documentsAr" value={d} />
+              ))}
+            </>
+          ) : null}
         </CardContent>
       </Card>
 
-      {/* Limits + Rates + Fees + Policy */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("limits")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <NumField
-            name="amountMinEgp"
-            label={tFields("amountMinEgp")}
-            defaultValue={initial?.amountMinEgp ?? 0}
-          />
-          <NumField
-            name="amountMaxEgp"
-            label={tFields("amountMaxEgp")}
-            defaultValue={initial?.amountMaxEgp ?? 0}
-          />
-          <NumField
-            name="tenureMinMonths"
-            label={tFields("tenureMinMonths")}
-            defaultValue={initial?.tenureMinMonths ?? 12}
-            step={1}
-          />
-          <NumField
-            name="tenureMaxMonths"
-            label={tFields("tenureMaxMonths")}
-            defaultValue={initial?.tenureMaxMonths ?? 60}
-            step={1}
-          />
-        </CardContent>
-      </Card>
+      {/* Loan limits — gated by amountRange + tenureRange */}
+      {isVisible("amountRange") || isVisible("tenureRange") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("limits")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-4">
+            {isVisible("amountRange") ? (
+              <>
+                <NumField
+                  name="amountMinEgp"
+                  label={tFields("amountMinEgp")}
+                  defaultValue={initial?.amountMinEgp ?? 0}
+                  required={isRequired("amountRange")}
+                />
+                <NumField
+                  name="amountMaxEgp"
+                  label={tFields("amountMaxEgp")}
+                  defaultValue={initial?.amountMaxEgp ?? 0}
+                  required={isRequired("amountRange")}
+                />
+              </>
+            ) : null}
+            {isVisible("tenureRange") ? (
+              <>
+                <NumField
+                  name="tenureMinMonths"
+                  label={tFields("tenureMinMonths")}
+                  defaultValue={initial?.tenureMinMonths ?? 12}
+                  step={1}
+                  required={isRequired("tenureRange")}
+                />
+                <NumField
+                  name="tenureMaxMonths"
+                  label={tFields("tenureMaxMonths")}
+                  defaultValue={initial?.tenureMaxMonths ?? 60}
+                  step={1}
+                  required={isRequired("tenureRange")}
+                />
+              </>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("rates")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <NumField
-            name="flatInterestRateBps"
-            label={tFields("flatInterestRateBps")}
-            defaultValue={initial?.flatInterestRateBps ?? 0}
-            step={1}
-            help={t("rateHelp")}
-          />
-          <NumField
-            name="decliningInterestRateBps"
-            label={tFields("decliningInterestRateBps")}
-            defaultValue={initial?.decliningInterestRateBps ?? 0}
-            step={1}
-            help={t("rateHelp")}
-          />
-        </CardContent>
-      </Card>
+      {isVisible("flatRate") || isVisible("decliningRate") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("rates")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            {isVisible("flatRate") ? (
+              <NumField
+                name="flatInterestRateBps"
+                label={tFields("flatInterestRateBps")}
+                defaultValue={initial?.flatInterestRateBps ?? 0}
+                step={1}
+                help={t("rateHelp")}
+                required={isRequired("flatRate")}
+              />
+            ) : null}
+            {isVisible("decliningRate") ? (
+              <NumField
+                name="decliningInterestRateBps"
+                label={tFields("decliningInterestRateBps")}
+                defaultValue={initial?.decliningInterestRateBps ?? 0}
+                step={1}
+                help={t("rateHelp")}
+                required={isRequired("decliningRate")}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("fees")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <NumField
-            name="adminFeeBps"
-            label={tFields("adminFeeBps")}
-            defaultValue={initial?.adminFeeBps ?? 0}
-            step={1}
-          />
-          <NumField
-            name="adminFeeMinEgp"
-            label={tFields("adminFeeMinEgp")}
-            defaultValue={initial?.adminFeeMinEgp ?? 0}
-          />
-          <NumField
-            name="adminFeeMaxEgp"
-            label={tFields("adminFeeMaxEgp")}
-            defaultValue={initial?.adminFeeMaxEgp ?? 0}
-          />
-        </CardContent>
-      </Card>
+      {isVisible("adminFee") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("fees")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            <NumField
+              name="adminFeeBps"
+              label={tFields("adminFeeBps")}
+              defaultValue={initial?.adminFeeBps ?? 0}
+              step={1}
+              required={isRequired("adminFee")}
+            />
+            <NumField
+              name="adminFeeMinEgp"
+              label={tFields("adminFeeMinEgp")}
+              defaultValue={initial?.adminFeeMinEgp ?? 0}
+              required={isRequired("adminFee")}
+            />
+            <NumField
+              name="adminFeeMaxEgp"
+              label={tFields("adminFeeMaxEgp")}
+              defaultValue={initial?.adminFeeMaxEgp ?? 0}
+              required={isRequired("adminFee")}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("policy")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <label className="flex items-center gap-2 self-end pb-2 text-sm">
-            <Checkbox name="insuranceRequired" defaultChecked={initial?.insuranceRequired} />
-            {tFields("insuranceRequired")}
-          </label>
-          <NumField
-            name="earlySettlementFeeBps"
-            label={tFields("earlySettlementFeeBps")}
-            defaultValue={initial?.earlySettlementFeeBps ?? 0}
-            step={1}
-          />
-          <NumField
-            name="latePaymentFeeBps"
-            label={tFields("latePaymentFeeBps")}
-            defaultValue={initial?.latePaymentFeeBps ?? 0}
-            step={1}
-          />
-        </CardContent>
-      </Card>
+      {isVisible("insurance") || isVisible("earlySettlement") || isVisible("latePayment") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("policy")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            {isVisible("insurance") ? (
+              <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                <Checkbox name="insuranceRequired" defaultChecked={initial?.insuranceRequired} />
+                {tFields("insuranceRequired")}
+              </label>
+            ) : null}
+            {isVisible("earlySettlement") ? (
+              <NumField
+                name="earlySettlementFeeBps"
+                label={tFields("earlySettlementFeeBps")}
+                defaultValue={initial?.earlySettlementFeeBps ?? 0}
+                step={1}
+                required={isRequired("earlySettlement")}
+              />
+            ) : null}
+            {isVisible("latePayment") ? (
+              <NumField
+                name="latePaymentFeeBps"
+                label={tFields("latePaymentFeeBps")}
+                defaultValue={initial?.latePaymentFeeBps ?? 0}
+                step={1}
+                required={isRequired("latePayment")}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Variables editor */}
       <Card>
@@ -558,22 +623,28 @@ function NumField({
   defaultValue,
   step,
   help,
+  required,
 }: {
   name: string;
   label: string;
   defaultValue: number | string;
   step?: number;
   help?: string;
+  required?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={name}>{label}</Label>
+      <Label htmlFor={name}>
+        {label}
+        {required ? <span className="ms-1 text-destructive">*</span> : null}
+      </Label>
       <Input
         id={name}
         name={name}
         type="number"
         defaultValue={defaultValue}
         step={step ?? "0.01"}
+        required={required}
       />
       {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
     </div>

@@ -6,6 +6,7 @@ import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
+import { makeAttributeConfig } from "@/lib/catalog/attributes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +31,10 @@ export default async function ProductDetailPage({ params }: Params) {
   const catName = localized(locale, product.category.nameEn, product.category.nameAr);
   const eligibility = localized(locale, product.eligibilityEn, product.eligibilityAr);
   const documents = locale === "ar" ? product.documentsAr : product.documentsEn;
+  const attrConfig = makeAttributeConfig(
+    product.category.enabledAttributes,
+    product.category.requiredAttributes,
+  );
 
   const adminFeeFormula = t("adminFeeFormula", {
     pct: formatBps(product.adminFeeBps, locale),
@@ -60,13 +65,13 @@ export default async function ProductDetailPage({ params }: Params) {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm leading-relaxed text-foreground">{longDesc}</p>
-            {eligibility ? (
+            {attrConfig.enabled.has("eligibility") && eligibility ? (
               <div>
                 <h3 className="text-sm font-semibold">{t("eligibility")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{eligibility}</p>
               </div>
             ) : null}
-            {documents.length > 0 ? (
+            {attrConfig.enabled.has("documents") && documents.length > 0 ? (
               <div>
                 <h3 className="text-sm font-semibold">{t("documents")}</h3>
                 <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
@@ -102,47 +107,65 @@ export default async function ProductDetailPage({ params }: Params) {
           </CardHeader>
           <CardContent>
             <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="text-muted-foreground">{t("amountRange")}</dt>
-                <dd className="font-medium">
-                  {formatMoney(product.amountMinPiastres, locale)} —{" "}
-                  {formatMoney(product.amountMaxPiastres, locale)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("tenureRange")}</dt>
-                <dd className="font-medium">
-                  {product.tenureMinMonths}–{product.tenureMaxMonths}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("flatRate")}</dt>
-                <dd className="font-medium">{formatBps(product.flatInterestRateBps, locale)}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("decliningRate")}</dt>
-                <dd className="font-medium">
-                  {formatBps(product.decliningInterestRateBps, locale)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("adminFee")}</dt>
-                <dd className="font-medium">{adminFeeFormula}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("insurance")}</dt>
-                <dd className="font-medium">
-                  {product.insuranceRequired ? t("insuranceRequired") : t("insuranceOptional")}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("earlySettlementFee")}</dt>
-                <dd className="font-medium">{formatBps(product.earlySettlementFeeBps, locale)}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("latePaymentFee")}</dt>
-                <dd className="font-medium">{formatBps(product.latePaymentFeeBps, locale)}</dd>
-              </div>
+              {attrConfig.enabled.has("amountRange") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("amountRange")}</dt>
+                  <dd className="font-medium">
+                    {formatMoney(product.amountMinPiastres, locale)} —{" "}
+                    {formatMoney(product.amountMaxPiastres, locale)}
+                  </dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("tenureRange") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("tenureRange")}</dt>
+                  <dd className="font-medium">
+                    {product.tenureMinMonths}–{product.tenureMaxMonths}
+                  </dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("flatRate") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("flatRate")}</dt>
+                  <dd className="font-medium">{formatBps(product.flatInterestRateBps, locale)}</dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("decliningRate") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("decliningRate")}</dt>
+                  <dd className="font-medium">
+                    {formatBps(product.decliningInterestRateBps, locale)}
+                  </dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("adminFee") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("adminFee")}</dt>
+                  <dd className="font-medium">{adminFeeFormula}</dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("insurance") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("insurance")}</dt>
+                  <dd className="font-medium">
+                    {product.insuranceRequired ? t("insuranceRequired") : t("insuranceOptional")}
+                  </dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("earlySettlement") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("earlySettlementFee")}</dt>
+                  <dd className="font-medium">
+                    {formatBps(product.earlySettlementFeeBps, locale)}
+                  </dd>
+                </div>
+              ) : null}
+              {attrConfig.enabled.has("latePayment") ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("latePaymentFee")}</dt>
+                  <dd className="font-medium">{formatBps(product.latePaymentFeeBps, locale)}</dd>
+                </div>
+              ) : null}
             </dl>
           </CardContent>
         </Card>

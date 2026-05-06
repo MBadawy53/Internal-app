@@ -46,6 +46,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           id: c.id,
           name: localized(locale, c.nameEn, c.nameAr),
           businessLineId: c.businessLineId,
+          enabledAttributes: c.enabledAttributes as never,
+          requiredAttributes: c.requiredAttributes as never,
         }))}
         productTypes={Object.values(ProductType).map((pt) => ({
           value: pt,

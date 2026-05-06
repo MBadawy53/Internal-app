@@ -189,19 +189,25 @@ model BusinessLine {
 }
 
 model ProductCategory {
-  id             String   @id @default(cuid())
-  businessLineId String
-  slug           String   @unique
-  nameEn         String
-  nameAr         String
-  descriptionEn  String?
-  descriptionAr  String?
-  sortOrder      Int      @default(0)
-  isActive       Boolean  @default(true)
-  createdById    String?
-  updatedById    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  businessLineId     String
+  slug               String   @unique
+  nameEn             String
+  nameAr             String
+  descriptionEn      String?
+  descriptionAr      String?
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  // Per-category control over which built-in product attributes show in the
+  // product form (and on the catalog detail page) and which are required.
+  // Both default to "all attributes enabled and required" — keys must come
+  // from PRODUCT_ATTRIBUTE_KEYS in src/lib/catalog/attributes.ts.
+  enabledAttributes  String[] @default(["amountRange", "tenureRange", "flatRate", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  requiredAttributes String[] @default(["amountRange", "tenureRange", "flatRate", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  createdById        String?
+  updatedById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
   products     Product[]
