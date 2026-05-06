@@ -44,11 +44,7 @@ export const productRepository = {
 
     return prisma.product.findMany({
       where,
-      include: {
-        businessLine: true,
-        category: true,
-        _count: { select: { variables: true } },
-      },
+      include: { businessLine: true, category: true },
       orderBy: [{ isFeatured: "desc" }, { nameEn: "asc" }],
     });
   },
@@ -58,22 +54,28 @@ export const productRepository = {
       where: { id },
       include: {
         businessLine: true,
-        category: true,
-        variables: { orderBy: { sortOrder: "asc" } },
+        category: {
+          include: {
+            attributeValues: {
+              include: { attribute: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        },
       },
     }),
 
   create: (data: Prisma.ProductCreateInput) =>
     prisma.product.create({
       data,
-      include: { businessLine: true, category: true, variables: true },
+      include: { businessLine: true, category: true },
     }),
 
   update: (id: string, data: Prisma.ProductUpdateInput) =>
     prisma.product.update({
       where: { id },
       data,
-      include: { businessLine: true, category: true, variables: true },
+      include: { businessLine: true, category: true },
     }),
 
   softDelete: (id: string, updatedById: string) =>

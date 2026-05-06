@@ -7,7 +7,7 @@ export const RESOURCES = [
   "catalog",
   "product",
   "productCategory",
-  "productVariable",
+  "productAttribute",
   "calculator",
   "quote",
   "lead",
@@ -43,8 +43,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:product": "all",
     "list:productCategory": "all",
     "read:productCategory": "all",
-    "list:productVariable": "all",
-    "read:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -77,8 +77,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:product": "all",
     "list:productCategory": "all",
     "read:productCategory": "all",
-    "list:productVariable": "all",
-    "read:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -120,12 +120,7 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:productCategory": "all",
     "delete:productCategory": "all",
 
-    // Variables piggyback on the product they belong to.
-    "list:productVariable": "all",
-    "read:productVariable": "all",
-    "create:productVariable": "businessLine",
-    "update:productVariable": "businessLine",
-    "delete:productVariable": "businessLine",
+    // Attributes are admin-only at create/update/delete; all roles can read.
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -166,11 +161,11 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:productCategory": "all",
     "delete:productCategory": "all",
 
-    "list:productVariable": "all",
-    "read:productVariable": "all",
-    "create:productVariable": "all",
-    "update:productVariable": "all",
-    "delete:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "create:productAttribute": "all",
+    "update:productAttribute": "all",
+    "delete:productAttribute": "all",
 
     "read:calculator": "all",
     "create:quote": "all",

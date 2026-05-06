@@ -169,7 +169,7 @@ async function main() {
       where: { businessLineId: bl.id, type: productTypeBySlug[bl.slug] },
     });
     if (!productExists) {
-      const product = await prisma.product.create({
+      await prisma.product.create({
         data: {
           businessLineId: bl.id,
           categoryId: category.id,
@@ -200,38 +200,49 @@ async function main() {
           isActive: true,
         },
       });
-
-      // Sample variables (informational attributes)
-      await prisma.productVariable.createMany({
-        data: [
-          {
-            productId: product.id,
-            sortOrder: 1,
-            nameEn: "Grace period",
-            nameAr: "فترة السماح",
-            descriptionEn: "Up to 30 days from contract date before first installment.",
-            descriptionAr: "حتى 30 يومًا من تاريخ التعاقد قبل أول قسط.",
-          },
-          {
-            productId: product.id,
-            sortOrder: 2,
-            nameEn: "Co-borrower",
-            nameAr: "شريك في الاقتراض",
-            descriptionEn: "Optional. Adds to combined income calculation.",
-            descriptionAr: "اختياري. يُضاف إلى احتساب الدخل المشترك.",
-          },
-          {
-            productId: product.id,
-            sortOrder: 3,
-            nameEn: "Disbursement",
-            nameAr: "الصرف",
-            descriptionEn: "Direct bank transfer within 3 business days of approval.",
-            descriptionAr: "تحويل بنكي مباشر خلال 3 أيام عمل من الموافقة.",
-          },
-        ],
-      });
     }
   }
+
+  // ── Sample admin-defined attributes ────────────────────────────────────────
+  const seedAttrs: Array<{
+    key: string;
+    nameEn: string;
+    nameAr: string;
+    type: "TEXT" | "NUMBER" | "BOOLEAN";
+  }> = [
+    {
+      key: "grace-period",
+      nameEn: "Grace period (days)",
+      nameAr: "فترة السماح (يوم)",
+      type: "NUMBER",
+    },
+    {
+      key: "co-borrower",
+      nameEn: "Co-borrower allowed",
+      nameAr: "السماح بشريك في الاقتراض",
+      type: "BOOLEAN",
+    },
+    {
+      key: "disbursement-days",
+      nameEn: "Disbursement (business days)",
+      nameAr: "مدة الصرف (يوم عمل)",
+      type: "NUMBER",
+    },
+  ];
+  for (const a of seedAttrs) {
+    await prisma.attribute.upsert({
+      where: { key: a.key },
+      update: {},
+      create: {
+        key: a.key,
+        nameEn: a.nameEn,
+        nameAr: a.nameAr,
+        type: a.type,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`  ✓ ${seedAttrs.length} admin attributes`);
   console.log(`  ✓ ${userCount}+ users (1 admin, 8 owners, 8 managers, 16 employees)`);
 
   // ── One unactivated employee so the first-login flow can be demoed ──────────

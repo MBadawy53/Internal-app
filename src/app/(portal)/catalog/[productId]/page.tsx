@@ -7,6 +7,7 @@ import { localized } from "@/lib/i18n/localized";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
 import { makeAttributeConfig } from "@/lib/catalog/attributes";
+import { formatAttributeValue } from "@/lib/catalog/attribute-values";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -81,17 +82,17 @@ export default async function ProductDetailPage({ params }: Params) {
                 </ul>
               </div>
             ) : null}
-            {product.variables.length > 0 ? (
+            {product.category.attributeValues.length > 0 ? (
               <div>
                 <h3 className="text-sm font-semibold">{t("variables")}</h3>
                 <dl className="mt-2 grid gap-3 sm:grid-cols-2">
-                  {product.variables.map((v) => (
-                    <div key={v.id} className="rounded-md border bg-secondary/40 p-3">
+                  {product.category.attributeValues.map((av) => (
+                    <div key={av.id} className="rounded-md border bg-secondary/40 p-3">
                       <dt className="text-sm font-medium">
-                        {localized(locale, v.nameEn, v.nameAr)}
+                        {localized(locale, av.attribute.nameEn, av.attribute.nameAr)}
                       </dt>
                       <dd className="mt-1 text-xs text-muted-foreground">
-                        {localized(locale, v.descriptionEn, v.descriptionAr)}
+                        {formatAttributeValue(av.attribute, av.value, locale)}
                       </dd>
                     </div>
                   ))}

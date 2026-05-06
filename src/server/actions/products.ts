@@ -9,15 +9,7 @@ import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { productRepository } from "@/server/repositories/product.repository";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
-import { productVariableRepository } from "@/server/repositories/productVariable.repository";
 import { makeAttributeConfig, type ProductAttributeKey } from "@/lib/catalog/attributes";
-
-const VariableSchema = z.object({
-  nameEn: z.string().min(1).max(120),
-  nameAr: z.string().min(1).max(120),
-  descriptionEn: z.string().max(2000).optional().nullable(),
-  descriptionAr: z.string().max(2000).optional().nullable(),
-});
 
 const ProductInputSchema = z
   .object({
@@ -55,8 +47,6 @@ const ProductInputSchema = z
     heroImageUrl: z.string().max(500).optional().nullable(),
     isFeatured: z.coerce.boolean().default(false),
     isActive: z.coerce.boolean().default(true),
-
-    variables: z.array(VariableSchema).default([]),
   })
   .refine((d) => d.amountMinEgp <= d.amountMaxEgp, {
     path: ["amountMaxEgp"],
@@ -84,26 +74,6 @@ function fromFormData(fd: FormData) {
     .getAll("documentsAr")
     .map((v) => v.toString())
     .filter(Boolean);
-
-  // Variables come as repeated fields: variables[i].nameEn, .nameAr, .descriptionEn, .descriptionAr
-  const varCount = Number(fd.get("variableCount") ?? 0);
-  const variables: Array<{
-    nameEn: string;
-    nameAr: string;
-    descriptionEn: string | null;
-    descriptionAr: string | null;
-  }> = [];
-  for (let i = 0; i < varCount; i++) {
-    const nameEn = fd.get(`variables[${i}].nameEn`)?.toString() ?? "";
-    const nameAr = fd.get(`variables[${i}].nameAr`)?.toString() ?? "";
-    if (!nameEn || !nameAr) continue;
-    variables.push({
-      nameEn,
-      nameAr,
-      descriptionEn: fd.get(`variables[${i}].descriptionEn`)?.toString() || "" || null,
-      descriptionAr: fd.get(`variables[${i}].descriptionAr`)?.toString() || "" || null,
-    });
-  }
 
   return {
     businessLineId: fd.get("businessLineId")?.toString() ?? "",
@@ -135,7 +105,6 @@ function fromFormData(fd: FormData) {
     heroImageUrl: fd.get("heroImageUrl")?.toString() || "" || null,
     isFeatured: fd.get("isFeatured") === "on" || fd.get("isFeatured") === "true",
     isActive: fd.get("isActive") === "on" || fd.get("isActive") === "true",
-    variables,
   };
 }
 
@@ -191,20 +160,6 @@ export async function createProductAction(
       category: { connect: { id: d.categoryId } },
       createdBy: { connect: { id: actor.id } },
       updatedBy: { connect: { id: actor.id } },
-      // Variables are only saved if the actor is allowed to edit catalog taxonomy.
-      ...(canEditVariables(actor)
-        ? {
-            variables: {
-              create: d.variables.map((v, idx) => ({
-                nameEn: v.nameEn,
-                nameAr: v.nameAr,
-                descriptionEn: v.descriptionEn,
-                descriptionAr: v.descriptionAr,
-                sortOrder: idx,
-              })),
-            },
-          }
-        : {}),
     });
     revalidatePath("/admin/products");
     revalidatePath("/catalog");
@@ -214,11 +169,6 @@ export async function createProductAction(
     logger.error({ err }, "product.create_failed");
     throw err;
   }
-}
-
-function canEditVariables(actor: { role: string; canEditCatalog: boolean }): boolean {
-  // Admin and BL Owner have catalog rights via role; flag is the per-user override.
-  return actor.role === "ADMIN" || actor.role === "BUSINESS_LINE_OWNER" || actor.canEditCatalog;
 }
 
 export async function updateProductAction(
@@ -270,18 +220,6 @@ export async function updateProductAction(
       category: { connect: { id: d.categoryId } },
       updatedBy: { connect: { id: actor.id } },
     });
-    if (canEditVariables(actor)) {
-      await productVariableRepository.replaceAll(
-        id,
-        d.variables.map((v, idx) => ({
-          nameEn: v.nameEn,
-          nameAr: v.nameAr,
-          descriptionEn: v.descriptionEn,
-          descriptionAr: v.descriptionAr,
-          sortOrder: idx,
-        })),
-      );
-    }
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}`);
     revalidatePath("/catalog");

@@ -4,8 +4,10 @@ import { Role } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
 import { requireActor } from "@/lib/auth/session";
 import { catalogService } from "@/server/services/catalog.service";
+import { attributeRepository } from "@/server/repositories/attribute.repository";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
+import type { AttributeOptionsJson } from "@/lib/catalog/attribute-values";
 import { CategoryForm } from "@/components/portal/CategoryForm";
 
 export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +26,23 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("admin.categories");
-  const businessLines = await catalogService.listBusinessLines(actor);
+  const [businessLines, attributes] = await Promise.all([
+    catalogService.listBusinessLines(actor),
+    attributeRepository.listActive(),
+  ]);
+
+  // Existing attribute values: stringify so the form can render them in inputs.
+  const attributeValues = (category.attributeValues ?? []).map((av) => ({
+    attributeId: av.attributeId,
+    value:
+      typeof av.value === "string"
+        ? av.value
+        : typeof av.value === "number"
+          ? av.value.toString()
+          : typeof av.value === "boolean"
+            ? av.value.toString()
+            : "",
+  }));
 
   return (
     <div className="space-y-6">
@@ -36,6 +54,14 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
         businessLines={businessLines.map((b) => ({
           id: b.id,
           name: localized(locale, b.nameEn, b.nameAr),
+        }))}
+        availableAttributes={attributes.map((a) => ({
+          id: a.id,
+          key: a.key,
+          nameEn: a.nameEn,
+          nameAr: a.nameAr,
+          type: a.type,
+          options: (a.options as AttributeOptionsJson | null)?.options,
         }))}
         initial={{
           id: category.id,
@@ -49,6 +75,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           isActive: category.isActive,
           enabledAttributes: category.enabledAttributes,
           requiredAttributes: category.requiredAttributes,
+          attributeValues,
         }}
       />
     </div>

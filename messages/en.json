@@ -224,8 +224,46 @@
           "documents": "Required documents list"
         }
       },
+      "customAttributes": {
+        "title": "Custom attributes for this category",
+        "help": "Pick attributes from the global registry and set their values. These appear on every product in this category.",
+        "noneDefined": "No attributes have been defined yet. Visit Admin → Attributes to create the first one.",
+        "notSelected": "Not included in this category."
+      },
       "deleteConfirm": "Are you sure you want to deactivate this category?",
       "empty": "No categories yet. Create one to get started."
+    },
+    "attributes": {
+      "title": "Attributes",
+      "subtitle": "Global registry of custom product attributes. Categories pick which to apply and set values.",
+      "new": "New attribute",
+      "edit": "Edit attribute",
+      "empty": "No attributes yet. Create one to get started.",
+      "fields": {
+        "key": "Key",
+        "keyHelp": "Stable kebab-case identifier (e.g. \"vehicle-make\"). Used internally; cannot be a duplicate.",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "helpEn": "Help text (English)",
+        "helpAr": "Help text (Arabic)",
+        "type": "Type",
+        "sortOrder": "Sort order",
+        "isActive": "Active",
+        "optionsTitle": "SELECT options",
+        "optionsHelp": "List the choices a category can pick for this attribute.",
+        "optionsEmpty": "No options yet. Add at least one.",
+        "optionValue": "Value",
+        "optionLabelEn": "Label (English)",
+        "optionLabelAr": "Label (Arabic)",
+        "optionAdd": "Add option",
+        "optionRemove": "Remove"
+      },
+      "types": {
+        "TEXT": "Text",
+        "NUMBER": "Number",
+        "BOOLEAN": "Yes / No",
+        "SELECT": "Select"
+      }
     },
     "users": {
       "title": "Users",

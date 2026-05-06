@@ -33,9 +33,6 @@ const CATALOG_FLAG_GRANTS = new Set<`${Action}:${Resource}`>([
   "create:productCategory",
   "update:productCategory",
   "delete:productCategory",
-  "create:productVariable",
-  "update:productVariable",
-  "delete:productVariable",
 ]);
 
 /**

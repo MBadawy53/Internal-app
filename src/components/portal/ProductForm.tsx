@@ -29,12 +29,6 @@ interface Cat {
   enabledAttributes: ProductAttributeKey[];
   requiredAttributes: ProductAttributeKey[];
 }
-interface Variable {
-  nameEn: string;
-  nameAr: string;
-  descriptionEn?: string | null;
-  descriptionAr?: string | null;
-}
 
 interface InitialProduct {
   id?: string;
@@ -66,7 +60,6 @@ interface InitialProduct {
   heroImageUrl?: string | null;
   isFeatured?: boolean;
   isActive?: boolean;
-  variables?: Variable[];
 }
 
 interface Props {
@@ -80,7 +73,6 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
   const t = useTranslations("admin.products");
   const tFields = useTranslations("admin.products.fields");
   const tSect = useTranslations("admin.products.sections");
-  const tVars = useTranslations("admin.products.variables");
   const tCommon = useTranslations("common");
 
   const action = initial?.id ? updateProductAction.bind(null, initial.id) : createProductAction;
@@ -111,7 +103,6 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
   const isRequired = (key: ProductAttributeKey): boolean =>
     activeCategory ? activeCategory.requiredAttributes.includes(key) : false;
 
-  const [variables, setVariables] = useState<Variable[]>(initial?.variables ?? []);
   const [heroImageUrl, setHeroImageUrl] = useState(initial?.heroImageUrl ?? "");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -496,70 +487,6 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
           </CardContent>
         </Card>
       ) : null}
-
-      {/* Variables editor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("variables")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <input type="hidden" name="variableCount" value={variables.length} />
-          {variables.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tVars("empty")}</p>
-          ) : null}
-          {variables.map((v, i) => (
-            <div key={i} className="grid gap-3 rounded-md border p-3 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>{tVars("nameEn")}</Label>
-                <Input name={`variables[${i}].nameEn`} defaultValue={v.nameEn} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{tVars("nameAr")}</Label>
-                <Input name={`variables[${i}].nameAr`} defaultValue={v.nameAr} dir="rtl" required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{tVars("descriptionEn")}</Label>
-                <Textarea
-                  name={`variables[${i}].descriptionEn`}
-                  defaultValue={v.descriptionEn ?? ""}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{tVars("descriptionAr")}</Label>
-                <Textarea
-                  name={`variables[${i}].descriptionAr`}
-                  defaultValue={v.descriptionAr ?? ""}
-                  dir="rtl"
-                  rows={2}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setVariables(variables.filter((_, idx) => idx !== i))}
-                >
-                  {tVars("removeRow")}
-                </Button>
-              </div>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              setVariables([
-                ...variables,
-                { nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "" },
-              ])
-            }
-          >
-            {tVars("addRow")}
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Media */}
       <Card>

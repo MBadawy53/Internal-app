@@ -92,7 +92,7 @@ describe("requirePermission", () => {
     };
     expect(requirePermission(actor, "create", "productCategory")).toBe("all");
     expect(requirePermission(actor, "update", "productCategory")).toBe("all");
-    expect(requirePermission(actor, "create", "productVariable")).toBe("all");
+    expect(requirePermission(actor, "delete", "productCategory")).toBe("all");
     // But the flag does NOT grant product CRUD.
     expect(() => requirePermission(actor, "create", "product")).toThrow(ForbiddenError);
   });

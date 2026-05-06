@@ -14,14 +14,31 @@ import {
   type CategoryActionState,
 } from "@/server/actions/categories";
 import { PRODUCT_ATTRIBUTE_KEYS, type ProductAttributeKey } from "@/lib/catalog/attributes";
+import { AttributeType } from "@prisma/client";
+import type { AttributeSelectOption } from "@/lib/catalog/attribute-values";
 
 interface BL {
   id: string;
   name: string;
 }
 
+export interface AttributeOption {
+  id: string;
+  key: string;
+  nameEn: string;
+  nameAr: string;
+  type: AttributeType;
+  options?: AttributeSelectOption[];
+}
+
+export interface AttributeValueRow {
+  attributeId: string;
+  value: string; // serialized form value (number/bool/string-of-value)
+}
+
 interface Props {
   businessLines: BL[];
+  availableAttributes: AttributeOption[];
   initial?: {
     id?: string;
     slug?: string;
@@ -34,13 +51,15 @@ interface Props {
     isActive?: boolean;
     enabledAttributes?: string[];
     requiredAttributes?: string[];
+    attributeValues?: AttributeValueRow[];
   };
 }
 
-export function CategoryForm({ businessLines, initial }: Props) {
+export function CategoryForm({ businessLines, availableAttributes, initial }: Props) {
   const tFields = useTranslations("admin.categories.fields");
   const tCommon = useTranslations("common");
   const tAttrs = useTranslations("admin.categories.attributes");
+  const tCustom = useTranslations("admin.categories.customAttributes");
 
   const action = initial?.id ? updateCategoryAction.bind(null, initial.id) : createCategoryAction;
 
@@ -60,6 +79,35 @@ export function CategoryForm({ businessLines, initial }: Props) {
 
   const [enabled, setEnabled] = useState<Set<ProductAttributeKey>>(initialEnabled);
   const [required, setRequired] = useState<Set<ProductAttributeKey>>(initialRequired);
+
+  // Custom attributes picked + their values (one row per picked attribute).
+  const [picked, setPicked] = useState<Array<{ attributeId: string; value: string }>>(
+    initial?.attributeValues ?? [],
+  );
+
+  const attrById = (id: string) => availableAttributes.find((a) => a.id === id) ?? null;
+
+  const togglePicked = (id: string) => {
+    setPicked((prev) => {
+      if (prev.some((p) => p.attributeId === id)) {
+        return prev.filter((p) => p.attributeId !== id);
+      }
+      const attr = attrById(id);
+      const defaultValue =
+        attr?.type === AttributeType.BOOLEAN
+          ? "false"
+          : attr?.type === AttributeType.SELECT
+            ? (attr.options?.[0]?.value ?? "")
+            : "";
+      return [...prev, { attributeId: id, value: defaultValue }];
+    });
+  };
+
+  const updateValue = (id: string, value: string) => {
+    setPicked((prev) => prev.map((p) => (p.attributeId === id ? { ...p, value } : p)));
+  };
+
+  const isPicked = (id: string) => picked.some((p) => p.attributeId === id);
 
   const toggleEnabled = (key: ProductAttributeKey) => {
     setEnabled((prev) => {
@@ -210,6 +258,95 @@ export function CategoryForm({ businessLines, initial }: Props) {
             </tbody>
           </table>
         </div>
+      </fieldset>
+
+      {/* Custom attributes picked from the global registry, with values set per-category */}
+      <fieldset className="rounded-md border p-4">
+        <legend className="px-1 text-sm font-medium">{tCustom("title")}</legend>
+        <p className="mb-3 text-xs text-muted-foreground">{tCustom("help")}</p>
+
+        {availableAttributes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{tCustom("noneDefined")}</p>
+        ) : (
+          <div className="space-y-3">
+            {availableAttributes.map((attr) => {
+              const checked = isPicked(attr.id);
+              const row = picked.find((p) => p.attributeId === attr.id);
+              const value = row?.value ?? "";
+              return (
+                <div
+                  key={attr.id}
+                  className="grid items-start gap-3 rounded-md border p-3 md:grid-cols-[24px_1fr_1.5fr]"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onChange={() => togglePicked(attr.id)}
+                    aria-label={attr.nameEn}
+                  />
+                  <div>
+                    <p className="text-sm font-medium">{attr.nameEn}</p>
+                    <p className="text-xs text-muted-foreground">{attr.nameAr}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {attr.type}
+                    </p>
+                  </div>
+                  <div className={checked ? "" : "opacity-40"}>
+                    {checked ? (
+                      <>
+                        <input type="hidden" name="attributeId" value={attr.id} />
+                        {attr.type === AttributeType.TEXT ? (
+                          <Input
+                            name="attributeValue"
+                            value={value}
+                            onChange={(e) => updateValue(attr.id, e.target.value)}
+                            required
+                          />
+                        ) : null}
+                        {attr.type === AttributeType.NUMBER ? (
+                          <Input
+                            type="number"
+                            name="attributeValue"
+                            value={value}
+                            onChange={(e) => updateValue(attr.id, e.target.value)}
+                            required
+                          />
+                        ) : null}
+                        {attr.type === AttributeType.BOOLEAN ? (
+                          <Select
+                            name="attributeValue"
+                            value={value || "false"}
+                            onChange={(e) => updateValue(attr.id, e.target.value)}
+                          >
+                            <option value="true">{tCommon("yes")}</option>
+                            <option value="false">{tCommon("no")}</option>
+                          </Select>
+                        ) : null}
+                        {attr.type === AttributeType.SELECT ? (
+                          <Select
+                            name="attributeValue"
+                            value={value}
+                            onChange={(e) => updateValue(attr.id, e.target.value)}
+                            required
+                          >
+                            {(attr.options ?? []).map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.labelEn}
+                              </option>
+                            ))}
+                          </Select>
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        {tCustom("notSelected")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </fieldset>
 
       <div className="flex gap-2">

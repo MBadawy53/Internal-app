@@ -50,6 +50,17 @@ export default async function AdminPage() {
           </Link>
         ) : null}
         {isAdmin ? (
+          <Link href="/admin/attributes" className="block">
+            <Card className="transition-shadow hover:shadow-md">
+              <CardHeader>
+                <CardTitle>{t("admin.attributes.title")}</CardTitle>
+                <CardDescription>{t("admin.attributes.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent />
+            </Card>
+          </Link>
+        ) : null}
+        {isAdmin ? (
           <Link href="/admin/users" className="block">
             <Card className="transition-shadow hover:shadow-md">
               <CardHeader>

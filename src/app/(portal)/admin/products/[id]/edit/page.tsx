@@ -83,12 +83,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           heroImageUrl: product.heroImageUrl,
           isFeatured: product.isFeatured,
           isActive: product.isActive,
-          variables: product.variables.map((v) => ({
-            nameEn: v.nameEn,
-            nameAr: v.nameAr,
-            descriptionEn: v.descriptionEn,
-            descriptionAr: v.descriptionAr,
-          })),
         }}
       />
     </div>

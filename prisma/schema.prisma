@@ -112,6 +112,13 @@ enum SyncJobStatus {
   FAILED
 }
 
+enum AttributeType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  SELECT
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Identity & Org
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,8 +216,9 @@ model ProductCategory {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
-  products     Product[]
+  businessLine    BusinessLine             @relation(fields: [businessLineId], references: [id])
+  products        Product[]
+  attributeValues CategoryAttributeValue[]
 
   @@index([businessLineId])
   @@map("product_categories")
@@ -267,11 +275,10 @@ model Product {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  businessLine BusinessLine      @relation(fields: [businessLineId], references: [id])
-  category     ProductCategory   @relation(fields: [categoryId], references: [id])
-  createdBy    User?             @relation("ProductCreatedBy", fields: [createdById], references: [id])
-  updatedBy    User?             @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
-  variables    ProductVariable[]
+  businessLine BusinessLine    @relation(fields: [businessLineId], references: [id])
+  category     ProductCategory @relation(fields: [categoryId], references: [id])
+  createdBy    User?           @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?           @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
   leads        Lead[]
   quotes       Quote[]
   campaigns    QrCampaign[]
@@ -283,21 +290,48 @@ model Product {
   @@map("products")
 }
 
-model ProductVariable {
-  id            String   @id @default(cuid())
-  productId     String
-  nameEn        String
-  nameAr        String
-  descriptionEn String?
-  descriptionAr String?
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Admin-defined attribute registry. Categories pick which attributes apply
+// (and provide values once per category — values are NOT per-product).
+model Attribute {
+  id        String        @id @default(cuid())
+  key       String        @unique // stable kebab-case slug
+  nameEn    String
+  nameAr    String
+  helpEn    String?
+  helpAr    String?
+  type      AttributeType
+  // For type = SELECT: JSON array of { value: string, labelEn: string, labelAr: string }.
+  options   Json?
+  isActive  Boolean       @default(true)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryValues CategoryAttributeValue[]
 
-  @@index([productId])
-  @@map("product_variables")
+  @@map("attributes")
+}
+
+// One row per (category, attribute) — the attribute is enabled for the
+// category and its single value lives here. Removing the row removes the
+// attribute from the category.
+model CategoryAttributeValue {
+  id          String   @id @default(cuid())
+  categoryId  String
+  attributeId String
+  // Stored as JSON: string for TEXT/SELECT, number for NUMBER, boolean for BOOLEAN.
+  value       Json
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category  ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attribute Attribute       @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, attributeId])
+  @@index([categoryId])
+  @@index([attributeId])
+  @@map("category_attribute_values")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
