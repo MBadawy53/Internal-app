@@ -251,6 +251,40 @@ async function main() {
   });
   console.log(`  ✓ Demo first-login employee: ${unactivatedGid} (no password yet)`);
 
+  // ── Bulk: unactivated test employees C5000C–C5500C for onboarding QA ────────
+  // 501 IDs, distributed round-robin across business lines, no password yet so
+  // each one can be used to walk through the /onboard flow once.
+  const TEST_RANGE_START = 5000;
+  const TEST_RANGE_END = 5500;
+  const testUsers: Array<{
+    groupId: string;
+    role: Role;
+    businessLineId: string;
+    referralCode: string;
+    mustCompleteProfile: boolean;
+    isActive: boolean;
+  }> = [];
+  for (let i = TEST_RANGE_START; i <= TEST_RANGE_END; i++) {
+    const gid = `C${i.toString().padStart(4, "0")}C`;
+    const bl = allBLs[(i - TEST_RANGE_START) % allBLs.length]!;
+    testUsers.push({
+      groupId: gid,
+      role: Role.EMPLOYEE,
+      businessLineId: bl.id,
+      // Deterministic referral code so re-running the seed never collides.
+      referralCode: `EM-T${i.toString().padStart(4, "0")}`,
+      mustCompleteProfile: true,
+      isActive: true,
+    });
+  }
+  const bulkResult = await prisma.user.createMany({
+    data: testUsers,
+    skipDuplicates: true,
+  });
+  console.log(
+    `  ✓ Bulk test employees C5000C–C5500C: ${bulkResult.count} created (${testUsers.length - bulkResult.count} already existed)`,
+  );
+
   console.log("  ✓ Sample products seeded for each business line");
 
   // ── A handful of leads in different statuses ────────────────────────────────
