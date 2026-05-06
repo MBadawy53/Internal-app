@@ -12,6 +12,7 @@ export default async function AdminPage() {
   }
 
   const t = await getTranslations();
+  const isAdmin = session.user.role === Role.ADMIN;
 
   return (
     <div className="space-y-6">
@@ -20,7 +21,7 @@ export default async function AdminPage() {
         <div className="brand-underline mt-2 w-16" />
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link href="/admin/categories" className="block">
           <Card className="transition-shadow hover:shadow-md">
             <CardHeader>
@@ -39,6 +40,17 @@ export default async function AdminPage() {
             <CardContent />
           </Card>
         </Link>
+        {isAdmin ? (
+          <Link href="/admin/users" className="block">
+            <Card className="transition-shadow hover:shadow-md">
+              <CardHeader>
+                <CardTitle>{t("admin.users.title")}</CardTitle>
+                <CardDescription>{t("admin.users.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent />
+            </Card>
+          </Link>
+        ) : null}
       </div>
     </div>
   );

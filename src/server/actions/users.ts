@@ -1,0 +1,87 @@
+"use server";
+
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { Role } from "@prisma/client";
+import { randomBytes } from "node:crypto";
+import { GROUP_ID_REGEX } from "@/lib/auth/config";
+import { requirePermission } from "@/lib/auth/permissions";
+import { requireActor } from "@/lib/auth/session";
+import { logger } from "@/lib/logger";
+import { userAdminRepository } from "@/server/repositories/userAdmin.repository";
+
+const ProvisionSchema = z.object({
+  groupId: z.string().regex(GROUP_ID_REGEX, "Group ID must match C0001C–C9999C"),
+  role: z.nativeEnum(Role),
+  businessLineId: z.string().min(1).optional().nullable(),
+  managerId: z.string().min(1).optional().nullable(),
+});
+
+export type ProvisionUserState =
+  | { ok: true; id: string }
+  | { ok: false; fieldErrors?: Record<string, string[]>; message?: string };
+
+function makeReferralCode(prefix = "EM"): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (const b of randomBytes(6)) out += alphabet[b % alphabet.length];
+  return `${prefix}-${out}`;
+}
+
+export async function provisionUserAction(
+  _prev: ProvisionUserState | null,
+  formData: FormData,
+): Promise<ProvisionUserState> {
+  const actor = await requireActor();
+  requirePermission(actor, "create", "user");
+
+  const parsed = ProvisionSchema.safeParse({
+    groupId: formData.get("groupId")?.toString().toUpperCase().trim() ?? "",
+    role: formData.get("role"),
+    businessLineId: formData.get("businessLineId")?.toString() || null,
+    managerId: formData.get("managerId")?.toString() || null,
+  });
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+  const { groupId, role, businessLineId, managerId } = parsed.data;
+
+  const existing = await userAdminRepository.findByGroupId(groupId);
+  if (existing) {
+    return { ok: false, fieldErrors: { groupId: ["Group ID is already in use"] } };
+  }
+
+  try {
+    const created = await userAdminRepository.provision({
+      groupId,
+      role,
+      businessLineId: businessLineId ?? null,
+      managerId: managerId ?? null,
+      referralCode: makeReferralCode(),
+    });
+    revalidatePath("/admin/users");
+    redirect("/admin/users");
+    return { ok: true, id: created.id };
+  } catch (err) {
+    logger.error({ err, groupId }, "user.provision_failed");
+    if ((err as { code?: string }).code === "P2002") {
+      return { ok: false, fieldErrors: { groupId: ["Group ID is already in use"] } };
+    }
+    throw err;
+  }
+}
+
+export async function deactivateUserAction(id: string): Promise<void> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "user");
+  await userAdminRepository.setActive(id, false);
+  revalidatePath("/admin/users");
+}
+
+export async function reactivateUserAction(id: string): Promise<void> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "user");
+  await userAdminRepository.setActive(id, true);
+  revalidatePath("/admin/users");
+}

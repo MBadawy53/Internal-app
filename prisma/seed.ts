@@ -19,6 +19,10 @@ async function hash(password: string): Promise<string> {
   return argon2.hash(password, { type: argon2.argon2id });
 }
 
+function groupId(n: number): string {
+  return `C${n.toString().padStart(4, "0")}C`;
+}
+
 const businessLines = [
   { slug: "auto-loan", nameEn: "Auto Loan", nameAr: "تمويل السيارات", icon: "car" },
   { slug: "insurance", nameEn: "Insurance", nameAr: "التأمين", icon: "shield" },
@@ -60,7 +64,7 @@ async function main() {
   const allBLs = await prisma.businessLine.findMany();
   console.log(`  ✓ ${allBLs.length} business lines`);
 
-  // ── Admin ───────────────────────────────────────────────────────────────────
+  // ── Admin (break-glass: email-only login, no group ID) ─────────────────────
   const adminPasswordHash = await hash(ADMIN_PASSWORD);
   const admin = await prisma.user.upsert({
     where: { email: ADMIN_EMAIL },
@@ -72,58 +76,73 @@ async function main() {
       nameAr: "مسؤول النظام",
       role: Role.ADMIN,
       referralCode: makeReferralCode("AD"),
+      mustCompleteProfile: false,
       isActive: true,
     },
   });
   console.log(`  ✓ Admin: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
 
-  // ── Per-BL: 1 owner + 1 manager + 2 employees ───────────────────────────────
+  // ── Per-BL: 1 owner + 1 manager + 2 employees, with group IDs ─────────────
+  // Group IDs are assigned sequentially starting at C0001C.
   const sharedPasswordHash = await hash("Welcome!2026");
   let userCount = 1;
+  let groupSeq = 1;
 
   for (const bl of allBLs) {
+    const ownerGid = groupId(groupSeq++);
     const owner = await prisma.user.upsert({
-      where: { email: `owner.${bl.slug}@contact.local` },
+      where: { groupId: ownerGid },
       update: {},
       create: {
+        groupId: ownerGid,
         email: `owner.${bl.slug}@contact.local`,
         passwordHash: sharedPasswordHash,
         nameEn: `${bl.nameEn} Owner`,
         nameAr: `مسؤول ${bl.nameAr}`,
+        phone: `+20100000${groupSeq.toString().padStart(4, "0")}`,
         role: Role.BUSINESS_LINE_OWNER,
         businessLineId: bl.id,
         referralCode: makeReferralCode("OW"),
+        mustCompleteProfile: false,
       },
     });
 
+    const managerGid = groupId(groupSeq++);
     const manager = await prisma.user.upsert({
-      where: { email: `manager.${bl.slug}@contact.local` },
+      where: { groupId: managerGid },
       update: {},
       create: {
+        groupId: managerGid,
         email: `manager.${bl.slug}@contact.local`,
         passwordHash: sharedPasswordHash,
         nameEn: `${bl.nameEn} Manager`,
         nameAr: `مدير ${bl.nameAr}`,
+        phone: `+20100000${groupSeq.toString().padStart(4, "0")}`,
         role: Role.TEAM_MANAGER,
         businessLineId: bl.id,
         managerId: owner.id,
         referralCode: makeReferralCode("MG"),
+        mustCompleteProfile: false,
       },
     });
 
     for (let i = 1; i <= 2; i++) {
+      const empGid = groupId(groupSeq++);
       await prisma.user.upsert({
-        where: { email: `emp${i}.${bl.slug}@contact.local` },
+        where: { groupId: empGid },
         update: {},
         create: {
+          groupId: empGid,
           email: `emp${i}.${bl.slug}@contact.local`,
           passwordHash: sharedPasswordHash,
           nameEn: `${bl.nameEn} Employee ${i}`,
           nameAr: `موظف ${bl.nameAr} ${i}`,
+          phone: `+20100000${groupSeq.toString().padStart(4, "0")}`,
           role: Role.EMPLOYEE,
           businessLineId: bl.id,
           managerId: manager.id,
           referralCode: makeReferralCode("EM"),
+          mustCompleteProfile: false,
         },
       });
       userCount++;
@@ -214,6 +233,24 @@ async function main() {
     }
   }
   console.log(`  ✓ ${userCount}+ users (1 admin, 8 owners, 8 managers, 16 employees)`);
+
+  // ── One unactivated employee so the first-login flow can be demoed ──────────
+  const unactivatedGid = groupId(groupSeq++);
+  const firstBL = allBLs[0]!;
+  await prisma.user.upsert({
+    where: { groupId: unactivatedGid },
+    update: {},
+    create: {
+      groupId: unactivatedGid,
+      role: Role.EMPLOYEE,
+      businessLineId: firstBL.id,
+      referralCode: makeReferralCode("NW"),
+      mustCompleteProfile: true,
+      // No email / password / name / phone — collected on first login.
+    },
+  });
+  console.log(`  ✓ Demo first-login employee: ${unactivatedGid} (no password yet)`);
+
   console.log("  ✓ Sample products seeded for each business line");
 
   // ── A handful of leads in different statuses ────────────────────────────────

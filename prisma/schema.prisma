@@ -120,23 +120,29 @@ enum SyncJobStatus {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  passwordHash   String
-  nameEn         String
-  nameAr         String
-  phone          String?
-  photoUrl       String?
-  role           Role      @default(EMPLOYEE)
-  locale         Locale    @default(EN)
-  businessLineId String?
-  managerId      String?
-  referralCode   String    @unique
-  shareConsent   Boolean   @default(false)
-  isActive       Boolean   @default(true)
-  lastLoginAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  // Group ID — primary login identifier for employees.
+  // Format: C0001C through C9999C. Nullable only for the seeded break-glass admin.
+  groupId             String?   @unique
+  email               String?   @unique
+  // NULL until the user completes the first-login profile flow.
+  passwordHash        String?
+  nameEn              String?
+  nameAr              String?
+  phone               String?   @unique
+  photoUrl            String?
+  role                Role      @default(EMPLOYEE)
+  locale              Locale    @default(EN)
+  businessLineId      String?
+  managerId           String?
+  referralCode        String    @unique
+  shareConsent        Boolean   @default(false)
+  isActive            Boolean   @default(true)
+  // True until the user submits the first-login profile completion form.
+  mustCompleteProfile Boolean   @default(true)
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   businessLine BusinessLine? @relation(fields: [businessLineId], references: [id])
   manager      User?         @relation("UserManager", fields: [managerId], references: [id])
