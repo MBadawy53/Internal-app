@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useEffect } from "react";
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,27 +12,39 @@ import { loginAction, type LoginActionState } from "@/server/actions/auth";
 
 export function LoginForm({ from }: { from?: string }) {
   const t = useTranslations("auth.login");
+  const router = useRouter();
   const [state, formAction, pending] = useActionState<LoginActionState | null, FormData>(
     loginAction,
     null,
   );
 
-  const errorMessage = state && !state.ok ? t(`errors.${state.error}`) : null;
+  // If the action signals "must onboard", route to the onboarding flow.
+  useEffect(() => {
+    if (state && !state.ok && state.error === "mustOnboard" && state.groupId) {
+      router.push(`/onboard?groupId=${encodeURIComponent(state.groupId)}`);
+    }
+  }, [state, router]);
+
+  const errorMessage =
+    state && !state.ok && state.error !== "mustOnboard" ? t(`errors.${state.error}`) : null;
 
   return (
     <form action={formAction} className="space-y-5">
       {from ? <input type="hidden" name="from" value={from} /> : null}
 
       <div className="space-y-2">
-        <Label htmlFor="email">{t("email")}</Label>
+        <Label htmlFor="identifier">{t("identifier")}</Label>
         <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder={t("emailPlaceholder")}
+          id="identifier"
+          name="identifier"
+          type="text"
+          autoComplete="username"
+          placeholder={t("identifierPlaceholder")}
           required
+          autoCapitalize="characters"
+          spellCheck={false}
         />
+        <p className="text-xs text-muted-foreground">{t("identifierHint")}</p>
       </div>
 
       <div className="space-y-2">
@@ -56,6 +71,13 @@ export function LoginForm({ from }: { from?: string }) {
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? t("submitting") : t("submit")}
       </Button>
+
+      <p className="text-center text-xs text-muted-foreground">
+        {t("firstTime")}{" "}
+        <Link href="/onboard" className="font-medium text-primary hover:underline">
+          {t("activateAccount")}
+        </Link>
+      </p>
     </form>
   );
 }

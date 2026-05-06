@@ -108,6 +108,68 @@ Business line slugs: `auto-loan`, `insurance`, `mortgage`, `home-furniture`, `ho
 
 ---
 
+## Deploying to Vercel + Neon
+
+Recommended for first preview deploy. Both services have free tiers.
+
+### 1. Provision Neon (Postgres)
+
+```bash
+npx neonctl@latest auth          # sign in via browser
+npx neonctl@latest projects create --name contact-portal --region-id aws-eu-central-1
+npx neonctl@latest connection-string --pooled
+npx neonctl@latest connection-string             # direct (for migrations)
+```
+
+Save both strings. The pooled one becomes `DATABASE_URL`, the direct one becomes `DIRECT_URL`.
+
+### 2. Apply schema and seed against Neon
+
+From your local machine:
+
+```bash
+DATABASE_URL="<neon-pooled-url>" \
+DIRECT_URL="<neon-direct-url>" \
+APP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
+AUTH_SECRET="$(openssl rand -hex 32)" \
+pnpm exec prisma db push --accept-data-loss
+
+DATABASE_URL="<neon-pooled-url>" pnpm db:seed
+```
+
+### 3. Import the repo on Vercel
+
+1. https://vercel.com → **Add New** → **Project** → import `mbadawy53/internal-app`.
+2. Framework preset: **Next.js** (auto-detected).
+3. Root directory: leave blank.
+4. Set **Production Branch** to `main` (or whichever you'll deploy from).
+
+### 4. Vercel environment variables
+
+In **Project Settings → Environment Variables**, add (Production + Preview + Development):
+
+| Variable             | Value                                                   |
+| -------------------- | ------------------------------------------------------- |
+| `DATABASE_URL`       | Neon **pooled** connection string                       |
+| `DIRECT_URL`         | Neon **direct** connection string                       |
+| `AUTH_SECRET`        | Output of `openssl rand -hex 32`                        |
+| `APP_ENCRYPTION_KEY` | Output of `openssl rand -hex 32` (must be 64 hex chars) |
+| `AUTH_TRUST_HOST`    | `true`                                                  |
+| `APP_URL`            | `https://<your-project>.vercel.app`                     |
+| `LOG_LEVEL`          | `info`                                                  |
+
+The remaining vars in `.env.example` (Twilio, Resend, Turnstile, etc.) can be left unset until those features land in later phases.
+
+### 5. Deploy
+
+Click **Deploy**. The build runs `prisma generate && next build`. After the first deploy completes, the seeded admin (`admin@contact.local` / your seeded password) can log in.
+
+### Updates
+
+Every push to the production branch triggers a new deploy. Schema changes require an explicit `pnpm exec prisma db push` (or `migrate deploy`) against `DIRECT_URL` before the deploy.
+
+---
+
 ## Phase roadmap
 
 - [x] **Phase 1 — Foundation:** Next.js scaffold, Tailwind+shadcn, next-intl EN+AR with RTL, Prisma schema, seed, Auth.js Credentials, RBAC, app shell, login, dashboard

@@ -3,25 +3,35 @@
 import { z } from "zod";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { signIn, signOut } from "@/lib/auth/config";
+import { GROUP_ID_REGEX, signIn, signOut } from "@/lib/auth/config";
+import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
 const LoginSchema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1),
   password: z.string().min(1),
   from: z.string().optional(),
 });
 
 export type LoginActionState =
   | { ok: true }
-  | { ok: false; error: "invalidCredentials" | "inactiveAccount" | "unknown"; message?: string };
+  | {
+      ok: false;
+      error: "invalidCredentials" | "inactiveAccount" | "mustOnboard" | "unknown";
+      groupId?: string;
+      message?: string;
+    };
+
+function isGroupId(value: string): boolean {
+  return GROUP_ID_REGEX.test(value);
+}
 
 export async function loginAction(
   _prev: LoginActionState | null,
   formData: FormData,
 ): Promise<LoginActionState> {
   const parsed = LoginSchema.safeParse({
-    email: formData.get("email"),
+    identifier: formData.get("identifier"),
     password: formData.get("password"),
     from: formData.get("from") ?? undefined,
   });
@@ -30,10 +40,28 @@ export async function loginAction(
     return { ok: false, error: "invalidCredentials" };
   }
 
+  const { identifier, password } = parsed.data;
+  const normalizedIdentifier = isGroupId(identifier) ? identifier : identifier.toLowerCase();
+
+  // Pre-flight check: if the user exists but has no password yet, redirect to /onboard
+  // instead of trying to authenticate. We do this before signIn so we can route the user
+  // to the right flow with a useful message.
+  const user = isGroupId(normalizedIdentifier)
+    ? await prisma.user.findUnique({ where: { groupId: normalizedIdentifier } })
+    : await prisma.user.findUnique({ where: { email: normalizedIdentifier } });
+
+  if (!user || !user.isActive) {
+    return { ok: false, error: "invalidCredentials" };
+  }
+  if (!user.passwordHash || user.mustCompleteProfile) {
+    if (!user.groupId) return { ok: false, error: "invalidCredentials" };
+    return { ok: false, error: "mustOnboard", groupId: user.groupId };
+  }
+
   try {
     await signIn("credentials", {
-      email: parsed.data.email.toLowerCase(),
-      password: parsed.data.password,
+      identifier: normalizedIdentifier,
+      password,
       redirectTo:
         parsed.data.from && parsed.data.from.startsWith("/") ? parsed.data.from : "/dashboard",
     });

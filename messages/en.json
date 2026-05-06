@@ -36,6 +36,9 @@
     "login": {
       "title": "Sign in to your account",
       "subtitle": "Welcome back. Use your Contact Financial credentials.",
+      "identifier": "Group ID",
+      "identifierPlaceholder": "C0001C",
+      "identifierHint": "Use your group ID (e.g. C0001C). Administrators can also sign in with email.",
       "email": "Email",
       "emailPlaceholder": "you@contact.eg",
       "password": "Password",
@@ -43,9 +46,39 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "forgotPassword": "Forgot your password?",
+      "firstTime": "First time signing in?",
+      "activateAccount": "Activate your account",
       "errors": {
-        "invalidCredentials": "Invalid email or password.",
+        "invalidCredentials": "Invalid credentials.",
         "inactiveAccount": "Your account is inactive. Please contact your administrator.",
+        "mustOnboard": "Please complete your profile to activate your account.",
+        "unknown": "Something went wrong. Please try again."
+      }
+    },
+    "onboard": {
+      "title": "Activate your account",
+      "subtitle": "First time signing in? Complete your profile below.",
+      "lookupTitle": "Enter your group ID",
+      "lookupSubtitle": "We’ll guide you through the rest.",
+      "groupId": "Group ID",
+      "groupIdPlaceholder": "C0001C",
+      "lookupSubmit": "Continue",
+      "nameEn": "Full name (English)",
+      "nameAr": "Full name (Arabic)",
+      "emailLabel": "Work email",
+      "phone": "Mobile number",
+      "phonePlaceholder": "+20 100 000 0000",
+      "password": "Create password",
+      "passwordHint": "At least 8 characters.",
+      "passwordConfirm": "Confirm password",
+      "submit": "Activate account",
+      "submitting": "Activating…",
+      "errors": {
+        "groupIdNotFound": "Group ID not found. Please contact your administrator.",
+        "alreadyActivated": "This account is already activated. Please sign in instead.",
+        "passwordsDontMatch": "Passwords don’t match.",
+        "emailInUse": "Email is already in use.",
+        "phoneInUse": "Phone is already in use.",
         "unknown": "Something went wrong. Please try again."
       }
     }
@@ -174,6 +207,18 @@
       },
       "deleteConfirm": "Are you sure you want to deactivate this category?",
       "empty": "No categories yet. Create one to get started."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Provision new employees by group ID. They activate their own account on first login.",
+      "new": "New employee",
+      "newSubtitle": "Issue a group ID. The employee fills in their name, email, phone and password on first login.",
+      "fields": {
+        "groupId": "Group ID",
+        "role": "Role",
+        "businessLine": "Business line",
+        "manager": "Manager"
+      }
     },
     "products": {
       "title": "Products",
