@@ -7,9 +7,12 @@ import { ProductType } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
+import type { Prisma } from "@prisma/client";
 import { productRepository } from "@/server/repositories/product.repository";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
+import { attributeRepository } from "@/server/repositories/attribute.repository";
 import { makeAttributeConfig, type ProductAttributeKey } from "@/lib/catalog/attributes";
+import { coerceAttributeValue, type AttributeOptionsJson } from "@/lib/catalog/attribute-values";
 
 const ProductInputSchema = z
   .object({
@@ -47,6 +50,9 @@ const ProductInputSchema = z
     heroImageUrl: z.string().max(500).optional().nullable(),
     isFeatured: z.coerce.boolean().default(false),
     isActive: z.coerce.boolean().default(true),
+
+    attributeIds: z.array(z.string()).default([]),
+    attributeValues: z.array(z.string()).default([]),
   })
   .refine((d) => d.amountMinEgp <= d.amountMaxEgp, {
     path: ["amountMaxEgp"],
@@ -75,7 +81,13 @@ function fromFormData(fd: FormData) {
     .map((v) => v.toString())
     .filter(Boolean);
 
+  // Per-product attribute values — parallel arrays from the form.
+  const attributeIds = fd.getAll("attributeId").map((v) => v.toString());
+  const attributeValues = fd.getAll("attributeValue").map((v) => v.toString());
+
   return {
+    attributeIds,
+    attributeValues,
     businessLineId: fd.get("businessLineId")?.toString() ?? "",
     categoryId: fd.get("categoryId")?.toString() ?? "",
     type: (fd.get("type")?.toString() ?? "") as ProductType,
@@ -161,6 +173,12 @@ export async function createProductAction(
       createdBy: { connect: { id: actor.id } },
       updatedBy: { connect: { id: actor.id } },
     });
+    const attrErrors = await persistProductAttributeValues(
+      created.id,
+      d.attributeIds,
+      d.attributeValues,
+    );
+    if (attrErrors) return { ok: false, fieldErrors: attrErrors };
     revalidatePath("/admin/products");
     revalidatePath("/catalog");
     redirect("/admin/products");
@@ -220,6 +238,8 @@ export async function updateProductAction(
       category: { connect: { id: d.categoryId } },
       updatedBy: { connect: { id: actor.id } },
     });
+    const attrErrors = await persistProductAttributeValues(id, d.attributeIds, d.attributeValues);
+    if (attrErrors) return { ok: false, fieldErrors: attrErrors };
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}`);
     revalidatePath("/catalog");
@@ -238,6 +258,45 @@ export async function deleteProductAction(id: string): Promise<void> {
   await productRepository.softDelete(id, actor.id);
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
+}
+
+/**
+ * Coerce raw attribute values against the master attribute registry, then
+ * replace the product's full attribute-value set in one transaction.
+ */
+async function persistProductAttributeValues(
+  productId: string,
+  attributeIds: string[],
+  rawValues: string[],
+): Promise<Record<string, string[]> | null> {
+  if (attributeIds.length === 0) {
+    await productRepository.replaceAttributeValues(productId, []);
+    return null;
+  }
+  const attributes = await Promise.all(attributeIds.map((id) => attributeRepository.findById(id)));
+  const fieldErrors: Record<string, string[]> = {};
+  const values: Array<{ attributeId: string; value: Prisma.InputJsonValue; sortOrder: number }> =
+    [];
+  attributes.forEach((attr, i) => {
+    if (!attr || !attr.isActive) {
+      fieldErrors[`attr_${i}`] = ["Unknown or inactive attribute"];
+      return;
+    }
+    const opts = (attr.options as AttributeOptionsJson | null)?.options ?? [];
+    try {
+      const coerced = coerceAttributeValue(attr.type, rawValues[i] ?? "", opts);
+      values.push({
+        attributeId: attr.id,
+        value: coerced as Prisma.InputJsonValue,
+        sortOrder: i,
+      });
+    } catch (err) {
+      fieldErrors[`attr_${attr.key}`] = [(err as Error).message];
+    }
+  });
+  if (Object.keys(fieldErrors).length > 0) return fieldErrors;
+  await productRepository.replaceAttributeValues(productId, values);
+  return null;
 }
 
 /**

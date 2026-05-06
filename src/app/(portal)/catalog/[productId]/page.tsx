@@ -82,11 +82,11 @@ export default async function ProductDetailPage({ params }: Params) {
                 </ul>
               </div>
             ) : null}
-            {product.category.attributeValues.length > 0 ? (
+            {product.attributeValues.length > 0 ? (
               <div>
                 <h3 className="text-sm font-semibold">{t("variables")}</h3>
                 <dl className="mt-2 grid gap-3 sm:grid-cols-2">
-                  {product.category.attributeValues.map((av) => (
+                  {product.attributeValues.map((av) => (
                     <div key={av.id} className="rounded-md border bg-secondary/40 p-3">
                       <dt className="text-sm font-medium">
                         {localized(locale, av.attribute.nameEn, av.attribute.nameAr)}

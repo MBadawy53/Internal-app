@@ -3,14 +3,11 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { Prisma } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
-import { attributeRepository } from "@/server/repositories/attribute.repository";
 import { isProductAttributeKey } from "@/lib/catalog/attributes";
-import { coerceAttributeValue, type AttributeOptionsJson } from "@/lib/catalog/attribute-values";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
@@ -26,7 +23,6 @@ const CategoryInputSchema = z.object({
   enabledAttributes: z.array(z.string()).default([]),
   requiredAttributes: z.array(z.string()).default([]),
   attributeIds: z.array(z.string()).default([]),
-  attributeValues: z.array(z.string()).default([]),
 });
 
 export type CategoryActionState =
@@ -46,12 +42,11 @@ function fromFormData(fd: FormData) {
     .map((v) => v.toString())
     .filter((s) => isProductAttributeKey(s) && enabledAttributes.includes(s));
 
-  // Custom attribute selections — parallel arrays.
+  // Selected attribute IDs (no values — products supply their own values).
   const attributeIds = fd
     .getAll("attributeId")
     .map((v) => v.toString())
     .filter(Boolean);
-  const attributeValues = fd.getAll("attributeValue").map((v) => v.toString());
 
   return {
     slug: fd.get("slug")?.toString() ?? "",
@@ -65,47 +60,7 @@ function fromFormData(fd: FormData) {
     enabledAttributes,
     requiredAttributes,
     attributeIds,
-    attributeValues,
   };
-}
-
-/**
- * Coerce + persist the category's selected attributes against the master
- * attribute registry. Returns null on success or fieldErrors on a problem.
- */
-async function persistAttributeValues(
-  categoryId: string,
-  attributeIds: string[],
-  rawValues: string[],
-): Promise<Record<string, string[]> | null> {
-  if (attributeIds.length === 0) {
-    await productCategoryRepository.replaceAttributeValues(categoryId, []);
-    return null;
-  }
-  const attributes = await Promise.all(attributeIds.map((id) => attributeRepository.findById(id)));
-  const fieldErrors: Record<string, string[]> = {};
-  const values: Array<{ attributeId: string; value: Prisma.InputJsonValue; sortOrder: number }> =
-    [];
-  attributes.forEach((attr, i) => {
-    if (!attr) {
-      fieldErrors.attributeId = ["Unknown attribute"];
-      return;
-    }
-    const opts = (attr.options as AttributeOptionsJson | null)?.options ?? [];
-    try {
-      const coerced = coerceAttributeValue(attr.type, rawValues[i] ?? "", opts);
-      values.push({
-        attributeId: attr.id,
-        value: coerced as Prisma.InputJsonValue,
-        sortOrder: i,
-      });
-    } catch (err) {
-      fieldErrors[`attr_${attr.key}`] = [(err as Error).message];
-    }
-  });
-  if (Object.keys(fieldErrors).length > 0) return fieldErrors;
-  await productCategoryRepository.replaceAttributeValues(categoryId, values);
-  return null;
 }
 
 export async function createCategoryAction(
@@ -133,12 +88,10 @@ export async function createCategoryAction(
       requiredAttributes: parsed.data.requiredAttributes,
       businessLine: { connect: { id: parsed.data.businessLineId } },
     });
-    const attrErrors = await persistAttributeValues(
+    await productCategoryRepository.replaceAttributes(
       created.id,
-      parsed.data.attributeIds,
-      parsed.data.attributeValues,
+      parsed.data.attributeIds.map((attributeId, i) => ({ attributeId, sortOrder: i })),
     );
-    if (attrErrors) return { ok: false, fieldErrors: attrErrors };
     revalidatePath("/admin/categories");
     revalidatePath("/catalog");
     redirect(`/admin/categories`);
@@ -179,12 +132,10 @@ export async function updateCategoryAction(
       businessLine: { connect: { id: parsed.data.businessLineId } },
       updatedById: actor.id,
     });
-    const attrErrors = await persistAttributeValues(
+    await productCategoryRepository.replaceAttributes(
       id,
-      parsed.data.attributeIds,
-      parsed.data.attributeValues,
+      parsed.data.attributeIds.map((attributeId, i) => ({ attributeId, sortOrder: i })),
     );
-    if (attrErrors) return { ok: false, fieldErrors: attrErrors };
     revalidatePath("/admin/categories");
     revalidatePath("/catalog");
     redirect(`/admin/categories`);

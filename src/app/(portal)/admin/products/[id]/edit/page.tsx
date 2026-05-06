@@ -48,6 +48,19 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           businessLineId: c.businessLineId,
           enabledAttributes: c.enabledAttributes as never,
           requiredAttributes: c.requiredAttributes as never,
+          attributes: c.attributes.map((ca) => ({
+            id: ca.attribute.id,
+            key: ca.attribute.key,
+            nameEn: ca.attribute.nameEn,
+            nameAr: ca.attribute.nameAr,
+            type: ca.attribute.type,
+            options:
+              (
+                ca.attribute.options as {
+                  options?: { value: string; labelEn: string; labelAr: string }[];
+                } | null
+              )?.options ?? [],
+          })),
         }))}
         productTypes={Object.values(ProductType).map((pt) => ({
           value: pt,
@@ -83,6 +96,15 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           heroImageUrl: product.heroImageUrl,
           isFeatured: product.isFeatured,
           isActive: product.isActive,
+          attributeValues: (product.attributeValues ?? []).map((av) => ({
+            attributeId: av.attributeId,
+            value:
+              typeof av.value === "string"
+                ? av.value
+                : typeof av.value === "number" || typeof av.value === "boolean"
+                  ? av.value.toString()
+                  : "",
+          })),
         }}
       />
     </div>

@@ -56,11 +56,15 @@ export const productRepository = {
         businessLine: true,
         category: {
           include: {
-            attributeValues: {
+            attributes: {
               include: { attribute: true },
               orderBy: { sortOrder: "asc" },
             },
           },
+        },
+        attributeValues: {
+          include: { attribute: true },
+          orderBy: { sortOrder: "asc" },
         },
       },
     }),
@@ -83,4 +87,27 @@ export const productRepository = {
       where: { id },
       data: { isActive: false, updatedById },
     }),
+
+  /**
+   * Replace the full set of attribute values for a product, atomically.
+   * Anything not in the new list is removed.
+   */
+  replaceAttributeValues: async (
+    productId: string,
+    values: Array<{ attributeId: string; value: Prisma.InputJsonValue; sortOrder: number }>,
+  ) => {
+    return prisma.$transaction([
+      prisma.productAttributeValue.deleteMany({ where: { productId } }),
+      ...values.map((v) =>
+        prisma.productAttributeValue.create({
+          data: {
+            productId,
+            attributeId: v.attributeId,
+            value: v.value,
+            sortOrder: v.sortOrder,
+          },
+        }),
+      ),
+    ]);
+  },
 };

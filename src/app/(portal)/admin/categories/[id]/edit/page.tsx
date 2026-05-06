@@ -7,7 +7,6 @@ import { catalogService } from "@/server/services/catalog.service";
 import { attributeRepository } from "@/server/repositories/attribute.repository";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
-import type { AttributeOptionsJson } from "@/lib/catalog/attribute-values";
 import { CategoryForm } from "@/components/portal/CategoryForm";
 
 export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,18 +30,8 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
     attributeRepository.listActive(),
   ]);
 
-  // Existing attribute values: stringify so the form can render them in inputs.
-  const attributeValues = (category.attributeValues ?? []).map((av) => ({
-    attributeId: av.attributeId,
-    value:
-      typeof av.value === "string"
-        ? av.value
-        : typeof av.value === "number"
-          ? av.value.toString()
-          : typeof av.value === "boolean"
-            ? av.value.toString()
-            : "",
-  }));
+  // Just the picked attribute IDs — values live on each Product, not here.
+  const pickedAttributeIds = (category.attributes ?? []).map((ca) => ca.attributeId);
 
   return (
     <div className="space-y-6">
@@ -61,7 +50,6 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           nameEn: a.nameEn,
           nameAr: a.nameAr,
           type: a.type,
-          options: (a.options as AttributeOptionsJson | null)?.options,
         }))}
         initial={{
           id: category.id,
@@ -75,7 +63,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           isActive: category.isActive,
           enabledAttributes: category.enabledAttributes,
           requiredAttributes: category.requiredAttributes,
-          attributeValues,
+          pickedAttributeIds,
         }}
       />
     </div>

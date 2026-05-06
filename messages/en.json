@@ -226,7 +226,7 @@
       },
       "customAttributes": {
         "title": "Custom attributes for this category",
-        "help": "Pick attributes from the global registry and set their values. These appear on every product in this category.",
+        "help": "Pick which attributes appear on products in this category. Each product fills in its own values.",
         "noneDefined": "No attributes have been defined yet. Visit Admin → Attributes to create the first one.",
         "notSelected": "Not included in this category."
       },
@@ -297,7 +297,7 @@
         "rates": "Interest rates",
         "fees": "Admin fee",
         "policy": "Policy lines",
-        "variables": "Variables (informational attributes)",
+        "customAttributes": "Custom attributes",
         "media": "Media"
       },
       "fields": {

@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ProductType } from "@prisma/client";
 import type { ProductAttributeKey } from "@/lib/catalog/attributes";
+import { AttributeType } from "@prisma/client";
+import type { AttributeSelectOption } from "@/lib/catalog/attribute-values";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +30,21 @@ interface Cat {
   businessLineId: string;
   enabledAttributes: ProductAttributeKey[];
   requiredAttributes: ProductAttributeKey[];
+  attributes: AttributeRef[];
+}
+
+export interface AttributeRef {
+  id: string;
+  key: string;
+  nameEn: string;
+  nameAr: string;
+  type: AttributeType;
+  options?: AttributeSelectOption[];
+}
+
+export interface AttributeValueRow {
+  attributeId: string;
+  value: string;
 }
 
 interface InitialProduct {
@@ -60,6 +77,7 @@ interface InitialProduct {
   heroImageUrl?: string | null;
   isFeatured?: boolean;
   isActive?: boolean;
+  attributeValues?: AttributeValueRow[];
 }
 
 interface Props {
@@ -104,6 +122,16 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
     activeCategory ? activeCategory.requiredAttributes.includes(key) : false;
 
   const [heroImageUrl, setHeroImageUrl] = useState(initial?.heroImageUrl ?? "");
+
+  // Per-product attribute values keyed by attribute ID. Initialized from
+  // either the product's saved values or the category's picks.
+  const [attrValues, setAttrValues] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const av of initial?.attributeValues ?? []) map[av.attributeId] = av.value;
+    return map;
+  });
+  const setAttrValue = (id: string, value: string) =>
+    setAttrValues((prev) => ({ ...prev, [id]: value }));
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [, startTransition] = useTransition();
@@ -484,6 +512,75 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
                 required={isRequired("latePayment")}
               />
             ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Custom attributes — fields appear when the chosen category has attributes */}
+      {activeCategory && activeCategory.attributes.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("customAttributes")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {activeCategory.attributes.map((attr) => {
+              const value = attrValues[attr.id] ?? "";
+              return (
+                <div
+                  key={attr.id}
+                  className="grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{attr.nameEn}</p>
+                    <p className="text-xs text-muted-foreground">{attr.nameAr}</p>
+                  </div>
+                  <div>
+                    <input type="hidden" name="attributeId" value={attr.id} />
+                    {attr.type === AttributeType.TEXT ? (
+                      <Input
+                        name="attributeValue"
+                        value={value}
+                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                      />
+                    ) : null}
+                    {attr.type === AttributeType.NUMBER ? (
+                      <Input
+                        type="number"
+                        name="attributeValue"
+                        value={value}
+                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                      />
+                    ) : null}
+                    {attr.type === AttributeType.BOOLEAN ? (
+                      <Select
+                        name="attributeValue"
+                        value={value || "false"}
+                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                      >
+                        <option value="true">{tCommon("yes")}</option>
+                        <option value="false">{tCommon("no")}</option>
+                      </Select>
+                    ) : null}
+                    {attr.type === AttributeType.SELECT ? (
+                      <Select
+                        name="attributeValue"
+                        value={value}
+                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                      >
+                        <option value="" disabled>
+                          —
+                        </option>
+                        {(attr.options ?? []).map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.labelEn}
+                          </option>
+                        ))}
+                      </Select>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       ) : null}

@@ -44,6 +44,19 @@ export default async function NewProductPage() {
           businessLineId: c.businessLineId,
           enabledAttributes: c.enabledAttributes as never,
           requiredAttributes: c.requiredAttributes as never,
+          attributes: c.attributes.map((ca) => ({
+            id: ca.attribute.id,
+            key: ca.attribute.key,
+            nameEn: ca.attribute.nameEn,
+            nameAr: ca.attribute.nameAr,
+            type: ca.attribute.type,
+            options:
+              (
+                ca.attribute.options as {
+                  options?: { value: string; labelEn: string; labelAr: string }[];
+                } | null
+              )?.options ?? [],
+          })),
         }))}
         productTypes={Object.values(ProductType).map((pt) => ({
           value: pt,

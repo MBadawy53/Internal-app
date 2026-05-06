@@ -13,7 +13,14 @@ export const productCategoryRepository = {
     if (!filters.includeInactive) where.isActive = true;
     return prisma.productCategory.findMany({
       where,
-      include: { businessLine: true, _count: { select: { products: true } } },
+      include: {
+        businessLine: true,
+        attributes: {
+          include: { attribute: true },
+          orderBy: { sortOrder: "asc" },
+        },
+        _count: { select: { products: true } },
+      },
       orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
     });
   },
@@ -22,7 +29,7 @@ export const productCategoryRepository = {
       where: { id },
       include: {
         businessLine: true,
-        attributeValues: {
+        attributes: {
           include: { attribute: true },
           orderBy: { sortOrder: "asc" },
         },
@@ -44,22 +51,22 @@ export const productCategoryRepository = {
     }),
 
   /**
-   * Replace the full set of attribute values for a category in one transaction.
-   * Anything not in the new list is removed.
+   * Replace the full list of attributes a category enables, atomically.
+   * Anything not in the new list is removed. Values are NOT stored here —
+   * each Product fills in its own values via ProductAttributeValue.
    */
-  replaceAttributeValues: async (
+  replaceAttributes: async (
     categoryId: string,
-    values: Array<{ attributeId: string; value: Prisma.InputJsonValue; sortOrder: number }>,
+    attributeIds: Array<{ attributeId: string; sortOrder: number }>,
   ) => {
     return prisma.$transaction([
-      prisma.categoryAttributeValue.deleteMany({ where: { categoryId } }),
-      ...values.map((v) =>
-        prisma.categoryAttributeValue.create({
+      prisma.categoryAttribute.deleteMany({ where: { categoryId } }),
+      ...attributeIds.map((a) =>
+        prisma.categoryAttribute.create({
           data: {
             categoryId,
-            attributeId: v.attributeId,
-            value: v.value,
-            sortOrder: v.sortOrder,
+            attributeId: a.attributeId,
+            sortOrder: a.sortOrder,
           },
         }),
       ),
