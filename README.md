@@ -155,11 +155,15 @@ The remaining vars in `.env.example` (Twilio, Resend, Turnstile, etc.) can be le
 
 ### 5. Deploy
 
-Click **Deploy**. The build runs `prisma generate && next build`. After the first deploy completes, the seeded admin (`admin@contact.local` / your seeded password) can log in.
+Click **Deploy**. On Vercel, the build runs `prisma generate && prisma db push --accept-data-loss && next build` (overridden in [`vercel.json`](./vercel.json)) — schema changes are applied automatically against `DATABASE_URL` on every deploy.
+
+The seed is **not** run automatically. After the first deploy, run `pnpm db:seed` once locally against the deploy's `DATABASE_URL` so the break-glass admin (`admin@contact.local` / your seeded password) and demo employees exist. Subsequent deploys skip seeding.
 
 ### Updates
 
-Every push to the production branch triggers a new deploy. Schema changes require an explicit `pnpm exec prisma db push` (or `migrate deploy`) against your `DATABASE_URL` before the deploy.
+Every push to the production branch triggers a new deploy and auto-applies the schema. **Local builds do not auto-push** — `vercel.json`'s `buildCommand` only runs on Vercel; locally `pnpm build` still runs just `prisma generate && next build`.
+
+> ⚠️ `prisma db push --accept-data-loss` will silently drop columns/tables when the schema diverges. This is fine in early development. Before production cutover, switch to proper Prisma migrations (`prisma migrate dev` to generate migrations, `prisma migrate deploy` in `vercel.json`) — tracked under Phase 8 hardening.
 
 ---
 
