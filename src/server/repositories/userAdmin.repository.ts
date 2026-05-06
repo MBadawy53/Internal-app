@@ -20,6 +20,8 @@ export const userAdminRepository = {
     businessLineId: string | null;
     managerId: string | null;
     referralCode: string;
+    canEditProducts: boolean;
+    canEditCatalog: boolean;
   }): Promise<Prisma.UserGetPayload<object>> =>
     prisma.user.create({
       data: {
@@ -28,6 +30,8 @@ export const userAdminRepository = {
         businessLineId: data.businessLineId,
         managerId: data.managerId,
         referralCode: data.referralCode,
+        canEditProducts: data.canEditProducts,
+        canEditCatalog: data.canEditCatalog,
         mustCompleteProfile: true,
         isActive: true,
       },
@@ -35,4 +39,15 @@ export const userAdminRepository = {
 
   setActive: (id: string, isActive: boolean) =>
     prisma.user.update({ where: { id }, data: { isActive } }),
+
+  updateCapabilities: (
+    id: string,
+    data: {
+      role: Role;
+      businessLineId: string | null;
+      managerId: string | null;
+      canEditProducts: boolean;
+      canEditCatalog: boolean;
+    },
+  ) => prisma.user.update({ where: { id }, data }),
 };

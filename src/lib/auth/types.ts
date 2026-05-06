@@ -9,6 +9,8 @@ declare module "next-auth" {
       locale: Locale;
       businessLineId: string | null;
       referralCode: string;
+      canEditProducts: boolean;
+      canEditCatalog: boolean;
     } & DefaultSession["user"];
   }
 
@@ -17,6 +19,8 @@ declare module "next-auth" {
     locale: Locale;
     businessLineId: string | null;
     referralCode: string;
+    canEditProducts: boolean;
+    canEditCatalog: boolean;
   }
 }
 

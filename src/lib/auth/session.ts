@@ -8,6 +8,8 @@ export async function getActor(): Promise<ActorContext | null> {
     id: session.user.id,
     role: session.user.role,
     businessLineId: session.user.businessLineId,
+    canEditProducts: session.user.canEditProducts ?? false,
+    canEditCatalog: session.user.canEditCatalog ?? false,
   };
 }
 

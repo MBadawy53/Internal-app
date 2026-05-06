@@ -55,7 +55,7 @@ export default async function AdminUsersPage() {
                     {tRoles(u.role)}
                   </span>
                   <span className="text-xs text-muted-foreground">{blName}</span>
-                  <div className="mt-1 flex gap-1">
+                  <div className="mt-1 flex flex-wrap justify-end gap-1">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
                         u.isActive
@@ -70,7 +70,23 @@ export default async function AdminUsersPage() {
                         pending
                       </span>
                     ) : null}
+                    {u.canEditProducts ? (
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand-700">
+                        products
+                      </span>
+                    ) : null}
+                    {u.canEditCatalog ? (
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand-700">
+                        catalog
+                      </span>
+                    ) : null}
                   </div>
+                  <a
+                    href={`/admin/users/${u.id}/edit`}
+                    className="mt-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    edit
+                  </a>
                 </div>
               </CardHeader>
               <CardContent />

@@ -16,6 +16,8 @@ const ProvisionSchema = z.object({
   role: z.nativeEnum(Role),
   businessLineId: z.string().min(1).optional().nullable(),
   managerId: z.string().min(1).optional().nullable(),
+  canEditProducts: z.coerce.boolean().default(false),
+  canEditCatalog: z.coerce.boolean().default(false),
 });
 
 export type ProvisionUserState =
@@ -41,11 +43,13 @@ export async function provisionUserAction(
     role: formData.get("role"),
     businessLineId: formData.get("businessLineId")?.toString() || null,
     managerId: formData.get("managerId")?.toString() || null,
+    canEditProducts: formData.get("canEditProducts") === "on",
+    canEditCatalog: formData.get("canEditCatalog") === "on",
   });
   if (!parsed.success) {
     return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
   }
-  const { groupId, role, businessLineId, managerId } = parsed.data;
+  const { groupId, role, businessLineId, managerId, canEditProducts, canEditCatalog } = parsed.data;
 
   const existing = await userAdminRepository.findByGroupId(groupId);
   if (existing) {
@@ -59,6 +63,8 @@ export async function provisionUserAction(
       businessLineId: businessLineId ?? null,
       managerId: managerId ?? null,
       referralCode: makeReferralCode(),
+      canEditProducts,
+      canEditCatalog,
     });
     revalidatePath("/admin/users");
     redirect("/admin/users");
@@ -68,6 +74,49 @@ export async function provisionUserAction(
     if ((err as { code?: string }).code === "P2002") {
       return { ok: false, fieldErrors: { groupId: ["Group ID is already in use"] } };
     }
+    throw err;
+  }
+}
+
+const UpdateUserSchema = z.object({
+  role: z.nativeEnum(Role),
+  businessLineId: z.string().min(1).optional().nullable(),
+  managerId: z.string().min(1).optional().nullable(),
+  canEditProducts: z.coerce.boolean().default(false),
+  canEditCatalog: z.coerce.boolean().default(false),
+});
+
+export async function updateUserAction(
+  id: string,
+  _prev: ProvisionUserState | null,
+  formData: FormData,
+): Promise<ProvisionUserState> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "user");
+
+  const parsed = UpdateUserSchema.safeParse({
+    role: formData.get("role"),
+    businessLineId: formData.get("businessLineId")?.toString() || null,
+    managerId: formData.get("managerId")?.toString() || null,
+    canEditProducts: formData.get("canEditProducts") === "on",
+    canEditCatalog: formData.get("canEditCatalog") === "on",
+  });
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+  try {
+    await userAdminRepository.updateCapabilities(id, {
+      role: parsed.data.role,
+      businessLineId: parsed.data.businessLineId ?? null,
+      managerId: parsed.data.managerId ?? null,
+      canEditProducts: parsed.data.canEditProducts,
+      canEditCatalog: parsed.data.canEditCatalog,
+    });
+    revalidatePath("/admin/users");
+    redirect("/admin/users");
+    return { ok: true, id };
+  } catch (err) {
+    logger.error({ err, id }, "user.update_failed");
     throw err;
   }
 }

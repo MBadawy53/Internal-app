@@ -213,11 +213,18 @@
       "subtitle": "Provision new employees by group ID. They activate their own account on first login.",
       "new": "New employee",
       "newSubtitle": "Issue a group ID. The employee fills in their name, email, phone and password on first login.",
+      "edit": "Edit employee",
       "fields": {
         "groupId": "Group ID",
         "role": "Role",
         "businessLine": "Business line",
-        "manager": "Manager"
+        "manager": "Manager",
+        "capabilities": "Capabilities",
+        "capabilitiesHelp": "Per-user grants on top of the role. Administrators always have these implicitly.",
+        "canEditProducts": "Edit products",
+        "canEditProductsHelp": "Create, update, or deactivate any product across all business lines.",
+        "canEditCatalog": "Edit categories & product variables",
+        "canEditCatalogHelp": "Manage product categories and the informational variables shown on each product."
       }
     },
     "products": {

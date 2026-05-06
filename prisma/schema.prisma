@@ -135,6 +135,10 @@ model User {
   referralCode        String    @unique
   shareConsent        Boolean   @default(false)
   isActive            Boolean   @default(true)
+  // Per-user capability flags. Granted by Admin at user creation/edit; layered
+  // on top of role permissions (additive — never removes a role's grant).
+  canEditProducts     Boolean   @default(false)
+  canEditCatalog      Boolean   @default(false)
   // True until the user submits the first-login profile completion form.
   mustCompleteProfile Boolean   @default(true)
   lastLoginAt         DateTime?

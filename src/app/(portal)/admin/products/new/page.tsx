@@ -10,7 +10,10 @@ import { ProductForm } from "@/components/portal/ProductForm";
 
 export default async function NewProductPage() {
   const session = await auth();
-  if (session?.user?.role !== Role.ADMIN && session?.user?.role !== Role.BUSINESS_LINE_OWNER) {
+  const isAdmin = session?.user?.role === Role.ADMIN;
+  const isBLOwner = session?.user?.role === Role.BUSINESS_LINE_OWNER;
+  const hasProductFlag = session?.user?.canEditProducts === true;
+  if (!session?.user || (!isAdmin && !isBLOwner && !hasProductFlag)) {
     redirect("/dashboard");
   }
 

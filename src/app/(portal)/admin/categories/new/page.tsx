@@ -10,7 +10,10 @@ import { CategoryForm } from "@/components/portal/CategoryForm";
 
 export default async function NewCategoryPage() {
   const session = await auth();
-  if (session?.user?.role !== Role.ADMIN && session?.user?.role !== Role.BUSINESS_LINE_OWNER) {
+  const isAdmin = session?.user?.role === Role.ADMIN;
+  const isBLOwner = session?.user?.role === Role.BUSINESS_LINE_OWNER;
+  const hasCatalogFlag = session?.user?.canEditCatalog === true;
+  if (!session?.user || (!isAdmin && !isBLOwner && !hasCatalogFlag)) {
     redirect("/dashboard");
   }
 

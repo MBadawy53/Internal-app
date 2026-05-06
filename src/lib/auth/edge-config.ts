@@ -6,6 +6,8 @@ interface AppJwtClaims {
   locale: Locale;
   businessLineId: string | null;
   referralCode: string;
+  canEditProducts: boolean;
+  canEditCatalog: boolean;
 }
 
 /**
@@ -29,6 +31,8 @@ export const edgeAuthConfig = {
           locale: user.locale,
           businessLineId: user.businessLineId,
           referralCode: user.referralCode,
+          canEditProducts: user.canEditProducts,
+          canEditCatalog: user.canEditCatalog,
         };
         Object.assign(token, claims);
       }
@@ -41,6 +45,8 @@ export const edgeAuthConfig = {
       session.user.locale = claims.locale;
       session.user.businessLineId = claims.businessLineId;
       session.user.referralCode = claims.referralCode;
+      session.user.canEditProducts = claims.canEditProducts ?? false;
+      session.user.canEditCatalog = claims.canEditCatalog ?? false;
       return session;
     },
   },

@@ -186,15 +186,20 @@ export async function createProductAction(
       category: { connect: { id: d.categoryId } },
       createdBy: { connect: { id: actor.id } },
       updatedBy: { connect: { id: actor.id } },
-      variables: {
-        create: d.variables.map((v, idx) => ({
-          nameEn: v.nameEn,
-          nameAr: v.nameAr,
-          descriptionEn: v.descriptionEn,
-          descriptionAr: v.descriptionAr,
-          sortOrder: idx,
-        })),
-      },
+      // Variables are only saved if the actor is allowed to edit catalog taxonomy.
+      ...(canEditVariables(actor)
+        ? {
+            variables: {
+              create: d.variables.map((v, idx) => ({
+                nameEn: v.nameEn,
+                nameAr: v.nameAr,
+                descriptionEn: v.descriptionEn,
+                descriptionAr: v.descriptionAr,
+                sortOrder: idx,
+              })),
+            },
+          }
+        : {}),
     });
     revalidatePath("/admin/products");
     revalidatePath("/catalog");
@@ -204,6 +209,11 @@ export async function createProductAction(
     logger.error({ err }, "product.create_failed");
     throw err;
   }
+}
+
+function canEditVariables(actor: { role: string; canEditCatalog: boolean }): boolean {
+  // Admin and BL Owner have catalog rights via role; flag is the per-user override.
+  return actor.role === "ADMIN" || actor.role === "BUSINESS_LINE_OWNER" || actor.canEditCatalog;
 }
 
 export async function updateProductAction(
@@ -252,16 +262,18 @@ export async function updateProductAction(
       category: { connect: { id: d.categoryId } },
       updatedBy: { connect: { id: actor.id } },
     });
-    await productVariableRepository.replaceAll(
-      id,
-      d.variables.map((v, idx) => ({
-        nameEn: v.nameEn,
-        nameAr: v.nameAr,
-        descriptionEn: v.descriptionEn,
-        descriptionAr: v.descriptionAr,
-        sortOrder: idx,
-      })),
-    );
+    if (canEditVariables(actor)) {
+      await productVariableRepository.replaceAll(
+        id,
+        d.variables.map((v, idx) => ({
+          nameEn: v.nameEn,
+          nameAr: v.nameAr,
+          descriptionEn: v.descriptionEn,
+          descriptionAr: v.descriptionAr,
+          sortOrder: idx,
+        })),
+      );
+    }
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}`);
     revalidatePath("/catalog");
