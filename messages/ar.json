@@ -318,13 +318,13 @@
         "amountMaxEgp": "الحد الأقصى للمبلغ (ج.م.)",
         "tenureMinMonths": "الحد الأدنى للمدة (شهر)",
         "tenureMaxMonths": "الحد الأقصى للمدة (شهر)",
-        "flatInterestRateBps": "نسبة الفائدة الثابتة (نقطة أساس)",
-        "decliningInterestRateBps": "نسبة الفائدة المتناقصة (نقطة أساس)",
+        "flatInterestRateBps": "نسبة الفائدة الثابتة (%)",
+        "decliningInterestRateBps": "نسبة الفائدة المتناقصة (%)",
         "adminFeeBps": "نسبة الرسوم الإدارية (نقطة أساس)",
         "adminFeeMinEgp": "الحد الأدنى للرسوم الإدارية (ج.م.)",
         "adminFeeMaxEgp": "الحد الأقصى للرسوم الإدارية (ج.م.)",
         "insuranceRequired": "التأمين إجباري",
-        "earlySettlementFeeBps": "رسوم السداد المبكر (نقطة أساس)",
+        "earlySettlementFeeBps": "رسوم السداد المبكر (%)",
         "latePaymentFeeBps": "رسوم التأخير (نقطة أساس)",
         "heroImageUrl": "الصورة الرئيسية",
         "isFeatured": "مميز",
@@ -342,7 +342,7 @@
       "uploadImage": "رفع صورة",
       "uploadingImage": "جارٍ الرفع…",
       "uploadFailed": "فشل رفع الصورة",
-      "rateHelp": "نقطة أساس: 1850 = 18.50%."
+      "rateHelp": "أدخل النسبة المئوية، مثلاً 18.50 لتعني 18.50%."
     }
   },
   "productTypes": {

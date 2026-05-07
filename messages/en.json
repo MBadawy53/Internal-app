@@ -318,13 +318,13 @@
         "amountMaxEgp": "Maximum amount (EGP)",
         "tenureMinMonths": "Minimum tenure (months)",
         "tenureMaxMonths": "Maximum tenure (months)",
-        "flatInterestRateBps": "Flat interest rate (basis points)",
-        "decliningInterestRateBps": "Declining interest rate (basis points)",
+        "flatInterestRateBps": "Flat interest rate (%)",
+        "decliningInterestRateBps": "Declining interest rate (%)",
         "adminFeeBps": "Admin fee percentage (basis points)",
         "adminFeeMinEgp": "Admin fee minimum (EGP)",
         "adminFeeMaxEgp": "Admin fee maximum (EGP)",
         "insuranceRequired": "Insurance required",
-        "earlySettlementFeeBps": "Early settlement fee (basis points)",
+        "earlySettlementFeeBps": "Early settlement fee (%)",
         "latePaymentFeeBps": "Late payment fee (basis points)",
         "heroImageUrl": "Hero image",
         "isFeatured": "Featured",
@@ -342,7 +342,7 @@
       "uploadImage": "Upload image",
       "uploadingImage": "Uploading…",
       "uploadFailed": "Image upload failed",
-      "rateHelp": "Basis points: 1850 = 18.50%."
+      "rateHelp": "Enter as a percentage, e.g. 18.50 for 18.50%."
     }
   },
   "productTypes": {

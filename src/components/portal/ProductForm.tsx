@@ -430,21 +430,19 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             {isVisible("flatRate") ? (
-              <NumField
+              <PercentField
                 name="flatInterestRateBps"
                 label={tFields("flatInterestRateBps")}
-                defaultValue={initial?.flatInterestRateBps ?? 0}
-                step={1}
+                defaultBps={initial?.flatInterestRateBps ?? 0}
                 help={t("rateHelp")}
                 required={isRequired("flatRate")}
               />
             ) : null}
             {isVisible("decliningRate") ? (
-              <NumField
+              <PercentField
                 name="decliningInterestRateBps"
                 label={tFields("decliningInterestRateBps")}
-                defaultValue={initial?.decliningInterestRateBps ?? 0}
-                step={1}
+                defaultBps={initial?.decliningInterestRateBps ?? 0}
                 help={t("rateHelp")}
                 required={isRequired("decliningRate")}
               />
@@ -495,11 +493,10 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
               </label>
             ) : null}
             {isVisible("earlySettlement") ? (
-              <NumField
+              <PercentField
                 name="earlySettlementFeeBps"
                 label={tFields("earlySettlementFeeBps")}
-                defaultValue={initial?.earlySettlementFeeBps ?? 0}
-                step={1}
+                defaultBps={initial?.earlySettlementFeeBps ?? 0}
                 required={isRequired("earlySettlement")}
               />
             ) : null}
@@ -670,6 +667,43 @@ function NumField({
         step={step ?? "0.01"}
         required={required}
       />
+      {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
+    </div>
+  );
+}
+
+function PercentField({
+  name,
+  label,
+  defaultBps,
+  help,
+  required,
+}: {
+  name: string;
+  label: string;
+  defaultBps: number;
+  help?: string;
+  required?: boolean;
+}) {
+  const [percent, setPercent] = useState<string>(defaultBps ? (defaultBps / 100).toString() : "");
+  const bps = percent === "" ? 0 : Math.round(Number(percent) * 100);
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={name}>
+        {label}
+        {required ? <span className="ms-1 text-destructive">*</span> : null}
+      </Label>
+      <Input
+        id={name}
+        type="number"
+        value={percent}
+        onChange={(e) => setPercent(e.target.value)}
+        step="0.01"
+        min={0}
+        required={required}
+        inputMode="decimal"
+      />
+      <input type="hidden" name={name} value={bps} />
       {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
     </div>
   );
