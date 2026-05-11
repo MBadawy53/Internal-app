@@ -289,7 +289,7 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                 />
                 <Stat
                   label={tResult("flatRate")}
-                  value={formatBps(result.flatInterestRateBps, locale)}
+                  value={formatBps(result.equivalentFlatRateBps, locale)}
                 />
                 <Stat
                   label={tResult("decliningRate")}
