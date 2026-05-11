@@ -1,5 +1,6 @@
 import { Bell } from "lucide-react";
 import type { Role } from "@prisma/client";
+import { BackButton } from "./BackButton";
 import { LocaleToggle } from "./LocaleToggle";
 import { UserMenu } from "./UserMenu";
 
@@ -13,6 +14,7 @@ export function TopBar({ name, role, referralCode }: TopBarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur">
       <div className="flex items-center gap-3">
+        <BackButton />
         <code className="hidden rounded-full border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground sm:inline">
           {referralCode}
         </code>
