@@ -91,6 +91,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           adminFeeMinEgp: Number(product.adminFeeMinPiastres) / 100,
           adminFeeMaxEgp: Number(product.adminFeeMaxPiastres) / 100,
           insuranceRequired: product.insuranceRequired,
+          minDownPaymentBps: product.minDownPaymentBps,
           earlySettlementFeeBps: product.earlySettlementFeeBps,
           latePaymentFeeBps: product.latePaymentFeeBps,
           heroImageUrl: product.heroImageUrl,

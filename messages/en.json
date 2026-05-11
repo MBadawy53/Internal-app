@@ -155,6 +155,7 @@
     "selectProduct": "Select a product",
     "invoiceValue": "Invoice price (EGP)",
     "downPaymentPercent": "Down payment (%)",
+    "minDownPaymentHint": "Minimum {min}%",
     "principal": "Loan amount (EGP)",
     "tenure": "Tenure (months)",
     "calculate": "Calculate",
@@ -189,7 +190,8 @@
       "tenure_above_max": "Tenure exceeds the product maximum.",
       "tenure_non_integer": "Tenure must be a whole number.",
       "tenure_non_positive": "Tenure must be greater than zero.",
-      "selectProduct": "Please select a product first."
+      "selectProduct": "Please select a product first.",
+      "dp_below_min": "Down payment must be at least {min}%."
     }
   },
   "admin": {
@@ -328,6 +330,7 @@
         "adminFeeMinEgp": "Admin fee minimum (EGP)",
         "adminFeeMaxEgp": "Admin fee maximum (EGP)",
         "insuranceRequired": "Insurance required",
+        "minDownPaymentBps": "Minimum down payment (%)",
         "earlySettlementFeeBps": "Early settlement fee (%)",
         "latePaymentFeeBps": "Late payment fee (basis points)",
         "heroImageUrl": "Hero image",

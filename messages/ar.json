@@ -155,6 +155,7 @@
     "selectProduct": "اختر منتجًا",
     "invoiceValue": "قيمة الفاتورة (ج.م.)",
     "downPaymentPercent": "الدفعة المقدمة (%)",
+    "minDownPaymentHint": "الحد الأدنى {min}%",
     "principal": "قيمة التمويل (ج.م.)",
     "tenure": "المدة (شهر)",
     "calculate": "احسب",
@@ -189,7 +190,8 @@
       "tenure_above_max": "المدة تتجاوز الحد الأقصى للمنتج.",
       "tenure_non_integer": "يجب أن تكون المدة عددًا صحيحًا.",
       "tenure_non_positive": "يجب أن تكون المدة أكبر من صفر.",
-      "selectProduct": "يرجى اختيار منتج أولاً."
+      "selectProduct": "يرجى اختيار منتج أولاً.",
+      "dp_below_min": "يجب ألا تقل الدفعة المقدمة عن {min}%."
     }
   },
   "admin": {
@@ -328,6 +330,7 @@
         "adminFeeMinEgp": "الحد الأدنى للرسوم الإدارية (ج.م.)",
         "adminFeeMaxEgp": "الحد الأقصى للرسوم الإدارية (ج.م.)",
         "insuranceRequired": "التأمين إجباري",
+        "minDownPaymentBps": "الحد الأدنى للدفعة المقدمة (%)",
         "earlySettlementFeeBps": "رسوم السداد المبكر (%)",
         "latePaymentFeeBps": "رسوم التأخير (نقطة أساس)",
         "heroImageUrl": "الصورة الرئيسية",

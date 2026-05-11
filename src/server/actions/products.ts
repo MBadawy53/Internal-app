@@ -44,6 +44,8 @@ const ProductInputSchema = z
 
     insuranceRequired: z.coerce.boolean().default(false),
 
+    minDownPaymentBps: z.coerce.number().int().min(0).max(10_000),
+
     earlySettlementFeeBps: z.coerce.number().int().min(0).max(10_000),
     latePaymentFeeBps: z.coerce.number().int().min(0).max(10_000),
 
@@ -112,6 +114,7 @@ function fromFormData(fd: FormData) {
     adminFeeMaxEgp: fd.get("adminFeeMaxEgp")?.toString() ?? "0",
     insuranceRequired:
       fd.get("insuranceRequired") === "on" || fd.get("insuranceRequired") === "true",
+    minDownPaymentBps: fd.get("minDownPaymentBps")?.toString() ?? "0",
     earlySettlementFeeBps: fd.get("earlySettlementFeeBps")?.toString() ?? "0",
     latePaymentFeeBps: fd.get("latePaymentFeeBps")?.toString() ?? "0",
     heroImageUrl: fd.get("heroImageUrl")?.toString() || "" || null,
@@ -163,6 +166,7 @@ export async function createProductAction(
       adminFeeMinPiastres: toBigIntPiastres(d.adminFeeMinEgp),
       adminFeeMaxPiastres: toBigIntPiastres(d.adminFeeMaxEgp),
       insuranceRequired: d.insuranceRequired,
+      minDownPaymentBps: d.minDownPaymentBps,
       earlySettlementFeeBps: d.earlySettlementFeeBps,
       latePaymentFeeBps: d.latePaymentFeeBps,
       heroImageUrl: d.heroImageUrl,
@@ -229,6 +233,7 @@ export async function updateProductAction(
       adminFeeMinPiastres: toBigIntPiastres(d.adminFeeMinEgp),
       adminFeeMaxPiastres: toBigIntPiastres(d.adminFeeMaxEgp),
       insuranceRequired: d.insuranceRequired,
+      minDownPaymentBps: d.minDownPaymentBps,
       earlySettlementFeeBps: d.earlySettlementFeeBps,
       latePaymentFeeBps: d.latePaymentFeeBps,
       heroImageUrl: d.heroImageUrl,

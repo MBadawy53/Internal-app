@@ -39,6 +39,7 @@ export default async function CalculatorPage({
     adminFeeMinPiastres: p.adminFeeMinPiastres.toString(),
     adminFeeMaxPiastres: p.adminFeeMaxPiastres.toString(),
     insuranceRequired: p.insuranceRequired,
+    minDownPaymentBps: p.minDownPaymentBps,
     earlySettlementFeeBps: p.earlySettlementFeeBps,
     latePaymentFeeBps: p.latePaymentFeeBps,
   }));

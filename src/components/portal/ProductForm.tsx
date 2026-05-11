@@ -72,6 +72,7 @@ interface InitialProduct {
   adminFeeMinEgp?: number;
   adminFeeMaxEgp?: number;
   insuranceRequired?: boolean;
+  minDownPaymentBps?: number;
   earlySettlementFeeBps?: number;
   latePaymentFeeBps?: number;
   heroImageUrl?: string | null;
@@ -489,6 +490,11 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
                 {tFields("insuranceRequired")}
               </label>
             ) : null}
+            <PercentField
+              name="minDownPaymentBps"
+              label={tFields("minDownPaymentBps")}
+              defaultBps={initial?.minDownPaymentBps ?? 0}
+            />
             {isVisible("earlySettlement") ? (
               <PercentField
                 name="earlySettlementFeeBps"

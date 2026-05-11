@@ -262,6 +262,10 @@ model Product {
   // Insurance is just a boolean flag — no fee math.
   insuranceRequired Boolean @default(false)
 
+  // Minimum down payment as basis points (e.g. 4000 = 40%). The calculator
+  // enforces this when the user provides an invoice price.
+  minDownPaymentBps Int @default(0)
+
   // Policy lines (admin-entered, displayed; not factored into EMI).
   earlySettlementFeeBps Int @default(0)
   latePaymentFeeBps     Int @default(0)

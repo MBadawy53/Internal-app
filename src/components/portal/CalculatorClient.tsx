@@ -32,6 +32,7 @@ interface ClientProduct {
   adminFeeMinPiastres: string;
   adminFeeMaxPiastres: string;
   insuranceRequired: boolean;
+  minDownPaymentBps: number;
   earlySettlementFeeBps: number;
   latePaymentFeeBps: number;
 }
@@ -125,6 +126,16 @@ export function CalculatorClient({ products, locale, initial }: Props) {
       setResult(null);
       return;
     }
+    // Enforce the product's minimum down payment when the user is using
+    // the invoice-based flow.
+    if (hasInvoice && product.minDownPaymentBps > 0) {
+      const minDpPct = product.minDownPaymentBps / 100;
+      if (safeDp < minDpPct) {
+        setError(tErr("dp_below_min", { min: minDpPct.toFixed(2) }));
+        setResult(null);
+        return;
+      }
+    }
     setError(null);
     try {
       const out = calculate(
@@ -150,7 +161,7 @@ export function CalculatorClient({ products, locale, initial }: Props) {
   useEffect(() => {
     if (product && principal && tenure) compute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId, principal, tenure]);
+  }, [productId, principal, tenure, invoice, dpPercent]);
 
   // Keep URL in sync so links are shareable.
   useEffect(() => {
@@ -235,12 +246,17 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                 id="calc-dp"
                 type="number"
                 inputMode="decimal"
-                min={0}
+                min={product ? product.minDownPaymentBps / 100 : 0}
                 max={100}
                 step="0.01"
                 value={dpPercent}
                 onChange={(e) => setDpPercent(e.target.value)}
               />
+              {product && product.minDownPaymentBps > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("minDownPaymentHint", { min: (product.minDownPaymentBps / 100).toFixed(2) })}
+                </p>
+              ) : null}
             </div>
           </div>
 
