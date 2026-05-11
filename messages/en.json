@@ -194,6 +194,104 @@
       "dp_below_min": "Down payment must be at least {min}%."
     }
   },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Manage prospective customers across the sales funnel.",
+    "new": "New lead",
+    "export": "Export CSV",
+    "empty": "No leads match the current filters.",
+    "count": "{n, plural, one {# lead} other {# leads}}",
+    "filters": {
+      "search": "Search by name or phone",
+      "status": "Status",
+      "source": "Source",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear"
+    },
+    "table": {
+      "customer": "Customer",
+      "phone": "Phone",
+      "businessLine": "Business line",
+      "status": "Status",
+      "source": "Source",
+      "owner": "Owner",
+      "created": "Created"
+    },
+    "detail": {
+      "info": "Customer info",
+      "phone": "Phone",
+      "email": "Email",
+      "nationalId": "National ID",
+      "owner": "Owner",
+      "referredBy": "Referred by",
+      "product": "Product",
+      "preferredTime": "Preferred contact time",
+      "createdAt": "Created",
+      "note": "Customer note",
+      "status": "Status",
+      "timeline": "Activity timeline",
+      "history": "Status history",
+      "addActivity": "Add activity",
+      "noActivities": "No activities yet.",
+      "noHistory": "No status changes yet.",
+      "backToList": "Back to leads"
+    },
+    "status": {
+      "changeTo": "Change status to",
+      "reason": "Reason",
+      "note": "Note",
+      "update": "Update status",
+      "updating": "Updating…",
+      "terminal": "This lead has reached a terminal status."
+    },
+    "activity": {
+      "type": "Type",
+      "content": "Content",
+      "add": "Add",
+      "adding": "Adding…"
+    },
+    "form": {
+      "customerName": "Customer name",
+      "customerPhone": "Customer phone",
+      "customerEmail": "Customer email",
+      "nationalId": "National ID",
+      "businessLine": "Business line",
+      "product": "Product (optional)",
+      "owner": "Assign owner",
+      "preferredContactTime": "Preferred contact time",
+      "customerNote": "Customer note",
+      "consent": "The customer has consented to be contacted about this enquiry."
+    },
+    "statuses": {
+      "NEW": "New",
+      "ASSIGNED": "Assigned",
+      "CONTACTED": "Contacted",
+      "NO_ANSWER": "No answer",
+      "APPLICATION_CREATED": "Application created",
+      "CREDIT_APPROVED": "Credit approved",
+      "CONTRACTED": "Contracted",
+      "LICENSING": "Licensing",
+      "CREDIT_REJECTED_FT": "Rejected (financial)",
+      "CREDIT_REJECTED_NT": "Rejected (non-financial)"
+    },
+    "sources": {
+      "QR_CODE": "QR code",
+      "MANUAL_ENTRY": "Manual entry",
+      "REFERRAL": "Referral",
+      "IMPORT": "Import"
+    },
+    "activityTypes": {
+      "CALL": "Call",
+      "NOTE": "Note",
+      "EMAIL": "Email",
+      "WHATSAPP": "WhatsApp",
+      "SMS": "SMS",
+      "FILE": "File",
+      "STATUS_CHANGE": "Status change"
+    }
+  },
   "admin": {
     "title": "Administration",
     "categories": {

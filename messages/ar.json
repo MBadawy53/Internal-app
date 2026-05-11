@@ -194,6 +194,104 @@
       "dp_below_min": "يجب ألا تقل الدفعة المقدمة عن {min}%."
     }
   },
+  "leads": {
+    "title": "العملاء المحتملون",
+    "subtitle": "إدارة العملاء المحتملين خلال مراحل البيع.",
+    "new": "عميل جديد",
+    "export": "تصدير CSV",
+    "empty": "لا توجد عملاء مطابقون للمرشحات الحالية.",
+    "count": "{n, plural, zero {لا يوجد عملاء} one {عميل واحد} two {عميلان} few {# عملاء} many {# عميلًا} other {# عميل}}",
+    "filters": {
+      "search": "ابحث بالاسم أو الهاتف",
+      "status": "الحالة",
+      "source": "المصدر",
+      "from": "من",
+      "to": "إلى",
+      "apply": "تطبيق",
+      "clear": "مسح"
+    },
+    "table": {
+      "customer": "العميل",
+      "phone": "الهاتف",
+      "businessLine": "قطاع الأعمال",
+      "status": "الحالة",
+      "source": "المصدر",
+      "owner": "المسؤول",
+      "created": "تاريخ الإنشاء"
+    },
+    "detail": {
+      "info": "بيانات العميل",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "nationalId": "الرقم القومي",
+      "owner": "المسؤول",
+      "referredBy": "أُحيل بواسطة",
+      "product": "المنتج",
+      "preferredTime": "وقت التواصل المفضل",
+      "createdAt": "تاريخ الإنشاء",
+      "note": "ملاحظة العميل",
+      "status": "الحالة",
+      "timeline": "سجل النشاط",
+      "history": "تاريخ الحالات",
+      "addActivity": "إضافة نشاط",
+      "noActivities": "لا توجد أنشطة بعد.",
+      "noHistory": "لا توجد تغييرات حالة بعد.",
+      "backToList": "العودة إلى القائمة"
+    },
+    "status": {
+      "changeTo": "تغيير الحالة إلى",
+      "reason": "السبب",
+      "note": "ملاحظة",
+      "update": "تحديث الحالة",
+      "updating": "جارٍ التحديث…",
+      "terminal": "وصل هذا العميل إلى حالة نهائية."
+    },
+    "activity": {
+      "type": "النوع",
+      "content": "المحتوى",
+      "add": "إضافة",
+      "adding": "جارٍ الإضافة…"
+    },
+    "form": {
+      "customerName": "اسم العميل",
+      "customerPhone": "هاتف العميل",
+      "customerEmail": "بريد العميل الإلكتروني",
+      "nationalId": "الرقم القومي",
+      "businessLine": "قطاع الأعمال",
+      "product": "المنتج (اختياري)",
+      "owner": "تعيين المسؤول",
+      "preferredContactTime": "وقت التواصل المفضل",
+      "customerNote": "ملاحظة العميل",
+      "consent": "وافق العميل على التواصل بشأن هذا الطلب."
+    },
+    "statuses": {
+      "NEW": "جديد",
+      "ASSIGNED": "مُعيَّن",
+      "CONTACTED": "تم التواصل",
+      "NO_ANSWER": "لا يوجد رد",
+      "APPLICATION_CREATED": "تم إنشاء الطلب",
+      "CREDIT_APPROVED": "تمت الموافقة الائتمانية",
+      "CONTRACTED": "تم التعاقد",
+      "LICENSING": "ترخيص",
+      "CREDIT_REJECTED_FT": "مرفوض (مالي)",
+      "CREDIT_REJECTED_NT": "مرفوض (غير مالي)"
+    },
+    "sources": {
+      "QR_CODE": "رمز QR",
+      "MANUAL_ENTRY": "إدخال يدوي",
+      "REFERRAL": "إحالة",
+      "IMPORT": "استيراد"
+    },
+    "activityTypes": {
+      "CALL": "اتصال",
+      "NOTE": "ملاحظة",
+      "EMAIL": "بريد إلكتروني",
+      "WHATSAPP": "واتساب",
+      "SMS": "رسالة نصية",
+      "FILE": "ملف",
+      "STATUS_CHANGE": "تغيير الحالة"
+    }
+  },
   "admin": {
     "title": "الإدارة",
     "categories": {
