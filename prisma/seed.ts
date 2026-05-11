@@ -24,30 +24,25 @@ function groupId(n: number): string {
 }
 
 const businessLines = [
-  { slug: "auto-loan", nameEn: "Auto Loan", nameAr: "تمويل السيارات", icon: "car" },
-  { slug: "insurance", nameEn: "Insurance", nameAr: "التأمين", icon: "shield" },
-  { slug: "mortgage", nameEn: "Mortgage", nameAr: "التمويل العقاري", icon: "home" },
-  { slug: "home-furniture", nameEn: "Home Furniture", nameAr: "أثاث المنزل", icon: "armchair" },
   {
-    slug: "home-interior",
-    nameEn: "Home Interior",
-    nameAr: "تشطيبات المنزل",
-    icon: "paint-bucket",
+    slug: "consumer-financing",
+    nameEn: "Consumer Financing",
+    nameAr: "التمويل الاستهلاكي",
+    icon: "wallet",
   },
-  { slug: "motorcycle", nameEn: "Motorcycle", nameAr: "تمويل الدراجات النارية", icon: "bike" },
-  { slug: "leasing", nameEn: "Leasing", nameAr: "التأجير التمويلي", icon: "key" },
-  { slug: "factoring", nameEn: "Factoring", nameAr: "التخصيم", icon: "receipt" },
+  {
+    slug: "business-financing",
+    nameEn: "Business Financing",
+    nameAr: "تمويل الشركات",
+    icon: "briefcase",
+  },
+  { slug: "insurance", nameEn: "Insurance", nameAr: "التأمين", icon: "shield" },
 ];
 
 const productTypeBySlug: Record<string, ProductType> = {
-  "auto-loan": ProductType.AUTO_LOAN,
+  "consumer-financing": ProductType.PERSONAL_LOAN,
+  "business-financing": ProductType.FACTORING,
   insurance: ProductType.INSURANCE_POLICY,
-  mortgage: ProductType.MORTGAGE,
-  "home-furniture": ProductType.HOME_FURNITURE,
-  "home-interior": ProductType.HOME_INTERIOR,
-  motorcycle: ProductType.MOTORCYCLE,
-  leasing: ProductType.LEASING,
-  factoring: ProductType.FACTORING,
 };
 
 async function main() {
@@ -61,7 +56,13 @@ async function main() {
       create: { slug: bl.slug, nameEn: bl.nameEn, nameAr: bl.nameAr, iconKey: bl.icon },
     });
   }
-  const allBLs = await prisma.businessLine.findMany();
+  // Deactivate any legacy business line not in the current list. We keep the
+  // rows so historical data (users, products, leads) stays referentially intact.
+  await prisma.businessLine.updateMany({
+    where: { slug: { notIn: businessLines.map((b) => b.slug) } },
+    data: { isActive: false },
+  });
+  const allBLs = await prisma.businessLine.findMany({ where: { isActive: true } });
   console.log(`  ✓ ${allBLs.length} business lines`);
 
   // ── Admin (break-glass: email-only login, no group ID) ─────────────────────
@@ -193,7 +194,7 @@ async function main() {
           adminFeeBps: 100, // 1%
           adminFeeMinPiastres: BigInt(500_00), // EGP 500
           adminFeeMaxPiastres: BigInt(10_000_00), // EGP 10,000
-          insuranceRequired: bl.slug === "auto-loan" || bl.slug === "mortgage",
+          insuranceRequired: false,
           earlySettlementFeeBps: 200, // 2%
           latePaymentFeeBps: 300, // 3%
           isFeatured: true,
@@ -243,7 +244,9 @@ async function main() {
     });
   }
   console.log(`  ✓ ${seedAttrs.length} admin attributes`);
-  console.log(`  ✓ ${userCount}+ users (1 admin, 8 owners, 8 managers, 16 employees)`);
+  console.log(
+    `  ✓ ${userCount}+ users (1 admin, ${allBLs.length} owners, ${allBLs.length} managers, ${allBLs.length * 2} employees)`,
+  );
 
   // ── One unactivated employee so the first-login flow can be demoed ──────────
   const unactivatedGid = groupId(groupSeq++);
@@ -299,9 +302,11 @@ async function main() {
   console.log("  ✓ Sample products seeded for each business line");
 
   // ── A handful of leads in different statuses ────────────────────────────────
-  const autoLoanBL = allBLs.find((b) => b.slug === "auto-loan");
-  const emp = await prisma.user.findUnique({ where: { email: "emp1.auto-loan@contact.local" } });
-  if (autoLoanBL && emp) {
+  const leadsBL = allBLs.find((b) => b.slug === "consumer-financing");
+  const emp = await prisma.user.findUnique({
+    where: { email: "emp1.consumer-financing@contact.local" },
+  });
+  if (leadsBL && emp) {
     const sampleLeads: Array<{ name: string; phone: string; status: LeadStatus }> = [
       { name: "Ahmed Hassan", phone: "+201001234567", status: LeadStatus.NEW },
       { name: "Mona Saleh", phone: "+201112345678", status: LeadStatus.CONTACTED },
@@ -310,7 +315,7 @@ async function main() {
     ];
     for (const l of sampleLeads) {
       const exists = await prisma.lead.findFirst({
-        where: { customerPhone: l.phone, businessLineId: autoLoanBL.id },
+        where: { customerPhone: l.phone, businessLineId: leadsBL.id },
       });
       if (exists) continue;
       const lead = await prisma.lead.create({
@@ -318,7 +323,7 @@ async function main() {
           customerName: l.name,
           customerPhone: l.phone,
           source: LeadSource.MANUAL_ENTRY,
-          businessLineId: autoLoanBL.id,
+          businessLineId: leadsBL.id,
           ownerEmployeeId: emp.id,
           referredByEmployeeId: emp.id,
           currentStatus: l.status,
