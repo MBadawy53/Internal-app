@@ -8,7 +8,13 @@ import { CalculatorClient } from "@/components/portal/CalculatorClient";
 export default async function CalculatorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productId?: string; principal?: string; tenure?: string }>;
+  searchParams: Promise<{
+    productId?: string;
+    principal?: string;
+    tenure?: string;
+    invoice?: string;
+    dp?: string;
+  }>;
 }) {
   const actor = await requireActor();
   const sp = await searchParams;
@@ -52,6 +58,8 @@ export default async function CalculatorPage({
           productId: sp.productId,
           principal: sp.principal,
           tenure: sp.tenure,
+          invoice: sp.invoice,
+          dpPercent: sp.dp,
         }}
       />
     </div>

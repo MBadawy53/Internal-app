@@ -153,6 +153,8 @@
     "title": "Loan Calculator",
     "subtitle": "Compute monthly installment, admin fees, and amortization for any product.",
     "selectProduct": "Select a product",
+    "invoiceValue": "Invoice price (EGP)",
+    "downPaymentPercent": "Down payment (%)",
     "principal": "Loan amount (EGP)",
     "tenure": "Tenure (months)",
     "calculate": "Calculate",
@@ -162,6 +164,8 @@
     "copied": "Copied!",
     "result": {
       "monthlyInstallment": "Monthly installment",
+      "loanAmount": "Loan amount",
+      "downPayment": "Down payment",
       "adminFee": "Admin fee",
       "totalInterest": "Total interest",
       "totalPayable": "Total payable",

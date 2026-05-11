@@ -153,6 +153,8 @@
     "title": "حاسبة التمويل",
     "subtitle": "احسب القسط الشهري والرسوم الإدارية وجدول الإطفاء لأي منتج.",
     "selectProduct": "اختر منتجًا",
+    "invoiceValue": "قيمة الفاتورة (ج.م.)",
+    "downPaymentPercent": "الدفعة المقدمة (%)",
     "principal": "قيمة التمويل (ج.م.)",
     "tenure": "المدة (شهر)",
     "calculate": "احسب",
@@ -162,6 +164,8 @@
     "copied": "تم النسخ!",
     "result": {
       "monthlyInstallment": "القسط الشهري",
+      "loanAmount": "قيمة التمويل",
+      "downPayment": "الدفعة المقدمة",
       "adminFee": "الرسوم الإدارية",
       "totalInterest": "إجمالي الفوائد",
       "totalPayable": "إجمالي المبلغ المستحق",
