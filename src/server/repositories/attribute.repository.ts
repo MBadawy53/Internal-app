@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 export const attributeRepository = {
   list: () =>
     prisma.attribute.findMany({
-      orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
+      orderBy: [{ sortOrder: "desc" }, { nameEn: "asc" }],
     }),
   listActive: () =>
     prisma.attribute.findMany({
       where: { isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
+      orderBy: [{ sortOrder: "desc" }, { nameEn: "asc" }],
     }),
   findById: (id: string) => prisma.attribute.findUnique({ where: { id } }),
   findByKey: (key: string) => prisma.attribute.findUnique({ where: { key } }),

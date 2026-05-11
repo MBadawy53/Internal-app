@@ -50,13 +50,13 @@ export const productRepository = {
           include: {
             attributes: {
               include: { attribute: true },
-              orderBy: { sortOrder: "asc" },
+              orderBy: { sortOrder: "desc" },
             },
           },
         },
         attributeValues: {
           include: { attribute: true },
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: "desc" },
         },
       },
       orderBy: [{ isFeatured: "desc" }, { nameEn: "asc" }],
@@ -72,13 +72,13 @@ export const productRepository = {
           include: {
             attributes: {
               include: { attribute: true },
-              orderBy: { sortOrder: "asc" },
+              orderBy: { sortOrder: "desc" },
             },
           },
         },
         attributeValues: {
           include: { attribute: true },
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: "desc" },
         },
       },
     }),

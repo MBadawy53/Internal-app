@@ -17,7 +17,7 @@ export const productCategoryRepository = {
         businessLine: true,
         attributes: {
           include: { attribute: true },
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: "desc" },
         },
         _count: { select: { products: true } },
       },
@@ -31,7 +31,7 @@ export const productCategoryRepository = {
         businessLine: true,
         attributes: {
           include: { attribute: true },
-          orderBy: { sortOrder: "asc" },
+          orderBy: { sortOrder: "desc" },
         },
       },
     }),
