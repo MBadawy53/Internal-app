@@ -424,28 +424,18 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
         </Card>
       ) : null}
 
-      {isVisible("flatRate") || isVisible("decliningRate") ? (
+      {isVisible("decliningRate") ? (
         <Card>
           <CardHeader>
             <CardTitle>{tSect("rates")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
-            {isVisible("flatRate") ? (
-              <PercentField
-                name="flatInterestRateBps"
-                label={tFields("flatInterestRateBps")}
-                defaultBps={initial?.flatInterestRateBps ?? 0}
-                required={isRequired("flatRate")}
-              />
-            ) : null}
-            {isVisible("decliningRate") ? (
-              <PercentField
-                name="decliningInterestRateBps"
-                label={tFields("decliningInterestRateBps")}
-                defaultBps={initial?.decliningInterestRateBps ?? 0}
-                required={isRequired("decliningRate")}
-              />
-            ) : null}
+            <PercentField
+              name="decliningInterestRateBps"
+              label={tFields("decliningInterestRateBps")}
+              defaultBps={initial?.decliningInterestRateBps ?? 0}
+              required={isRequired("decliningRate")}
+            />
           </CardContent>
         </Card>
       ) : null}
