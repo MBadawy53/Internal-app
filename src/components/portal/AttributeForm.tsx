@@ -62,7 +62,8 @@ export function AttributeForm({ initial }: Props) {
             name="key"
             defaultValue={initial?.key}
             required
-            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            pattern="[a-z0-9]+(?:[-.][a-z0-9]+)*"
+            title="Lowercase letters, digits, hyphens or dots (e.g. grace-period, insurance.company-name)"
           />
           <p className="text-xs text-muted-foreground">{t("keyHelp")}</p>
           {errs.key ? <p className="text-xs text-destructive">{errs.key.join(", ")}</p> : null}

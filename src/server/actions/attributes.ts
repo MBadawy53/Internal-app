@@ -10,6 +10,8 @@ import { logger } from "@/lib/logger";
 import { attributeRepository } from "@/server/repositories/attribute.repository";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+// Attribute keys may use dots for namespacing (e.g. "insurance.company-name").
+const keyRegex = /^[a-z0-9]+(?:[-.][a-z0-9]+)*$/u;
 
 const SelectOption = z.object({
   value: z.string().min(1).max(60).regex(slugRegex, "Option value must be kebab-case"),
@@ -19,7 +21,11 @@ const SelectOption = z.object({
 
 const AttributeInputSchema = z
   .object({
-    key: z.string().min(2).max(64).regex(slugRegex, "Key must be kebab-case"),
+    key: z
+      .string()
+      .min(2)
+      .max(64)
+      .regex(keyRegex, "Key must be lowercase letters, digits, hyphens or dots"),
     nameEn: z.string().min(1).max(120),
     nameAr: z.string().min(1).max(120),
     helpEn: z.string().max(500).optional().nullable(),
