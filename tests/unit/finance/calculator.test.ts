@@ -154,51 +154,6 @@ describe("calculate (declining-balance amortization)", () => {
     expect(Math.abs(r.equivalentFlatRateBps - 1493)).toBeLessThan(10);
   });
 
-  describe("merchant subsidy", () => {
-    const product26 = { ...baseProduct, decliningInterestRateBps: 2650 };
-
-    it("with customer flat = 0%, subsidy equals the full declining interest", () => {
-      // Matches the reference table row: 600k @ 26.50% over 12 months,
-      // Flat Rate % = 0 → Interest Subsidy ≈ 89,570; customer pays 50k/month.
-      const r = calculate(
-        { principalPiastres: 600_000_00n, tenureMonths: 12, customerFlatRateBps: 0 },
-        product26,
-      );
-      expect(r.customerFlatRateBps).toBe(0);
-      expect(r.customerTotalInterestPiastres).toBe(0n);
-      expect(r.customerMonthlyInstallmentPiastres).toBe(50_000_00n);
-      expect(r.subsidyTotalPiastres).toBe(r.totalInterestPiastres);
-    });
-
-    it("with customer flat between 0 and equivalent, subsidy = decliningInterest − customerInterest", () => {
-      // Customer flat 10% over 1 year: customer interest = 600,000 × 0.10 × 1 = 60,000
-      const r = calculate(
-        { principalPiastres: 600_000_00n, tenureMonths: 12, customerFlatRateBps: 1000 },
-        product26,
-      );
-      expect(r.customerTotalInterestPiastres).toBe(60_000_00n);
-      // customer monthly = (600,000 + 60,000) / 12 = 55,000
-      expect(r.customerMonthlyInstallmentPiastres).toBe(55_000_00n);
-      expect(r.subsidyTotalPiastres).toBe(r.totalInterestPiastres! - 60_000_00n);
-    });
-
-    it("subsidy never goes negative when customer rate exceeds the equivalent", () => {
-      const r = calculate(
-        { principalPiastres: 600_000_00n, tenureMonths: 12, customerFlatRateBps: 5000 }, // 50%
-        product26,
-      );
-      expect(r.subsidyTotalPiastres).toBe(0n);
-    });
-
-    it("subsidy fields are null when customerFlatRateBps is not provided", () => {
-      const r = calculate({ principalPiastres: 600_000_00n, tenureMonths: 12 }, product26);
-      expect(r.customerFlatRateBps).toBeNull();
-      expect(r.subsidyTotalPiastres).toBeNull();
-      expect(r.customerMonthlyInstallmentPiastres).toBeNull();
-      expect(r.customerTotalInterestPiastres).toBeNull();
-    });
-  });
-
   it("handles zero declining rate (interest-free)", () => {
     const zeroRate: CalculatorProductConfig = {
       ...baseProduct,

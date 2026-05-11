@@ -62,14 +62,7 @@ function piastresFromEgp(egp: string): bigint {
 interface Props {
   products: ClientProduct[];
   locale: AppLocale;
-  initial: {
-    productId?: string;
-    principal?: string;
-    tenure?: string;
-    invoice?: string;
-    dpPercent?: string;
-    customerFlat?: string;
-  };
+  initial: { productId?: string; principal?: string; tenure?: string };
 }
 
 export function CalculatorClient({ products, locale, initial }: Props) {
@@ -82,26 +75,12 @@ export function CalculatorClient({ products, locale, initial }: Props) {
   const [productId, setProductId] = useState(initial.productId ?? products[0]?.id ?? "");
   const product = useMemo(() => products.find((p) => p.id === productId), [productId, products]);
 
-  const [invoice, setInvoice] = useState(initial.invoice ?? "");
-  const [dpPercent, setDpPercent] = useState(initial.dpPercent ?? "");
   const [principal, setPrincipal] = useState(initial.principal ?? "");
   const [tenure, setTenure] = useState(initial.tenure ?? "");
-  const [customerFlat, setCustomerFlat] = useState(initial.customerFlat ?? "");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CalculatorResult | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
-
-  // When invoice + DP% are both set, derive principal (= invoice − DP).
-  // Otherwise leave principal directly editable.
-  useEffect(() => {
-    const inv = Number(invoice);
-    const dp = Number(dpPercent);
-    if (!Number.isFinite(inv) || inv <= 0) return;
-    const safeDp = Number.isFinite(dp) ? Math.min(Math.max(dp, 0), 100) : 0;
-    const loan = Math.round(inv * (1 - safeDp / 100) * 100) / 100;
-    setPrincipal(loan.toString());
-  }, [invoice, dpPercent]);
 
   // When product changes, default principal/tenure to the product's min if empty.
   useEffect(() => {
@@ -124,13 +103,10 @@ export function CalculatorClient({ products, locale, initial }: Props) {
     }
     setError(null);
     try {
-      const customerFlatBps =
-        customerFlat.trim() === "" ? undefined : Math.round(Number(customerFlat) * 100);
       const out = calculate(
         {
           principalPiastres: piastresFromEgp(principal),
           tenureMonths: Number(tenure),
-          customerFlatRateBps: customerFlatBps,
         },
         toConfig(product),
       );
@@ -150,21 +126,18 @@ export function CalculatorClient({ products, locale, initial }: Props) {
   useEffect(() => {
     if (product && principal && tenure) compute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId, principal, tenure, customerFlat]);
+  }, [productId, principal, tenure]);
 
   // Keep URL in sync so links are shareable.
   useEffect(() => {
     if (!product) return;
     const sp = new URLSearchParams();
     sp.set("productId", product.id);
-    if (invoice) sp.set("invoice", invoice);
-    if (dpPercent) sp.set("dp", dpPercent);
     if (principal) sp.set("principal", principal);
     if (tenure) sp.set("tenure", tenure);
-    if (customerFlat) sp.set("cflat", customerFlat);
     const url = `/calculator?${sp.toString()}`;
     window.history.replaceState(null, "", url);
-  }, [product, invoice, dpPercent, principal, tenure, customerFlat]);
+  }, [product, principal, tenure]);
 
   const onSave = () => {
     if (!product || !principal || !tenure) return;
@@ -217,34 +190,6 @@ export function CalculatorClient({ products, locale, initial }: Props) {
             </Select>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="calc-invoice">{t("invoiceValue")}</Label>
-              <Input
-                id="calc-invoice"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="0.01"
-                value={invoice}
-                onChange={(e) => setInvoice(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="calc-dp">{t("downPaymentPercent")}</Label>
-              <Input
-                id="calc-dp"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                max={100}
-                step="0.01"
-                value={dpPercent}
-                onChange={(e) => setDpPercent(e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="space-y-1.5">
             <Label htmlFor="calc-principal">{t("principal")}</Label>
             <Input
@@ -282,20 +227,6 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                 {product.tenureMinMonths}–{product.tenureMaxMonths}
               </p>
             ) : null}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="calc-customer-flat">{t("customerFlatRate")}</Label>
-            <Input
-              id="calc-customer-flat"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              value={customerFlat}
-              onChange={(e) => setCustomerFlat(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">{t("customerFlatRateHelp")}</p>
           </div>
 
           {error ? (
@@ -344,23 +275,6 @@ export function CalculatorClient({ products, locale, initial }: Props) {
               </div>
 
               <dl className="grid grid-cols-2 gap-3 text-sm">
-                {invoice ? (
-                  <Stat
-                    label={t("downPayment")}
-                    value={formatMoney(
-                      BigInt(
-                        Math.round(
-                          (((Number(invoice) || 0) * (Number(dpPercent) || 0)) / 100) * 100,
-                        ),
-                      ),
-                      locale,
-                    )}
-                  />
-                ) : null}
-                <Stat
-                  label={tResult("loanAmount")}
-                  value={formatMoney(result.principalPiastres, locale)}
-                />
                 <Stat
                   label={tResult("adminFee")}
                   value={formatMoney(result.adminFeePiastres, locale)}
@@ -391,23 +305,6 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                   value={formatBps(result.latePaymentFeeBps, locale)}
                 />
               </dl>
-
-              {result.customerFlatRateBps !== null ? (
-                <dl className="grid grid-cols-2 gap-3 rounded-md border bg-secondary/30 p-3 text-sm">
-                  <Stat
-                    label={tResult("customerMonthly")}
-                    value={formatMoney(result.customerMonthlyInstallmentPiastres!, locale)}
-                  />
-                  <Stat
-                    label={tResult("customerInterest")}
-                    value={formatMoney(result.customerTotalInterestPiastres!, locale)}
-                  />
-                  <Stat
-                    label={tResult("subsidy")}
-                    value={formatMoney(result.subsidyTotalPiastres!, locale)}
-                  />
-                </dl>
-              ) : null}
             </>
           )}
         </CardContent>
