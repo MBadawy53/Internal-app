@@ -290,6 +290,24 @@ async function persistProductAttributeValues(
     const opts = (attr.options as AttributeOptionsJson | null)?.options ?? [];
     try {
       const coerced = coerceAttributeValue(attr.type, rawValues[i] ?? "", opts);
+      // Per-key bounds for insurance attributes: percentages in [0,100],
+      // money amounts ≥ 0. Other numeric attributes are unbounded.
+      if (typeof coerced === "number") {
+        const isInsurancePercent =
+          attr.key === "insurance.rate-under-threshold" ||
+          attr.key === "insurance.rate-above-threshold" ||
+          attr.key === "insurance.rate-after-5-years" ||
+          attr.key === "insurance.rate-electric";
+        const isInsuranceMoney =
+          attr.key === "insurance.threshold-amount-egp" ||
+          attr.key === "insurance.key-replacement-coverage-egp";
+        if (isInsurancePercent && (coerced < 0 || coerced > 100)) {
+          throw new Error("Must be between 0 and 100");
+        }
+        if (isInsuranceMoney && coerced < 0) {
+          throw new Error("Must be greater than or equal to 0");
+        }
+      }
       values.push({
         attributeId: attr.id,
         value: coerced as Prisma.InputJsonValue,

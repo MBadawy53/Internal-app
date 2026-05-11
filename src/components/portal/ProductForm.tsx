@@ -513,64 +513,97 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             <CardTitle>{tSect("customAttributes")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeCategory.attributes.map((attr) => {
-              const value = attrValues[attr.id] ?? "";
-              return (
-                <div
-                  key={attr.id}
-                  className="grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{attr.nameEn}</p>
-                    <p className="text-xs text-muted-foreground">{attr.nameAr}</p>
-                  </div>
-                  <div>
-                    <input type="hidden" name="attributeId" value={attr.id} />
-                    {attr.type === AttributeType.TEXT ? (
-                      <Input
-                        name="attributeValue"
-                        value={value}
-                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
-                      />
-                    ) : null}
-                    {attr.type === AttributeType.NUMBER ? (
-                      <Input
-                        type="number"
-                        name="attributeValue"
-                        value={value}
-                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
-                      />
-                    ) : null}
-                    {attr.type === AttributeType.BOOLEAN ? (
-                      <Select
-                        name="attributeValue"
-                        value={value || "false"}
-                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
-                      >
-                        <option value="true">{tCommon("yes")}</option>
-                        <option value="false">{tCommon("no")}</option>
-                      </Select>
-                    ) : null}
-                    {attr.type === AttributeType.SELECT ? (
-                      <Select
-                        name="attributeValue"
-                        value={value}
-                        onChange={(e) => setAttrValue(attr.id, e.target.value)}
-                      >
-                        <option value="" disabled>
-                          —
-                        </option>
-                        {(attr.options ?? []).map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.labelEn}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : null}
-                  </div>
-                </div>
+            {(() => {
+              // Live-substitute the threshold amount X into the labels for the
+              // two threshold-dependent insurance rate fields. X itself stays
+              // editable as its own attribute; we only rewrite the label.
+              const thresholdAttr = activeCategory.attributes.find(
+                (a) => a.key === "insurance.threshold-amount-egp",
               );
-            })}
+              const xRaw = thresholdAttr ? (attrValues[thresholdAttr.id] ?? "") : "";
+              const xPretty =
+                xRaw && Number.isFinite(Number(xRaw))
+                  ? new Intl.NumberFormat("en-EG").format(Number(xRaw))
+                  : null;
+              const renderLabel = (attr: AttributeRef): { en: string; ar: string } => {
+                if (attr.key === "insurance.rate-under-threshold") {
+                  return xPretty
+                    ? {
+                        en: `Insurance rate for amount under ${xPretty} EGP (%)`,
+                        ar: `نسبة التأمين للمبالغ الأقل من ${xPretty} ج.م. (%)`,
+                      }
+                    : { en: attr.nameEn, ar: attr.nameAr };
+                }
+                if (attr.key === "insurance.rate-above-threshold") {
+                  return xPretty
+                    ? {
+                        en: `Insurance rate for amount above ${xPretty} EGP (%)`,
+                        ar: `نسبة التأمين للمبالغ الأكبر من ${xPretty} ج.م. (%)`,
+                      }
+                    : { en: attr.nameEn, ar: attr.nameAr };
+                }
+                return { en: attr.nameEn, ar: attr.nameAr };
+              };
+              return activeCategory.attributes.map((attr) => {
+                const value = attrValues[attr.id] ?? "";
+                const labels = renderLabel(attr);
+                return (
+                  <div
+                    key={attr.id}
+                    className="grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{labels.en}</p>
+                      <p className="text-xs text-muted-foreground">{labels.ar}</p>
+                    </div>
+                    <div>
+                      <input type="hidden" name="attributeId" value={attr.id} />
+                      {attr.type === AttributeType.TEXT ? (
+                        <Input
+                          name="attributeValue"
+                          value={value}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        />
+                      ) : null}
+                      {attr.type === AttributeType.NUMBER ? (
+                        <Input
+                          type="number"
+                          name="attributeValue"
+                          value={value}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        />
+                      ) : null}
+                      {attr.type === AttributeType.BOOLEAN ? (
+                        <Select
+                          name="attributeValue"
+                          value={value || "false"}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        >
+                          <option value="true">{tCommon("yes")}</option>
+                          <option value="false">{tCommon("no")}</option>
+                        </Select>
+                      ) : null}
+                      {attr.type === AttributeType.SELECT ? (
+                        <Select
+                          name="attributeValue"
+                          value={value}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        >
+                          <option value="" disabled>
+                            —
+                          </option>
+                          {(attr.options ?? []).map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.labelEn}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </CardContent>
         </Card>
       ) : null}

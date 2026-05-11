@@ -151,17 +151,24 @@ async function main() {
     userCount += 2;
 
     // ── Default category for this BL ──────────────────────────────────────────
-    const categorySlug = `${bl.slug}-standard`;
+    // Insurance gets its own dedicated category "Insurance" (with insurance-
+    // specific attributes seeded below); other BLs get a generic "— Standard".
+    const isInsurance = bl.slug === "insurance";
+    const categorySlug = isInsurance ? "insurance" : `${bl.slug}-standard`;
     const category = await prisma.productCategory.upsert({
       where: { slug: categorySlug },
       update: {},
       create: {
         slug: categorySlug,
         businessLineId: bl.id,
-        nameEn: `${bl.nameEn} — Standard`,
-        nameAr: `${bl.nameAr} — قياسي`,
-        descriptionEn: `Standard ${bl.nameEn} category`,
-        descriptionAr: `فئة ${bl.nameAr} القياسية`,
+        nameEn: isInsurance ? "Insurance" : `${bl.nameEn} — Standard`,
+        nameAr: isInsurance ? "التأمين" : `${bl.nameAr} — قياسي`,
+        descriptionEn: isInsurance
+          ? "Insurance products with carrier-specific attributes."
+          : `Standard ${bl.nameEn} category`,
+        descriptionAr: isInsurance
+          ? "منتجات التأمين مع خصائص خاصة بشركة التأمين."
+          : `فئة ${bl.nameAr} القياسية`,
       },
     });
 
@@ -229,11 +236,66 @@ async function main() {
       nameAr: "مدة الصرف (يوم عمل)",
       type: "NUMBER",
     },
+    // Insurance category attributes — bound to the Insurance category below.
+    {
+      key: "insurance.company-name",
+      nameEn: "Insurance company name",
+      nameAr: "اسم شركة التأمين",
+      type: "TEXT",
+    },
+    {
+      key: "insurance.threshold-amount-egp",
+      nameEn: "Threshold amount X (EGP)",
+      nameAr: "قيمة الحد X (ج.م.)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.rate-under-threshold",
+      nameEn: "Insurance rate for amount under X (%)",
+      nameAr: "نسبة التأمين للمبالغ الأقل من X (%)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.rate-above-threshold",
+      nameEn: "Insurance rate for amount above X (%)",
+      nameAr: "نسبة التأمين للمبالغ الأكبر من X (%)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.rate-after-5-years",
+      nameEn: "Insurance rate after 5 years (%)",
+      nameAr: "نسبة التأمين بعد 5 سنوات (%)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.rate-electric",
+      nameEn: "Insurance rate for electric cars (%)",
+      nameAr: "نسبة التأمين للسيارات الكهربائية (%)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.civil-liability",
+      nameEn: "Civil liability",
+      nameAr: "المسؤولية المدنية",
+      type: "TEXT",
+    },
+    {
+      key: "insurance.key-replacement-coverage-egp",
+      nameEn: "Key replacement coverage (EGP)",
+      nameAr: "تغطية استبدال المفاتيح (ج.م.)",
+      type: "NUMBER",
+    },
+    {
+      key: "insurance.road-assistance",
+      nameEn: "Road assistance coverage",
+      nameAr: "تغطية المساعدة على الطريق",
+      type: "TEXT",
+    },
   ];
   for (const a of seedAttrs) {
     await prisma.attribute.upsert({
       where: { key: a.key },
-      update: {},
+      update: { nameEn: a.nameEn, nameAr: a.nameAr, type: a.type, isActive: true },
       create: {
         key: a.key,
         nameEn: a.nameEn,
@@ -244,6 +306,54 @@ async function main() {
     });
   }
   console.log(`  ✓ ${seedAttrs.length} admin attributes`);
+
+  // ── Bind Insurance attributes to the Insurance category ─────────────────────
+  // The category was created in the per-BL loop above with slug "insurance".
+  const insuranceCategory = await prisma.productCategory.findUnique({
+    where: { slug: "insurance" },
+  });
+  if (insuranceCategory) {
+    const insuranceAttrKeys = [
+      "insurance.company-name",
+      "insurance.threshold-amount-egp",
+      "insurance.rate-under-threshold",
+      "insurance.rate-above-threshold",
+      "insurance.rate-after-5-years",
+      "insurance.rate-electric",
+      "insurance.civil-liability",
+      "insurance.key-replacement-coverage-egp",
+      "insurance.road-assistance",
+    ];
+    for (let i = 0; i < insuranceAttrKeys.length; i++) {
+      const attr = await prisma.attribute.findUnique({ where: { key: insuranceAttrKeys[i]! } });
+      if (!attr) continue;
+      await prisma.categoryAttribute.upsert({
+        where: {
+          categoryId_attributeId: { categoryId: insuranceCategory.id, attributeId: attr.id },
+        },
+        update: { sortOrder: i },
+        create: { categoryId: insuranceCategory.id, attributeId: attr.id, sortOrder: i },
+      });
+    }
+    console.log(`  ✓ Insurance category linked to ${insuranceAttrKeys.length} attributes`);
+
+    // Repoint any products that were previously created in the now-obsolete
+    // "insurance-standard" category into the new "insurance" category, then
+    // soft-disable the old category so it stops appearing in dropdowns.
+    const oldInsuranceStd = await prisma.productCategory.findUnique({
+      where: { slug: "insurance-standard" },
+    });
+    if (oldInsuranceStd) {
+      await prisma.product.updateMany({
+        where: { categoryId: oldInsuranceStd.id },
+        data: { categoryId: insuranceCategory.id },
+      });
+      await prisma.productCategory.update({
+        where: { id: oldInsuranceStd.id },
+        data: { isActive: false },
+      });
+    }
+  }
   console.log(
     `  ✓ ${userCount}+ users (1 admin, ${allBLs.length} owners, ${allBLs.length} managers, ${allBLs.length * 2} employees)`,
   );
