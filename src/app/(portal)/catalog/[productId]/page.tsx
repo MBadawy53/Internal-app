@@ -108,6 +108,31 @@ export default async function ProductDetailPage({ params }: Params) {
           </CardHeader>
           <CardContent>
             <dl className="space-y-3 text-sm">
+              {attrConfig.enabled.size === 0
+                ? // No built-in attributes are visible for this category: show
+                  // the first 2 custom attributes (by category sort order)
+                  // that the product has values for.
+                  product.category.attributes
+                    .map((ca) => {
+                      const av = product.attributeValues.find(
+                        (v) => v.attributeId === ca.attributeId,
+                      );
+                      if (!av) return null;
+                      return {
+                        id: ca.id,
+                        label: localized(locale, ca.attribute.nameEn, ca.attribute.nameAr),
+                        value: formatAttributeValue(ca.attribute, av.value, locale),
+                      };
+                    })
+                    .filter((x): x is { id: string; label: string; value: string } => x !== null)
+                    .slice(0, 2)
+                    .map((pair) => (
+                      <div key={pair.id}>
+                        <dt className="text-muted-foreground">{pair.label}</dt>
+                        <dd className="font-medium">{pair.value || "—"}</dd>
+                      </div>
+                    ))
+                : null}
               {attrConfig.enabled.has("amountRange") ? (
                 <div>
                   <dt className="text-muted-foreground">{t("amountRange")}</dt>

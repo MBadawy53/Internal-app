@@ -44,7 +44,21 @@ export const productRepository = {
 
     return prisma.product.findMany({
       where,
-      include: { businessLine: true, category: true },
+      include: {
+        businessLine: true,
+        category: {
+          include: {
+            attributes: {
+              include: { attribute: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        },
+        attributeValues: {
+          include: { attribute: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
       orderBy: [{ isFeatured: "desc" }, { nameEn: "asc" }],
     });
   },

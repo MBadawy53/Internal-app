@@ -5,6 +5,7 @@ import { requireActor } from "@/lib/auth/session";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import { formatBps, formatMoney } from "@/lib/finance/money";
+import { formatAttributeValue } from "@/lib/catalog/attribute-values";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,23 @@ export default async function CatalogPage({
             const blName = localized(locale, p.businessLine.nameEn, p.businessLine.nameAr);
             const catName = localized(locale, p.category.nameEn, p.category.nameAr);
             const shortDesc = localized(locale, p.shortDescEn, p.shortDescAr);
+            // If the category exposes no built-in product attributes, fall back
+            // to the first 2 custom attributes (in category sort order) that
+            // the product has values for.
+            const useCustomFallback = p.category.enabledAttributes.length === 0;
+            const fallbackPairs = useCustomFallback
+              ? p.category.attributes
+                  .map((ca) => {
+                    const av = p.attributeValues.find((v) => v.attributeId === ca.attributeId);
+                    if (!av) return null;
+                    return {
+                      label: localized(locale, ca.attribute.nameEn, ca.attribute.nameAr),
+                      value: formatAttributeValue(ca.attribute, av.value, locale),
+                    };
+                  })
+                  .filter((x): x is { label: string; value: string } => x !== null)
+                  .slice(0, 2)
+              : [];
             return (
               <Card key={p.id} className="flex flex-col">
                 <CardHeader>
@@ -93,25 +111,36 @@ export default async function CatalogPage({
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-3">
                   <p className="line-clamp-2 text-sm text-muted-foreground">{shortDesc}</p>
-                  <dl className="grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <dt className="text-muted-foreground">{t("card.amount")}</dt>
-                      <dd className="font-medium">{formatMoney(p.amountMinPiastres, locale)}</dd>
-                      <dd className="text-muted-foreground">
-                        — {formatMoney(p.amountMaxPiastres, locale)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">{t("card.tenure")}</dt>
-                      <dd className="font-medium">
-                        {p.tenureMinMonths}–{p.tenureMaxMonths} {t("monthsUnit")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">{t("card.rate")}</dt>
-                      <dd className="font-medium">{formatBps(p.flatInterestRateBps, locale)}</dd>
-                    </div>
-                  </dl>
+                  {useCustomFallback ? (
+                    <dl className="grid grid-cols-2 gap-2 text-xs">
+                      {fallbackPairs.map((pair, i) => (
+                        <div key={i}>
+                          <dt className="text-muted-foreground">{pair.label}</dt>
+                          <dd className="font-medium">{pair.value || "—"}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : (
+                    <dl className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <dt className="text-muted-foreground">{t("card.amount")}</dt>
+                        <dd className="font-medium">{formatMoney(p.amountMinPiastres, locale)}</dd>
+                        <dd className="text-muted-foreground">
+                          — {formatMoney(p.amountMaxPiastres, locale)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("card.tenure")}</dt>
+                        <dd className="font-medium">
+                          {p.tenureMinMonths}–{p.tenureMaxMonths} {t("monthsUnit")}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("card.rate")}</dt>
+                        <dd className="font-medium">{formatBps(p.flatInterestRateBps, locale)}</dd>
+                      </div>
+                    </dl>
+                  )}
                   <div className="mt-auto flex gap-2 pt-3">
                     <Button asChild variant="outline" size="sm" className="flex-1">
                       <Link href={`/catalog/${p.id}`}>{t("card.viewDetails")}</Link>
