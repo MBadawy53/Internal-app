@@ -348,7 +348,8 @@
       },
       "uploadImage": "رفع صورة",
       "uploadingImage": "جارٍ الرفع…",
-      "uploadFailed": "فشل رفع الصورة"
+      "uploadFailed": "فشل رفع الصورة",
+      "uploadDisabled": "رفع الصور غير مفعّل في هذه البيئة."
     }
   },
   "productTypes": {

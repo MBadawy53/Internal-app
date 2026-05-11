@@ -62,6 +62,7 @@ export default async function NewProductPage() {
           value: pt,
           label: tTypes(pt),
         }))}
+        uploadsEnabled={!process.env.VERCEL}
       />
     </div>
   );

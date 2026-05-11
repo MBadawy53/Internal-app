@@ -86,9 +86,16 @@ interface Props {
   categories: Cat[];
   productTypes: Array<{ value: string; label: string }>;
   initial?: InitialProduct;
+  uploadsEnabled?: boolean;
 }
 
-export function ProductForm({ businessLines, categories, productTypes, initial }: Props) {
+export function ProductForm({
+  businessLines,
+  categories,
+  productTypes,
+  initial,
+  uploadsEnabled = true,
+}: Props) {
   const t = useTranslations("admin.products");
   const tFields = useTranslations("admin.products.fields");
   const tSect = useTranslations("admin.products.sections");
@@ -621,18 +628,24 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             </div>
           ) : null}
           <div>
-            <Label htmlFor="hero-upload">{t("uploadImage")}</Label>
-            <input
-              id="hero-upload"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              disabled={uploading}
-              onChange={(e) => {
-                const f = e.currentTarget.files?.[0];
-                if (f) void handleUpload(f);
-              }}
-              className="block w-full text-sm"
-            />
+            {uploadsEnabled ? (
+              <>
+                <Label htmlFor="hero-upload">{t("uploadImage")}</Label>
+                <input
+                  id="hero-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0];
+                    if (f) void handleUpload(f);
+                  }}
+                  className="block w-full text-sm"
+                />
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("uploadDisabled")}</p>
+            )}
             {uploading ? (
               <p className="mt-1 text-xs text-muted-foreground">{t("uploadingImage")}</p>
             ) : null}

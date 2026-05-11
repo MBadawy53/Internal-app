@@ -348,7 +348,8 @@
       },
       "uploadImage": "Upload image",
       "uploadingImage": "Uploading…",
-      "uploadFailed": "Image upload failed"
+      "uploadFailed": "Image upload failed",
+      "uploadDisabled": "Image uploads are disabled in this environment."
     }
   },
   "productTypes": {

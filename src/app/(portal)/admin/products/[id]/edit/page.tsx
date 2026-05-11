@@ -66,6 +66,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           value: pt,
           label: tTypes(pt),
         }))}
+        uploadsEnabled={!process.env.VERCEL}
         initial={{
           id: product.id,
           businessLineId: product.businessLineId,
