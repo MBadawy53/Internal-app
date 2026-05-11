@@ -31,6 +31,13 @@ export interface CalculatorProductConfig {
 export interface CalculatorInput {
   principalPiastres: Piastres;
   tenureMonths: number;
+  /**
+   * Optional merchant subsidy. When provided, the customer pays a flat-rate
+   * installment at this rate; the merchant absorbs the gap up to the bank's
+   * declining-balance interest. Leave undefined for "no subsidy" (customer
+   * pays the full PMT).
+   */
+  customerFlatRateBps?: number;
 }
 
 export interface AmortizationRow {
@@ -62,6 +69,12 @@ export interface CalculatorResult {
   insuranceRequired: boolean;
   earlySettlementFeeBps: number;
   latePaymentFeeBps: number;
+
+  // Subsidy (only set when CalculatorInput.customerFlatRateBps was provided)
+  customerFlatRateBps: number | null;
+  customerTotalInterestPiastres: Piastres | null;
+  customerMonthlyInstallmentPiastres: Piastres | null;
+  subsidyTotalPiastres: Piastres | null;
 
   // Schedule
   amortization: AmortizationRow[];
@@ -258,6 +271,29 @@ export function calculate(
 
   const adminFeePiastres = computeAdminFee(principalPiastres, product);
 
+  // --- Optional merchant subsidy --------------------------------------------
+  // Customer pays at a flat rate; merchant covers the gap.
+  //   customerInterest = round(principal × customerFlatBps × tenureMonths / 120_000)
+  //   customerMonthly  = ceilDiv(principal + customerInterest, tenureMonths)
+  //   subsidy          = max(0, decliningInterest − customerInterest)
+  let customerFlatRateBps: number | null = null;
+  let customerTotalInterestPiastres: Piastres | null = null;
+  let customerMonthlyInstallmentPiastres: Piastres | null = null;
+  let subsidyTotalPiastres: Piastres | null = null;
+  if (input.customerFlatRateBps !== undefined) {
+    customerFlatRateBps = input.customerFlatRateBps;
+    const months = BigInt(tenureMonths);
+    const num = principalPiastres * BigInt(customerFlatRateBps) * months;
+    const den = 120_000n;
+    customerTotalInterestPiastres = (num + den / 2n) / den;
+    const customerTotalPayable = principalPiastres + customerTotalInterestPiastres;
+    const baseMonthly = customerTotalPayable / months;
+    customerMonthlyInstallmentPiastres =
+      customerTotalPayable % months === 0n ? baseMonthly : baseMonthly + 1n;
+    const gap = totalInterestPiastres - customerTotalInterestPiastres;
+    subsidyTotalPiastres = gap > 0n ? gap : 0n;
+  }
+
   return {
     principalPiastres,
     tenureMonths,
@@ -271,6 +307,10 @@ export function calculate(
     insuranceRequired: product.insuranceRequired,
     earlySettlementFeeBps: product.earlySettlementFeeBps,
     latePaymentFeeBps: product.latePaymentFeeBps,
+    customerFlatRateBps,
+    customerTotalInterestPiastres,
+    customerMonthlyInstallmentPiastres,
+    subsidyTotalPiastres,
     amortization,
   };
 }
