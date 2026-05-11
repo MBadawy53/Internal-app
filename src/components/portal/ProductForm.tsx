@@ -434,7 +434,6 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
                 name="flatInterestRateBps"
                 label={tFields("flatInterestRateBps")}
                 defaultBps={initial?.flatInterestRateBps ?? 0}
-                help={t("rateHelp")}
                 required={isRequired("flatRate")}
               />
             ) : null}
@@ -443,7 +442,6 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
                 name="decliningInterestRateBps"
                 label={tFields("decliningInterestRateBps")}
                 defaultBps={initial?.decliningInterestRateBps ?? 0}
-                help={t("rateHelp")}
                 required={isRequired("decliningRate")}
               />
             ) : null}
@@ -457,11 +455,10 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             <CardTitle>{tSect("fees")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
-            <NumField
+            <PercentField
               name="adminFeeBps"
               label={tFields("adminFeeBps")}
-              defaultValue={initial?.adminFeeBps ?? 0}
-              step={1}
+              defaultBps={initial?.adminFeeBps ?? 0}
               required={isRequired("adminFee")}
             />
             <NumField

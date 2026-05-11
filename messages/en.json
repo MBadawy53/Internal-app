@@ -320,7 +320,7 @@
         "tenureMaxMonths": "Maximum tenure (months)",
         "flatInterestRateBps": "Flat interest rate (%)",
         "decliningInterestRateBps": "Declining interest rate (%)",
-        "adminFeeBps": "Admin fee percentage (basis points)",
+        "adminFeeBps": "Admin fee (%)",
         "adminFeeMinEgp": "Admin fee minimum (EGP)",
         "adminFeeMaxEgp": "Admin fee maximum (EGP)",
         "insuranceRequired": "Insurance required",
@@ -341,8 +341,7 @@
       },
       "uploadImage": "Upload image",
       "uploadingImage": "Uploading…",
-      "uploadFailed": "Image upload failed",
-      "rateHelp": "Enter as a percentage, e.g. 18.50 for 18.50%."
+      "uploadFailed": "Image upload failed"
     }
   },
   "productTypes": {
