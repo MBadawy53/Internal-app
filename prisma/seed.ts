@@ -65,6 +65,18 @@ async function main() {
   const allBLs = await prisma.businessLine.findMany({ where: { isActive: true } });
   console.log(`  ✓ ${allBLs.length} business lines`);
 
+  // ── Cosmetic cleanup: drop the dead 'flatRate' key from existing category
+  // attribute arrays. The form no longer collects flat rate, the validator
+  // skips it, and the new @default arrays don't include it — this just
+  // brings older rows in line. Idempotent.
+  await prisma.$executeRawUnsafe(
+    `UPDATE "product_categories"
+       SET "enabledAttributes" = array_remove("enabledAttributes", 'flatRate'),
+           "requiredAttributes" = array_remove("requiredAttributes", 'flatRate')
+     WHERE 'flatRate' = ANY("enabledAttributes")
+        OR 'flatRate' = ANY("requiredAttributes")`,
+  );
+
   // ── Admin (break-glass: email-only login, no group ID) ─────────────────────
   const adminPasswordHash = await hash(ADMIN_PASSWORD);
   const admin = await prisma.user.upsert({
