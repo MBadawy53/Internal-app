@@ -349,7 +349,7 @@ async function validateAgainstCategory(
       ok: d.tenureMinMonths > 0 && d.tenureMaxMonths > 0,
       fields: ["tenureMinMonths", "tenureMaxMonths"],
     }),
-    flatRate: () => ({ ok: d.flatInterestRateBps > 0, fields: ["flatInterestRateBps"] }),
+    flatRate: () => ({ ok: true, fields: [] }), // form no longer collects this — declining rate is the source of truth
     decliningRate: () => ({
       ok: d.decliningInterestRateBps > 0,
       fields: ["decliningInterestRateBps"],

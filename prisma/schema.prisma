@@ -215,8 +215,8 @@ model ProductCategory {
   // product form (and on the catalog detail page) and which are required.
   // Both default to "all attributes enabled and required" — keys must come
   // from PRODUCT_ATTRIBUTE_KEYS in src/lib/catalog/attributes.ts.
-  enabledAttributes  String[] @default(["amountRange", "tenureRange", "flatRate", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
-  requiredAttributes String[] @default(["amountRange", "tenureRange", "flatRate", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  enabledAttributes  String[] @default(["amountRange", "tenureRange", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  requiredAttributes String[] @default(["amountRange", "tenureRange", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
   createdById        String?
   updatedById        String?
   createdAt          DateTime @default(now())
