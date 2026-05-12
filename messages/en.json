@@ -152,6 +152,22 @@
   "calculator": {
     "title": "Loan Calculator",
     "subtitle": "Compute monthly installment, admin fees, and amortization for any product.",
+    "mode": {
+      "product": "Product calculator",
+      "affordability": "Affordability check"
+    },
+    "affordability": {
+      "title": "What can the customer afford?",
+      "income": "Monthly net income (EGP)",
+      "dbrHint": "We cap installments at {pct}% of income (DBR).",
+      "maxMonthly": "Maximum monthly installment",
+      "maxMonthlyExplain": "Half of the entered income, per the standard debt-burden ratio.",
+      "empty": "No products fit the customer's income and tenor.",
+      "offerLoan": "Max loan",
+      "offerMonthly": "Monthly installment",
+      "range": "Product range",
+      "openInCalculator": "Use this product"
+    },
     "selectProduct": "Select a product",
     "invoiceValue": "Invoice price (EGP)",
     "downPaymentPercent": "Down payment (%)",
