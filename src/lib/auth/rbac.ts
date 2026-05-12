@@ -45,6 +45,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:productCategory": "all",
     "list:productAttribute": "all",
     "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -79,6 +81,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:productCategory": "all",
     "list:productAttribute": "all",
     "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -109,6 +113,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:catalog": "all",
     "list:product": "all",
     "read:product": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
     "create:product": "businessLine",
     "update:product": "businessLine",
     "delete:product": "businessLine",
