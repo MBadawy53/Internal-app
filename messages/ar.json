@@ -96,6 +96,30 @@
     "adminProducts": "المنتجات",
     "profile": "حسابي"
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "تحديثات حول العملاء وحسابك.",
+    "empty": "لا توجد إشعارات بعد.",
+    "count": "{total} إجمالاً · {unread} غير مقروء",
+    "markAllRead": "تحديد الكل كمقروء",
+    "markRead": "تحديد كمقروء",
+    "view": "عرض",
+    "types": {
+      "NEW_LEAD_FROM_QR": "عميل جديد (QR)",
+      "NEW_LEAD_MANUAL": "عميل جديد",
+      "LEAD_ASSIGNED": "تم تعيين عميل",
+      "LEAD_STATUS_CHANGED": "تغيّرت الحالة",
+      "LEAD_REFERRED": "تم إحالة عميل",
+      "SYSTEM": "النظام"
+    },
+    "summaries": {
+      "newLeadFromQr": "عميل جديد عبر QR: {name}",
+      "newLeadManual": "تم إضافة عميل جديد: {name}",
+      "statusChanged": "{name}: {from} → {to}",
+      "referred": "تم إحالة عميل إليك: {name}",
+      "assigned": "تم تعيين عميل لك: {name}"
+    }
+  },
   "profile": {
     "title": "حسابي",
     "subtitle": "تحديث إعدادات حسابك.",

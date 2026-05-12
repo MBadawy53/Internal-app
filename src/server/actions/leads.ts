@@ -3,13 +3,14 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { LeadStatus, LeadSource, LeadActivityType, Role } from "@prisma/client";
+import { LeadStatus, LeadSource, LeadActivityType, NotificationType, Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { requirePermission } from "@/lib/auth/permissions";
 import { encryptOptional } from "@/lib/crypto/aes-gcm";
 import { logger } from "@/lib/logger";
 import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
+import { notify } from "@/server/services/notify.service";
 import { canTransition, needsReason } from "@/lib/leads/state-machine";
 
 const CreateLeadSchema = z.object({
@@ -78,6 +79,21 @@ export async function createLeadAction(
       referredBy: { connect: { id: actor.id } },
       ...(d.productId ? { product: { connect: { id: d.productId } } } : {}),
     });
+
+    // Notify the owner (unless they're the actor — no point pinging yourself).
+    if (ownerId !== actor.id) {
+      await notify({
+        userId: ownerId,
+        type: NotificationType.NEW_LEAD_MANUAL,
+        payload: {
+          leadId: lead.id,
+          customerName: d.customerName,
+          customerPhone: d.customerPhone,
+          createdById: actor.id,
+        },
+      });
+    }
+
     revalidatePath("/leads");
     redirect(`/leads/${lead.id}`);
     return { ok: true, id: lead.id };
@@ -135,6 +151,28 @@ export async function transitionLeadStatusAction(
       note: d.note || null,
       actorId: actor.id,
     });
+
+    // Notify the lead's owner (and referrer if different) — but never the
+    // actor who just made the change.
+    const payload = {
+      leadId: lead.id,
+      customerName: lead.customerName,
+      fromStatus: lead.currentStatus,
+      toStatus: d.toStatus,
+      reason: d.reason ?? null,
+      actorId: actor.id,
+    };
+    const recipients = new Set<string>();
+    if (lead.ownerEmployeeId && lead.ownerEmployeeId !== actor.id) {
+      recipients.add(lead.ownerEmployeeId);
+    }
+    if (lead.referredByEmployeeId && lead.referredByEmployeeId !== actor.id) {
+      recipients.add(lead.referredByEmployeeId);
+    }
+    for (const userId of recipients) {
+      await notify({ userId, type: NotificationType.LEAD_STATUS_CHANGED, payload });
+    }
+
     revalidatePath(`/leads/${lead.id}`);
     revalidatePath("/leads");
     return { ok: true };

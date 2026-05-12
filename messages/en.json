@@ -96,6 +96,30 @@
     "adminProducts": "Products",
     "profile": "My profile"
   },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Updates on your leads and account.",
+    "empty": "No notifications yet.",
+    "count": "{total} total · {unread} unread",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark as read",
+    "view": "View",
+    "types": {
+      "NEW_LEAD_FROM_QR": "New lead (QR)",
+      "NEW_LEAD_MANUAL": "New lead",
+      "LEAD_ASSIGNED": "Lead assigned",
+      "LEAD_STATUS_CHANGED": "Status changed",
+      "LEAD_REFERRED": "Lead referred",
+      "SYSTEM": "System"
+    },
+    "summaries": {
+      "newLeadFromQr": "New lead from QR: {name}",
+      "newLeadManual": "New lead added: {name}",
+      "statusChanged": "{name}: {from} → {to}",
+      "referred": "Lead referred to you: {name}",
+      "assigned": "Lead assigned to you: {name}"
+    }
+  },
   "profile": {
     "title": "My profile",
     "subtitle": "Update your account settings.",

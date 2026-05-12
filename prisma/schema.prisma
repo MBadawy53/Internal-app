@@ -70,6 +70,7 @@ enum LeadActivityType {
 
 enum NotificationType {
   NEW_LEAD_FROM_QR
+  NEW_LEAD_MANUAL
   LEAD_ASSIGNED
   LEAD_STATUS_CHANGED
   LEAD_REFERRED
