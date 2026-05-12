@@ -135,10 +135,15 @@ export default async function QrPage() {
                         <span className="text-muted-foreground">· {t("conversion")}: </span>
                         <strong>{conv}</strong>
                       </p>
-                      <p>
+                      <p className="flex gap-3">
                         <a className="text-brand-700 hover:underline" href={pngUrl} download>
                           {t("downloadPng")}
                         </a>
+                        {canCreate ? (
+                          <a className="text-brand-700 hover:underline" href={`/qr/${c.id}/edit`}>
+                            {t("edit")}
+                          </a>
+                        ) : null}
                       </p>
                     </div>
                   </div>

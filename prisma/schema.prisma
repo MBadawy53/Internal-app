@@ -480,6 +480,18 @@ model QrCampaign {
   scanCount  Int      @default(0)
   leadCount  Int      @default(0)
   isActive   Boolean  @default(true)
+
+  // Public landing customisation. All optional; the page falls back to the
+  // employee name / generic copy when not set. Markdown is rendered to safe
+  // HTML server-side; the headerImageUrl is shown as-is.
+  headerImageUrl String?
+  titleEn        String?
+  titleAr        String?
+  subtitleEn     String?
+  subtitleAr     String?
+  bodyMdEn       String?
+  bodyMdAr       String?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

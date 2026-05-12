@@ -492,6 +492,7 @@
     "title": "QR Campaigns",
     "subtitle": "Track scans and leads from campaign-specific QR codes.",
     "newCampaign": "New campaign",
+    "edit": "Edit campaign",
     "empty": "No campaigns yet.",
     "shareUrl": "Share URL",
     "scans": "Scans",
@@ -504,7 +505,17 @@
       "employee": "Owner (employee)",
       "product": "Linked product (optional)",
       "create": "Create campaign",
-      "created": "Campaign created — slug {slug}"
+      "created": "Campaign created — slug {slug}",
+      "landingSection": "Public landing page",
+      "headerImageUrl": "Header image URL",
+      "headerImageHint": "Optional. Paste an image URL (HTTPS). Shown full-width at the top.",
+      "titleEn": "Title (English)",
+      "titleAr": "Title (Arabic)",
+      "subtitleEn": "Subtitle (English)",
+      "subtitleAr": "Subtitle (Arabic)",
+      "bodyEn": "Body (English) — Markdown",
+      "bodyAr": "Body (Arabic) — Markdown",
+      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
     }
   },
   "errors": {
