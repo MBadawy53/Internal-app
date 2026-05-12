@@ -665,9 +665,9 @@ function buildAffordabilityNote(input: {
   const fmt = (n: number) =>
     new Intl.NumberFormat(intlLocale, { maximumFractionDigits: 0 }).format(n);
   if (input.locale === "ar") {
-    return `قدرة العميل: حتى ${fmt(input.offerLoanEgp)} ج.م. بقسط شهري ${fmt(input.offerMonthlyEgp)} ج.م. على مدى ${input.tenureMonths} شهرًا (الدخل الشهري ${fmt(input.income)} ج.م.).`;
+    return `(الدخل ${fmt(input.income)} ج.م. شهريًا)`;
   }
-  return `Affordability: up to ${fmt(input.offerLoanEgp)} EGP at ${fmt(input.offerMonthlyEgp)} EGP/month over ${input.tenureMonths} months (income ${fmt(input.income)} EGP/month).`;
+  return `(income ${fmt(input.income)} EGP/month)`;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
