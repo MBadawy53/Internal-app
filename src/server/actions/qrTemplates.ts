@@ -56,7 +56,7 @@ export async function createTemplateAction(
   }
   const d = parsed.data;
   try {
-    const tpl = await qrLandingTemplateRepository.create({
+    await qrLandingTemplateRepository.create({
       name: d.name,
       headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
       titleEn: nullIfEmpty(d.titleEn ?? ""),
@@ -66,13 +66,14 @@ export async function createTemplateAction(
       bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
     });
-    revalidatePath("/admin/qr-templates");
-    redirect("/admin/qr-templates");
-    return { ok: true, id: tpl.id };
   } catch (err) {
     logger.error({ err }, "qrTemplate.create_failed");
     return { ok: false, message: "Could not create template" };
   }
+  // redirect() throws a NEXT_REDIRECT signal that must propagate — keep it
+  // outside the try/catch so it isn't reported as a create failure.
+  revalidatePath("/admin/qr-templates");
+  redirect("/admin/qr-templates");
 }
 
 export async function updateTemplateAction(
