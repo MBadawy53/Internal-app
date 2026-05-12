@@ -5,13 +5,7 @@ const EnvSchema = z.object({
   APP_URL: z.string().url().default("http://localhost:3000"),
   PORT: z.coerce.number().int().positive().default(3000),
 
-  // Vercel Postgres auto-injects POSTGRES_PRISMA_URL (pooled, pgbouncer)
-  // and POSTGRES_URL_NON_POOLING (direct). Fall back to the pooled URL when
-  // DATABASE_URL isn't set so deployments work out of the box.
-  DATABASE_URL: z.preprocess(
-    (v) => (typeof v === "string" && v.length > 0 ? v : process.env.POSTGRES_PRISMA_URL),
-    z.string().min(1, "DATABASE_URL is required"),
-  ),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET must be at least 16 characters"),
   AUTH_TRUST_HOST: z

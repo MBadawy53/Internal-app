@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm exec prisma generate && DATABASE_URL=\"${POSTGRES_URL_NON_POOLING:-$DATABASE_URL}\" pnpm exec prisma db push --accept-data-loss && DATABASE_URL=\"${POSTGRES_URL_NON_POOLING:-$DATABASE_URL}\" pnpm db:seed && pnpm exec next build",
+  "buildCommand": "pnpm exec prisma generate && pnpm exec prisma db push --accept-data-loss && pnpm db:seed && pnpm exec next build",
   "framework": "nextjs"
 }
