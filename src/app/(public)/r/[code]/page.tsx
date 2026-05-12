@@ -115,24 +115,17 @@ export default async function PublicReferralPage({ params }: Params) {
 
           <div className="space-y-4 p-6">
             <header className="text-center">
-              {customTitle ? (
-                <h1 className="text-xl font-semibold">{customTitle}</h1>
-              ) : (
-                <>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                    {t("referredBy")}
-                  </p>
-                  <h1 className="mt-1 text-lg font-semibold">
-                    {employee
-                      ? localized(locale, employee.nameEn ?? "", employee.nameAr ?? "")
-                      : ""}
-                  </h1>
-                </>
-              )}
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t("referredBy")}
+              </p>
+              <p className="mt-1 text-base font-semibold">
+                {employee ? localized(locale, employee.nameEn ?? "", employee.nameAr ?? "") : ""}
+              </p>
+              {customTitle ? <h1 className="mt-3 text-xl font-semibold">{customTitle}</h1> : null}
               {customSubtitle ? (
                 <p className="mt-1 text-sm text-muted-foreground">{customSubtitle}</p>
               ) : campaign && !customTitle ? (
-                <p className="mt-1 text-xs text-muted-foreground">{campaign.name}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{campaign.name}</p>
               ) : null}
             </header>
 
