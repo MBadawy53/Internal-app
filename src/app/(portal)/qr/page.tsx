@@ -3,6 +3,7 @@ import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
+import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -24,7 +25,9 @@ export default async function QrPage() {
 
   let employees: { id: string; name: string; businessLineId?: string }[] = [];
   let products: { id: string; name: string; businessLineId: string }[] = [];
+  let templates: Awaited<ReturnType<typeof qrLandingTemplateRepository.list>> = [];
   if (canCreate) {
+    templates = await qrLandingTemplateRepository.list();
     const where =
       actor.role === Role.ADMIN
         ? { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } }
@@ -44,6 +47,22 @@ export default async function QrPage() {
       name: localized(locale, e.nameEn ?? "", e.nameAr ?? ""),
       businessLineId: e.businessLineId ?? undefined,
     }));
+    // Make sure the actor is selectable so we can pre-fill the owner — admins
+    // aren't in the employee role filter above. They can still hand-pick a
+    // proper employee from the dropdown.
+    if (!employees.some((e) => e.id === actor.id)) {
+      const me = await prisma.user.findUnique({
+        where: { id: actor.id },
+        select: { nameEn: true, nameAr: true, businessLineId: true },
+      });
+      if (me) {
+        employees.unshift({
+          id: actor.id,
+          name: `${localized(locale, me.nameEn ?? "", me.nameAr ?? "")} (me)`,
+          businessLineId: me.businessLineId ?? undefined,
+        });
+      }
+    }
     const prods = await catalogService.listProducts(actor);
     products = prods.map((p) => ({
       id: p.id,
@@ -71,7 +90,12 @@ export default async function QrPage() {
             <CardTitle className="text-base">{t("newCampaign")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <QrCampaignForm employees={employees} products={products} />
+            <QrCampaignForm
+              employees={employees}
+              products={products}
+              templates={templates}
+              initial={{ employeeId: actor.id }}
+            />
           </CardContent>
         </Card>
       ) : null}

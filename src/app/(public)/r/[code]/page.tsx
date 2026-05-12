@@ -8,6 +8,7 @@ import type { AppLocale } from "@/lib/i18n/config";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import { renderSafeMarkdown } from "@/lib/markdown";
 import { Logo } from "@/components/shared/Logo";
+import { LocaleToggle } from "@/components/portal/LocaleToggle";
 import { PublicLeadForm } from "@/components/portal/PublicLeadForm";
 
 interface Params {
@@ -94,7 +95,10 @@ export default async function PublicReferralPage({ params }: Params) {
   return (
     <main className="flex min-h-screen flex-col items-center bg-muted/30 p-6">
       <div className="flex w-full max-w-lg flex-col items-center gap-6 py-6">
-        <Logo withTagline />
+        <div className="flex w-full items-center justify-between">
+          <Logo withTagline />
+          <LocaleToggle />
+        </div>
 
         <div className="w-full overflow-hidden rounded-lg border bg-card shadow-soft">
           {campaign?.headerImageUrl ? (

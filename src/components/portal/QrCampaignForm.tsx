@@ -40,16 +40,51 @@ export interface CampaignInitial {
   bodyMdAr?: string | null;
 }
 
+export interface TemplateOption {
+  id: string;
+  name: string;
+  headerImageUrl: string | null;
+  titleEn: string | null;
+  titleAr: string | null;
+  subtitleEn: string | null;
+  subtitleAr: string | null;
+  bodyMdEn: string | null;
+  bodyMdAr: string | null;
+}
+
 interface Props {
   employees: EmployeeOption[];
   products: ProductOption[];
+  templates?: TemplateOption[];
   initial?: CampaignInitial;
 }
 
-export function QrCampaignForm({ employees, products, initial }: Props) {
+export function QrCampaignForm({ employees, products, templates = [], initial }: Props) {
   const t = useTranslations("qr.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
+
+  // Landing fields are controlled so picking a template can populate them.
+  const [headerImageUrl, setHeaderImageUrl] = useState(initial?.headerImageUrl ?? "");
+  const [titleEn, setTitleEn] = useState(initial?.titleEn ?? "");
+  const [titleAr, setTitleAr] = useState(initial?.titleAr ?? "");
+  const [subtitleEn, setSubtitleEn] = useState(initial?.subtitleEn ?? "");
+  const [subtitleAr, setSubtitleAr] = useState(initial?.subtitleAr ?? "");
+  const [bodyMdEn, setBodyMdEn] = useState(initial?.bodyMdEn ?? "");
+  const [bodyMdAr, setBodyMdAr] = useState(initial?.bodyMdAr ?? "");
+
+  function applyTemplate(id: string) {
+    if (!id) return;
+    const tpl = templates.find((x) => x.id === id);
+    if (!tpl) return;
+    setHeaderImageUrl(tpl.headerImageUrl ?? "");
+    setTitleEn(tpl.titleEn ?? "");
+    setTitleAr(tpl.titleAr ?? "");
+    setSubtitleEn(tpl.subtitleEn ?? "");
+    setSubtitleAr(tpl.subtitleAr ?? "");
+    setBodyMdEn(tpl.bodyMdEn ?? "");
+    setBodyMdAr(tpl.bodyMdAr ?? "");
+  }
 
   type AnyState = CreateCampaignState | UpdateCampaignState;
   const action = (
@@ -118,6 +153,25 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
       <fieldset className="space-y-3 rounded-md border p-3">
         <legend className="px-1 text-sm font-medium">{t("landingSection")}</legend>
 
+        {templates.length > 0 ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-template">{t("template")}</Label>
+            <Select
+              id="qr-template"
+              onChange={(e) => applyTemplate(e.target.value)}
+              defaultValue=""
+            >
+              <option value="">{t("templatePlaceholder")}</option>
+              {templates.map((tpl) => (
+                <option key={tpl.id} value={tpl.id}>
+                  {tpl.name}
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("templateHint")}</p>
+          </div>
+        ) : null}
+
         <div className="space-y-1.5">
           <Label htmlFor="qr-header-image">{t("headerImageUrl")}</Label>
           <Input
@@ -125,7 +179,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
             name="headerImageUrl"
             type="url"
             placeholder="https://…"
-            defaultValue={initial?.headerImageUrl ?? ""}
+            value={headerImageUrl}
+            onChange={(e) => setHeaderImageUrl(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">{t("headerImageHint")}</p>
         </div>
@@ -137,7 +192,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               id="qr-title-en"
               name="titleEn"
               maxLength={120}
-              defaultValue={initial?.titleEn ?? ""}
+              value={titleEn}
+              onChange={(e) => setTitleEn(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -147,7 +203,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               name="titleAr"
               maxLength={120}
               dir="rtl"
-              defaultValue={initial?.titleAr ?? ""}
+              value={titleAr}
+              onChange={(e) => setTitleAr(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -156,7 +213,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               id="qr-subtitle-en"
               name="subtitleEn"
               maxLength={240}
-              defaultValue={initial?.subtitleEn ?? ""}
+              value={subtitleEn}
+              onChange={(e) => setSubtitleEn(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -166,7 +224,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               name="subtitleAr"
               maxLength={240}
               dir="rtl"
-              defaultValue={initial?.subtitleAr ?? ""}
+              value={subtitleAr}
+              onChange={(e) => setSubtitleAr(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -176,7 +235,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               name="bodyMdEn"
               rows={6}
               maxLength={5000}
-              defaultValue={initial?.bodyMdEn ?? ""}
+              value={bodyMdEn}
+              onChange={(e) => setBodyMdEn(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">{t("bodyHint")}</p>
           </div>
@@ -188,7 +248,8 @@ export function QrCampaignForm({ employees, products, initial }: Props) {
               rows={6}
               maxLength={5000}
               dir="rtl"
-              defaultValue={initial?.bodyMdAr ?? ""}
+              value={bodyMdAr}
+              onChange={(e) => setBodyMdAr(e.target.value)}
             />
           </div>
         </div>

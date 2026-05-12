@@ -504,6 +504,27 @@ model QrCampaign {
   @@map("qr_campaigns")
 }
 
+// Admin-managed landing-page templates. A QrCampaign can be pre-filled from
+// one of these on create/edit; the campaign keeps its own copies of the
+// fields after that (no live link), so editing a template later doesn't
+// silently mutate live campaigns.
+model QrLandingTemplate {
+  id             String   @id @default(cuid())
+  name           String
+  headerImageUrl String?
+  titleEn        String?
+  titleAr        String?
+  subtitleEn     String?
+  subtitleAr     String?
+  bodyMdEn       String?
+  bodyMdAr       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("qr_landing_templates")
+}
+
 model QrScan {
   id           String   @id @default(cuid())
   campaignId   String?

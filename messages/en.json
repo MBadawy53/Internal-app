@@ -488,6 +488,30 @@
       "thanks": "Thanks — we've got your details and someone will be in touch shortly."
     }
   },
+  "qrTemplates": {
+    "title": "QR Landing Templates",
+    "subtitle": "Reusable header, title, subtitle, and body content for QR landing pages.",
+    "new": "New template",
+    "edit": "Edit template",
+    "empty": "No templates yet. Create one to let admins pick it when setting up a campaign.",
+    "listTitle": "Templates",
+    "active": "Active",
+    "inactive": "Inactive",
+    "table": {
+      "name": "Name",
+      "status": "Status"
+    },
+    "form": {
+      "name": "Template name",
+      "headerImageUrl": "Header image URL",
+      "titleEn": "Title (English)",
+      "titleAr": "Title (Arabic)",
+      "subtitleEn": "Subtitle (English)",
+      "subtitleAr": "Subtitle (Arabic)",
+      "bodyEn": "Body (English) — Markdown",
+      "bodyAr": "Body (Arabic) — Markdown"
+    }
+  },
   "qr": {
     "title": "QR Campaigns",
     "subtitle": "Track scans and leads from campaign-specific QR codes.",
@@ -509,6 +533,9 @@
       "landingSection": "Public landing page",
       "headerImageUrl": "Header image URL",
       "headerImageHint": "Optional. Paste an image URL (HTTPS). Shown full-width at the top.",
+      "template": "Use template",
+      "templatePlaceholder": "— Pick a template to pre-fill —",
+      "templateHint": "Selecting a template overwrites the fields below. You can still edit them per campaign.",
       "titleEn": "Title (English)",
       "titleAr": "Title (Arabic)",
       "subtitleEn": "Subtitle (English)",

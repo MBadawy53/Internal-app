@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -73,6 +74,7 @@ export default async function EditQrCampaignPage({ params }: Params) {
           <QrCampaignForm
             employees={employees}
             products={products}
+            templates={await qrLandingTemplateRepository.list()}
             initial={{
               id: campaign.id,
               name: campaign.name,
