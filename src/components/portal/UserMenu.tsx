@@ -1,7 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Role } from "@prisma/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -48,6 +49,13 @@ export function UserMenu({ name, role }: { name: string; role: Role }) {
             <span className="text-xs text-muted-foreground">{t(`roles.${role}`)}</span>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link href="/profile" className="flex w-full items-center gap-2">
+            <User className="h-4 w-4" />
+            <span>{t("nav.profile")}</span>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={(e) => {

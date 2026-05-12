@@ -93,7 +93,21 @@
     "reports": "Reports",
     "admin": "Administration",
     "adminCategories": "Categories",
-    "adminProducts": "Products"
+    "adminProducts": "Products",
+    "profile": "My profile"
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Update your account settings.",
+    "password": {
+      "title": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "hint": "At least 8 characters. Must differ from your current password.",
+      "submit": "Update password",
+      "success": "Password updated."
+    }
   },
   "dashboard": {
     "title": "Welcome, {name}",

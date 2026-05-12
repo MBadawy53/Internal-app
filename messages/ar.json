@@ -93,7 +93,21 @@
     "reports": "التقارير",
     "admin": "الإدارة",
     "adminCategories": "الفئات",
-    "adminProducts": "المنتجات"
+    "adminProducts": "المنتجات",
+    "profile": "حسابي"
+  },
+  "profile": {
+    "title": "حسابي",
+    "subtitle": "تحديث إعدادات حسابك.",
+    "password": {
+      "title": "تغيير كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "hint": "8 أحرف على الأقل. يجب أن تختلف عن كلمة المرور الحالية.",
+      "submit": "تحديث كلمة المرور",
+      "success": "تم تحديث كلمة المرور."
+    }
   },
   "dashboard": {
     "title": "مرحبًا، {name}",
