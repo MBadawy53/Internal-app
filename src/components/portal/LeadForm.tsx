@@ -22,9 +22,14 @@ interface Props {
   products: Option[];
   owners: Option[];
   showOwnerPicker: boolean;
+  initial?: {
+    businessLineId?: string;
+    productId?: string;
+    customerNote?: string;
+  };
 }
 
-export function LeadForm({ businessLines, products, owners, showOwnerPicker }: Props) {
+export function LeadForm({ businessLines, products, owners, showOwnerPicker, initial }: Props) {
   const t = useTranslations("leads.form");
   const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState<CreateLeadState | null, FormData>(
@@ -32,7 +37,7 @@ export function LeadForm({ businessLines, products, owners, showOwnerPicker }: P
     null,
   );
 
-  const [businessLineId, setBusinessLineId] = useState("");
+  const [businessLineId, setBusinessLineId] = useState(initial?.businessLineId ?? "");
   const visibleProducts = useMemo(
     () => (businessLineId ? products.filter((p) => p.businessLineId === businessLineId) : products),
     [businessLineId, products],
@@ -82,7 +87,7 @@ export function LeadForm({ businessLines, products, owners, showOwnerPicker }: P
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="productId">{t("product")}</Label>
-          <Select id="productId" name="productId" defaultValue="">
+          <Select id="productId" name="productId" defaultValue={initial?.productId ?? ""}>
             <option value="">{tCommon("all")}</option>
             {visibleProducts.map((p) => (
               <option key={p.id} value={p.id}>
@@ -112,7 +117,13 @@ export function LeadForm({ businessLines, products, owners, showOwnerPicker }: P
         </div>
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="customerNote">{t("customerNote")}</Label>
-          <Textarea id="customerNote" name="customerNote" rows={3} maxLength={2000} />
+          <Textarea
+            id="customerNote"
+            name="customerNote"
+            rows={3}
+            maxLength={2000}
+            defaultValue={initial?.customerNote ?? ""}
+          />
         </div>
       </div>
 

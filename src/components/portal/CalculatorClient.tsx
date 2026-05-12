@@ -383,11 +383,19 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                         </div>
                       </dl>
                       <div className="mt-3">
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild variant="default" size="sm">
                           <Link
-                            href={`/calculator?productId=${rec.product.id}&principal=${Number(rec.offerLoanPiastres) / 100}&tenure=${tenureNum}`}
+                            href={`/leads/new?productId=${rec.product.id}&note=${encodeURIComponent(
+                              buildAffordabilityNote({
+                                income: Math.round(incomeNum),
+                                tenureMonths: tenureNum,
+                                offerLoanEgp: Number(rec.offerLoanPiastres) / 100,
+                                offerMonthlyEgp: Number(rec.offerMonthlyPiastres) / 100,
+                                locale,
+                              }),
+                            )}`}
                           >
-                            {t("affordability.openInCalculator")}
+                            {t("affordability.applyForLead")}
                           </Link>
                         </Button>
                       </div>
@@ -644,6 +652,22 @@ function formatEgpNumber(egp: number, locale: AppLocale): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(egp);
+}
+
+function buildAffordabilityNote(input: {
+  income: number;
+  tenureMonths: number;
+  offerLoanEgp: number;
+  offerMonthlyEgp: number;
+  locale: AppLocale;
+}): string {
+  const intlLocale = input.locale === "ar" ? "ar-EG" : "en-EG";
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(intlLocale, { maximumFractionDigits: 0 }).format(n);
+  if (input.locale === "ar") {
+    return `قدرة العميل: حتى ${fmt(input.offerLoanEgp)} ج.م. بقسط شهري ${fmt(input.offerMonthlyEgp)} ج.م. على مدى ${input.tenureMonths} شهرًا (الدخل الشهري ${fmt(input.income)} ج.م.).`;
+  }
+  return `Affordability: up to ${fmt(input.offerLoanEgp)} EGP at ${fmt(input.offerMonthlyEgp)} EGP/month over ${input.tenureMonths} months (income ${fmt(input.income)} EGP/month).`;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

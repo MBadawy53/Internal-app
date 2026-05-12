@@ -166,7 +166,8 @@
       "offerLoan": "Max loan",
       "offerMonthly": "Monthly installment",
       "range": "Product range",
-      "openInCalculator": "Use this product"
+      "openInCalculator": "Use this product",
+      "applyForLead": "Apply for a lead"
     },
     "selectProduct": "Select a product",
     "invoiceValue": "Invoice price (EGP)",

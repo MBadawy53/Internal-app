@@ -8,8 +8,19 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { LeadForm } from "@/components/portal/LeadForm";
 
-export default async function NewLeadPage() {
+interface SearchParams {
+  productId?: string;
+  businessLineId?: string;
+  note?: string;
+}
+
+export default async function NewLeadPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const actor = await requireActor();
+  const sp = await searchParams;
 
   // RBAC: anyone with create:lead can land here. The service action also
   // re-checks; this is the routing-level gate.
@@ -81,6 +92,20 @@ export default async function NewLeadPage() {
         }))}
         owners={owners}
         showOwnerPicker={showOwnerPicker}
+        initial={(() => {
+          // Validate URL params against loaded data so a bogus product
+          // can't pre-fill the form. Product implies its own BL.
+          const product = sp.productId ? products.find((p) => p.id === sp.productId) : undefined;
+          const blFromProduct = product?.businessLineId;
+          const blParam = sp.businessLineId
+            ? businessLines.find((b) => b.id === sp.businessLineId)?.id
+            : undefined;
+          return {
+            businessLineId: blFromProduct ?? blParam,
+            productId: product?.id,
+            customerNote: sp.note?.slice(0, 2000),
+          };
+        })()}
       />
     </div>
   );

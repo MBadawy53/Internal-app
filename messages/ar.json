@@ -166,7 +166,8 @@
       "offerLoan": "أقصى تمويل",
       "offerMonthly": "القسط الشهري",
       "range": "نطاق المنتج",
-      "openInCalculator": "استخدم هذا المنتج"
+      "openInCalculator": "استخدم هذا المنتج",
+      "applyForLead": "تقديم طلب جديد"
     },
     "selectProduct": "اختر منتجًا",
     "invoiceValue": "قيمة الفاتورة (ج.م.)",
