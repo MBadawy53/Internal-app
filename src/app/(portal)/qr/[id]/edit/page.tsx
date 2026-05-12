@@ -16,21 +16,22 @@ interface Params {
 
 export default async function EditQrCampaignPage({ params }: Params) {
   const actor = await requireActor();
-  if (actor.role !== Role.ADMIN && actor.role !== Role.BUSINESS_LINE_OWNER) {
-    redirect("/qr");
-  }
-
   const { id } = await params;
   const campaign = await prisma.qrCampaign.findUnique({ where: { id } });
   if (!campaign) notFound();
 
-  // BL owners can only edit campaigns whose owner is in their BL.
+  // Edit scope:
+  // - ADMIN: any campaign
+  // - BL OWNER: campaigns owned by employees in their business line
+  // - everyone else: only their own campaigns
   if (actor.role === Role.BUSINESS_LINE_OWNER) {
     const owner = await prisma.user.findUnique({
       where: { id: campaign.employeeId },
       select: { businessLineId: true },
     });
     if (owner?.businessLineId !== actor.businessLineId) redirect("/qr");
+  } else if (actor.role !== Role.ADMIN) {
+    if (campaign.employeeId !== actor.id) redirect("/qr");
   }
 
   const locale = (await getLocale()) as AppLocale;
