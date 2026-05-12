@@ -13,6 +13,21 @@
 
 import { applyBps, clamp, type Piastres } from "./money";
 
+/** How often the customer pays. Drives the PMT formula and schedule rows. */
+export type InstallmentPeriod = "MONTHLY" | "QUARTERLY" | "ANNUALLY";
+
+export const PERIODS_PER_YEAR: Record<InstallmentPeriod, number> = {
+  MONTHLY: 12,
+  QUARTERLY: 4,
+  ANNUALLY: 1,
+};
+
+export const MONTHS_PER_PERIOD: Record<InstallmentPeriod, number> = {
+  MONTHLY: 1,
+  QUARTERLY: 3,
+  ANNUALLY: 12,
+};
+
 export interface CalculatorProductConfig {
   amountMinPiastres: Piastres;
   amountMaxPiastres: Piastres;
@@ -26,6 +41,7 @@ export interface CalculatorProductConfig {
   insuranceRequired: boolean;
   earlySettlementFeeBps: number;
   latePaymentFeeBps: number;
+  installmentPeriod?: InstallmentPeriod;
 }
 
 export interface CalculatorInput {
@@ -142,34 +158,38 @@ export function computeAdminFee(
 
 /**
  * One period's interest on the outstanding balance, half-up rounded.
- *   interest = round(outstanding × annualBps / 120_000)
- *     where 120_000 = 10_000 (bps) × 12 (months)
+ *   interest = round(outstanding × annualBps / (10_000 × periodsPerYear))
  */
-function periodInterest(outstanding: Piastres, annualBps: number): Piastres {
+function periodInterest(
+  outstanding: Piastres,
+  annualBps: number,
+  periodsPerYear: number,
+): Piastres {
   if (annualBps === 0 || outstanding <= 0n) return 0n;
   const num = outstanding * BigInt(annualBps);
-  const den = 120_000n;
+  const den = 10_000n * BigInt(periodsPerYear);
   return (num + den / 2n) / den;
 }
 
 /**
- * Standard PMT for a declining-balance loan.
+ * Standard PMT for a declining-balance loan, generalised over period length.
  *   PMT = P × r × (1+r)^n / ((1+r)^n − 1)
- * Done in floating point (PMT is inherently rational) and rounded back to bigint piastres.
+ *     where r = annualRate / periodsPerYear and n = total number of periods.
  * Falls back to equal-principal split when the rate is zero.
  */
-function computeMonthlyInstallment(
+function computePerPeriodInstallment(
   principalPiastres: Piastres,
-  tenureMonths: number,
+  nPeriods: number,
   annualBps: number,
+  periodsPerYear: number,
 ): Piastres {
   if (annualBps === 0) {
-    const m = BigInt(tenureMonths);
-    const base = principalPiastres / m;
-    return principalPiastres % m === 0n ? base : base + 1n;
+    const n = BigInt(nPeriods);
+    const base = principalPiastres / n;
+    return principalPiastres % n === 0n ? base : base + 1n;
   }
-  const r = annualBps / 10_000 / 12;
-  const factor = Math.pow(1 + r, tenureMonths);
+  const r = annualBps / 10_000 / periodsPerYear;
+  const factor = Math.pow(1 + r, nPeriods);
   const pmt = (Number(principalPiastres) * r * factor) / (factor - 1);
   return BigInt(Math.round(pmt));
 }
@@ -195,35 +215,46 @@ export function calculate(
 
   const { principalPiastres, tenureMonths } = input;
   const annualBps = product.decliningInterestRateBps;
+  const period: InstallmentPeriod = product.installmentPeriod ?? "MONTHLY";
+  const periodsPerYear = PERIODS_PER_YEAR[period];
+  const monthsPerPeriod = MONTHS_PER_PERIOD[period];
 
-  const monthlyInstallmentPiastres = computeMonthlyInstallment(
+  // The tenor (in months) must be a whole number of periods. The UI converts
+  // before calling us; this is a defensive guard.
+  if (tenureMonths % monthsPerPeriod !== 0) {
+    throw new CalculatorValidationError(
+      "tenure",
+      "non_integer",
+      `Tenor must be a whole number of ${period.toLowerCase()} periods`,
+    );
+  }
+  const nPeriods = tenureMonths / monthsPerPeriod;
+
+  const monthlyInstallmentPiastres = computePerPeriodInstallment(
     principalPiastres,
-    tenureMonths,
+    nPeriods,
     annualBps,
+    periodsPerYear,
   );
 
   const amortization: AmortizationRow[] = [];
   let outstanding = principalPiastres;
   let totalInterestPiastres = 0n;
 
-  for (let m = 1; m <= tenureMonths; m++) {
-    const isLast = m === tenureMonths;
-    const interest = periodInterest(outstanding, annualBps);
+  for (let p = 1; p <= nPeriods; p++) {
+    const isLast = p === nPeriods;
+    const interest = periodInterest(outstanding, annualBps, periodsPerYear);
 
     let installment: Piastres;
     let principalPart: Piastres;
 
     if (isLast) {
-      // Settle whatever principal remains; this row's installment may differ
-      // by a few piastres from the constant PMT due to rounding.
       principalPart = outstanding;
       installment = principalPart + interest;
     } else {
       installment = monthlyInstallmentPiastres;
       principalPart = installment - interest;
       if (principalPart < 0n) {
-        // Rate × balance exceeds the installment — only happens with
-        // pathological inputs. Pay nothing on principal this period.
         principalPart = 0n;
       } else if (principalPart > outstanding) {
         principalPart = outstanding;
@@ -235,7 +266,9 @@ export function calculate(
     totalInterestPiastres += interest;
 
     amortization.push({
-      month: m,
+      // `month` here means "period index" (1 for first installment, etc.).
+      // Kept under the existing key to avoid renaming the public schema.
+      month: p,
       installmentPiastres: installment,
       interestPiastres: interest,
       principalPiastres: principalPart,

@@ -20,6 +20,7 @@ import {
   DBR_CAP_BPS,
   maxLoanFromInstallment,
   maxMonthlyFromIncome,
+  maxPerPeriodFromMonthly,
 } from "@/lib/finance/affordability";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -41,6 +42,7 @@ interface ClientProduct {
   minDownPaymentBps: number;
   earlySettlementFeeBps: number;
   latePaymentFeeBps: number;
+  installmentPeriod: "MONTHLY" | "QUARTERLY" | "ANNUALLY";
 }
 
 function toConfig(p: ClientProduct): CalculatorProductConfig {
@@ -57,8 +59,15 @@ function toConfig(p: ClientProduct): CalculatorProductConfig {
     insuranceRequired: p.insuranceRequired,
     earlySettlementFeeBps: p.earlySettlementFeeBps,
     latePaymentFeeBps: p.latePaymentFeeBps,
+    installmentPeriod: p.installmentPeriod,
   };
 }
+
+const MONTHS_PER_PERIOD: Record<"MONTHLY" | "QUARTERLY" | "ANNUALLY", number> = {
+  MONTHLY: 1,
+  QUARTERLY: 3,
+  ANNUALLY: 12,
+};
 
 function piastresFromEgp(egp: string): bigint {
   const n = Number(egp);
@@ -115,15 +124,17 @@ export function CalculatorClient({ products, locale, initial }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice, dpPercent]);
 
-  // When product changes, default principal/tenure to the product's min if empty.
+  // When product changes, default principal/tenure to the product's min.
+  // Tenor is reset on every product change because the unit (months /
+  // quarters / years) follows the product's installmentPeriod.
   useEffect(() => {
     if (product) {
       if (!principal) {
         setPrincipal((Number(product.amountMinPiastres) / 100).toString());
       }
-      if (!tenure) {
-        setTenure(product.tenureMinMonths.toString());
-      }
+      const period = product.installmentPeriod ?? "MONTHLY";
+      const minInPeriod = product.tenureMinMonths / MONTHS_PER_PERIOD[period];
+      setTenure(String(minInPeriod));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
@@ -146,10 +157,14 @@ export function CalculatorClient({ products, locale, initial }: Props) {
     }
     setError(null);
     try {
+      // In product mode the tenor input is in the product's period units
+      // (months / quarters / years); the calculator wants total months.
+      const periodForCalc = product.installmentPeriod ?? "MONTHLY";
+      const tenureMonths = Number(tenure) * MONTHS_PER_PERIOD[periodForCalc];
       const out = calculate(
         {
           principalPiastres: piastresFromEgp(principal),
-          tenureMonths: Number(tenure),
+          tenureMonths,
         },
         toConfig(product),
       );
@@ -228,25 +243,35 @@ export function CalculatorClient({ products, locale, initial }: Props) {
     return products
       .map((p) => {
         if (tenureNum < p.tenureMinMonths || tenureNum > p.tenureMaxMonths) return null;
+        // Tenor (months) must be a whole number of the product's periods.
+        const monthsPerPeriod = MONTHS_PER_PERIOD[p.installmentPeriod ?? "MONTHLY"];
+        if (tenureNum % monthsPerPeriod !== 0) return null;
+        const nPeriods = tenureNum / monthsPerPeriod;
         const minPiastres = BigInt(p.amountMinPiastres);
         const maxPiastres = BigInt(p.amountMaxPiastres);
-        const maxLoan = maxLoanFromInstallment(
+        const maxPerPeriod = maxPerPeriodFromMonthly(
           maxMonthlyPiastres,
+          p.installmentPeriod ?? "MONTHLY",
+        );
+        const maxLoan = maxLoanFromInstallment(
+          maxPerPeriod,
           tenureNum,
           p.decliningInterestRateBps,
+          p.installmentPeriod ?? "MONTHLY",
         );
         if (maxLoan < minPiastres) return null;
         const offerLoan = maxLoan > maxPiastres ? maxPiastres : maxLoan;
-        // Recompute the actual monthly for the offered loan (since we may have
-        // capped it to the product's maxPiastres).
-        const r = p.decliningInterestRateBps / 10_000 / 12;
-        let offerMonthlyPiastres = maxMonthlyPiastres;
+        // Recompute the actual per-period installment for the offered loan
+        // (since we may have capped it to the product's maxPiastres).
+        const periodsPerYear = 12 / monthsPerPeriod;
+        const r = p.decliningInterestRateBps / 10_000 / periodsPerYear;
+        let offerMonthlyPiastres = maxPerPeriod;
         if (offerLoan < maxLoan && r > 0) {
-          const factor = Math.pow(1 + r, tenureNum);
+          const factor = Math.pow(1 + r, nPeriods);
           const pmt = (Number(offerLoan) * r * factor) / (factor - 1);
           offerMonthlyPiastres = BigInt(Math.round(pmt));
         } else if (offerLoan < maxLoan && r === 0) {
-          offerMonthlyPiastres = offerLoan / BigInt(tenureNum);
+          offerMonthlyPiastres = offerLoan / BigInt(nPeriods);
         }
         return {
           product: p,
@@ -483,23 +508,62 @@ export function CalculatorClient({ products, locale, initial }: Props) {
                 ) : null}
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="calc-tenure">{t("tenure")}</Label>
-                <Input
-                  id="calc-tenure"
-                  type="number"
-                  inputMode="numeric"
-                  min={product?.tenureMinMonths ?? 1}
-                  max={product?.tenureMaxMonths ?? 999}
-                  step="1"
-                  value={tenure}
-                  onChange={(e) => setTenure(e.target.value)}
-                />
-                {product ? (
-                  <p className="text-xs text-muted-foreground">
-                    {product.tenureMinMonths}–{product.tenureMaxMonths}
-                  </p>
-                ) : null}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="calc-period">{t("installmentPeriod")}</Label>
+                  <Select
+                    id="calc-period"
+                    value={product?.installmentPeriod ?? "MONTHLY"}
+                    disabled
+                    onChange={() => undefined}
+                  >
+                    <option value="MONTHLY">{t("periodMonthly")}</option>
+                    <option value="QUARTERLY">{t("periodQuarterly")}</option>
+                    <option value="ANNUALLY">{t("periodAnnually")}</option>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">{t("installmentPeriodHint")}</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="calc-tenure">
+                    {(() => {
+                      const p = product?.installmentPeriod ?? "MONTHLY";
+                      return p === "MONTHLY"
+                        ? t("tenureMonths")
+                        : p === "QUARTERLY"
+                          ? t("tenureQuarters")
+                          : t("tenureYears");
+                    })()}
+                  </Label>
+                  <Input
+                    id="calc-tenure"
+                    type="number"
+                    inputMode="numeric"
+                    min={
+                      product
+                        ? product.tenureMinMonths /
+                          MONTHS_PER_PERIOD[product.installmentPeriod ?? "MONTHLY"]
+                        : 1
+                    }
+                    max={
+                      product
+                        ? product.tenureMaxMonths /
+                          MONTHS_PER_PERIOD[product.installmentPeriod ?? "MONTHLY"]
+                        : 999
+                    }
+                    step="1"
+                    value={tenure}
+                    onChange={(e) => setTenure(e.target.value)}
+                  />
+                  {product ? (
+                    <p className="text-xs text-muted-foreground">
+                      {product.tenureMinMonths /
+                        MONTHS_PER_PERIOD[product.installmentPeriod ?? "MONTHLY"]}
+                      –
+                      {product.tenureMaxMonths /
+                        MONTHS_PER_PERIOD[product.installmentPeriod ?? "MONTHLY"]}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               {error ? (

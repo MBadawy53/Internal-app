@@ -86,6 +86,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           amountMaxEgp: Number(product.amountMaxPiastres) / 100,
           tenureMinMonths: product.tenureMinMonths,
           tenureMaxMonths: product.tenureMaxMonths,
+          installmentPeriod: product.installmentPeriod,
           flatInterestRateBps: product.flatInterestRateBps,
           decliningInterestRateBps: product.decliningInterestRateBps,
           adminFeeBps: product.adminFeeBps,

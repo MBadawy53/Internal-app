@@ -42,6 +42,7 @@ export default async function CalculatorPage({
     minDownPaymentBps: p.minDownPaymentBps,
     earlySettlementFeeBps: p.earlySettlementFeeBps,
     latePaymentFeeBps: p.latePaymentFeeBps,
+    installmentPeriod: p.installmentPeriod,
   }));
 
   return (

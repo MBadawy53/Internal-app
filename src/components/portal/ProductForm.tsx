@@ -66,6 +66,7 @@ interface InitialProduct {
   amountMaxEgp?: number;
   tenureMinMonths?: number;
   tenureMaxMonths?: number;
+  installmentPeriod?: "MONTHLY" | "QUARTERLY" | "ANNUALLY";
   flatInterestRateBps?: number;
   decliningInterestRateBps?: number;
   adminFeeBps?: number;
@@ -427,6 +428,19 @@ export function ProductForm({
                 />
               </>
             ) : null}
+            <div className="space-y-1.5">
+              <Label htmlFor="installmentPeriod">{tFields("installmentPeriod")}</Label>
+              <Select
+                id="installmentPeriod"
+                name="installmentPeriod"
+                defaultValue={initial?.installmentPeriod ?? "MONTHLY"}
+              >
+                <option value="MONTHLY">{tFields("periodMonthly")}</option>
+                <option value="QUARTERLY">{tFields("periodQuarterly")}</option>
+                <option value="ANNUALLY">{tFields("periodAnnually")}</option>
+              </Select>
+              <p className="text-xs text-muted-foreground">{tFields("installmentPeriodHint")}</p>
+            </div>
           </CardContent>
         </Card>
       ) : null}

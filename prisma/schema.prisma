@@ -119,6 +119,12 @@ enum AttributeType {
   SELECT
 }
 
+enum InstallmentPeriod {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Identity & Org
 // ─────────────────────────────────────────────────────────────────────────────
@@ -249,6 +255,11 @@ model Product {
   amountMaxPiastres BigInt
   tenureMinMonths   Int
   tenureMaxMonths   Int
+
+  // How often the customer pays. The calculator's PMT formula uses
+  // periodsPerYear = { MONTHLY: 12, QUARTERLY: 4, ANNUALLY: 1 } and one
+  // amortisation row per period.
+  installmentPeriod InstallmentPeriod @default(MONTHLY)
 
   // Rates — admin enters BOTH independently. No conversion is performed.
   flatInterestRateBps      Int @default(0)
