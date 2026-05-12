@@ -8,16 +8,26 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UsersSearchBar } from "@/components/portal/UsersSearchBar";
 
-export default async function AdminUsersPage() {
+interface SearchParams {
+  q?: string;
+}
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
   if (session?.user?.role !== Role.ADMIN) redirect("/dashboard");
 
+  const sp = await searchParams;
   const t = await getTranslations("admin.users");
   const tRoles = await getTranslations("roles");
   const locale = (await getLocale()) as AppLocale;
 
-  const users = await userAdminRepository.list();
+  const users = await userAdminRepository.list({ q: sp.q });
 
   return (
     <div className="space-y-6">
@@ -30,6 +40,14 @@ export default async function AdminUsersPage() {
           <Link href="/admin/users/new">{t("new")}</Link>
         </Button>
       </header>
+
+      <UsersSearchBar initial={sp.q ?? ""} />
+
+      {users.length === 0 ? (
+        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+          {t("search.empty")}
+        </p>
+      ) : null}
 
       <div className="grid gap-3">
         {users.map((u) => {

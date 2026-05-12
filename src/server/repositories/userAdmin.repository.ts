@@ -2,14 +2,29 @@ import type { Prisma, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const userAdminRepository = {
-  list: () =>
-    prisma.user.findMany({
+  list: (filters: { q?: string } = {}) => {
+    const q = filters.q?.trim();
+    const where: Prisma.UserWhereInput | undefined = q
+      ? {
+          OR: [
+            { groupId: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { nameEn: { contains: q, mode: "insensitive" } },
+            { nameAr: { contains: q } },
+            { phone: { contains: q } },
+          ],
+        }
+      : undefined;
+    return prisma.user.findMany({
+      where,
       include: {
         businessLine: { select: { nameEn: true, nameAr: true, slug: true } },
         manager: { select: { id: true, groupId: true, nameEn: true } },
       },
       orderBy: [{ groupId: "asc" }, { email: "asc" }],
-    }),
+      take: 500,
+    });
+  },
 
   findByGroupId: (groupId: string) => prisma.user.findUnique({ where: { groupId } }),
 

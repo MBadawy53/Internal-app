@@ -444,6 +444,12 @@
       "new": "New employee",
       "newSubtitle": "Issue a group ID. The employee fills in their name, email, phone and password on first login.",
       "edit": "Edit employee",
+      "search": {
+        "placeholder": "Search by group ID, name, email, or phone…",
+        "search": "Search",
+        "clear": "Clear",
+        "empty": "No users match the search."
+      },
       "fields": {
         "groupId": "Group ID",
         "role": "Role",
