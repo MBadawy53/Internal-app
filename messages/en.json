@@ -480,7 +480,31 @@
   },
   "public": {
     "leadCapture": {
-      "comingSoon": "Public lead capture page — implemented in Phase 4."
+      "comingSoon": "Public lead capture page.",
+      "referredBy": "Referred by",
+      "intro": "Leave your details and a Contact Financial representative will reach out shortly.",
+      "submit": "Submit enquiry",
+      "submitting": "Submitting…",
+      "thanks": "Thanks — we've got your details and someone will be in touch shortly."
+    }
+  },
+  "qr": {
+    "title": "QR Campaigns",
+    "subtitle": "Track scans and leads from campaign-specific QR codes.",
+    "newCampaign": "New campaign",
+    "empty": "No campaigns yet.",
+    "shareUrl": "Share URL",
+    "scans": "Scans",
+    "leads": "Leads",
+    "conversion": "Conversion",
+    "downloadPng": "Download QR PNG",
+    "inactive": "Inactive",
+    "form": {
+      "name": "Campaign name",
+      "employee": "Owner (employee)",
+      "product": "Linked product (optional)",
+      "create": "Create campaign",
+      "created": "Campaign created — slug {slug}"
     }
   },
   "errors": {
