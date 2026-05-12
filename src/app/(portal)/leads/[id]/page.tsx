@@ -6,9 +6,11 @@ import { leadService } from "@/server/services/lead.service";
 import { decryptOptional } from "@/lib/crypto/aes-gcm";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
+import { LeadStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
+import { ClaimLeadButton } from "@/components/portal/ClaimLeadButton";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -29,6 +31,12 @@ export default async function LeadDetailPage({ params }: Params) {
   const email = decryptOptional(lead.customerEmailEnc);
   const nationalId = decryptOptional(lead.nationalIdEnc);
   const dateFmt = (d: Date) => new Date(d).toLocaleString(locale === "ar" ? "ar-EG" : "en-EG");
+
+  // Self-assign rule: actor isn't already the owner, and the lead is either
+  // unassigned or still in NEW.
+  const claimable =
+    lead.ownerEmployeeId !== actor.id &&
+    (lead.ownerEmployeeId === null || lead.currentStatus === LeadStatus.NEW);
 
   return (
     <div className="space-y-6">
@@ -91,7 +99,15 @@ export default async function LeadDetailPage({ params }: Params) {
           <CardHeader>
             <CardTitle>{t("status")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {claimable ? (
+              <div className="rounded-md border bg-secondary/30 p-3 text-xs">
+                <p className="mb-2 text-muted-foreground">
+                  {lead.ownerEmployeeId === null ? t("claimUnassigned") : t("claimNewStage")}
+                </p>
+                <ClaimLeadButton leadId={lead.id} />
+              </div>
+            ) : null}
             <LeadStatusForm leadId={lead.id} currentStatus={lead.currentStatus} />
           </CardContent>
         </Card>

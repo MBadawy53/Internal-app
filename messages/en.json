@@ -282,7 +282,13 @@
       "owner": "Owner",
       "created": "Created"
     },
+    "claim": {
+      "claim": "Assign to me",
+      "claiming": "Claiming…"
+    },
     "detail": {
+      "claimUnassigned": "This lead has no owner. Take it.",
+      "claimNewStage": "This lead is still in NEW. You can take it over.",
       "info": "Customer info",
       "phone": "Phone",
       "email": "Email",

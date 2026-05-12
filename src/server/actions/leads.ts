@@ -8,6 +8,7 @@ import { requireActor } from "@/lib/auth/session";
 import { requirePermission } from "@/lib/auth/permissions";
 import { encryptOptional } from "@/lib/crypto/aes-gcm";
 import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
@@ -225,5 +226,80 @@ export async function addLeadActivityAction(
   } catch (err) {
     logger.error({ err, leadId: lead.id }, "lead.add_activity_failed");
     return { ok: false, message: "Could not add activity" };
+  }
+}
+
+// ── Claim (self-assign) ───────────────────────────────────────────────────
+
+export type ClaimLeadState = { ok: true } | { ok: false; message: string };
+
+/**
+ * Self-assign a lead. Allowed when the lead has no owner OR its current
+ * status is still NEW (prevents 'stealing' an in-progress lead). Owner-only
+ * update — status is left untouched. Notifies the previous owner if there
+ * was one (and it wasn't the actor).
+ */
+export async function claimLeadAction(
+  _prev: ClaimLeadState | null,
+  fd: FormData,
+): Promise<ClaimLeadState> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "lead");
+
+  const leadId = fd.get("leadId")?.toString();
+  if (!leadId) return { ok: false, message: "Missing lead id" };
+
+  const lead = await leadService.get(actor, leadId);
+  if (!lead) return { ok: false, message: "Lead not found" };
+
+  if (lead.ownerEmployeeId === actor.id) {
+    return { ok: true }; // already owned by actor, no-op
+  }
+  const claimable = lead.ownerEmployeeId === null || lead.currentStatus === LeadStatus.NEW;
+  if (!claimable) {
+    return {
+      ok: false,
+      message: "This lead is already owned and past the NEW stage.",
+    };
+  }
+
+  const previousOwnerId = lead.ownerEmployeeId;
+
+  try {
+    await prisma.lead.update({
+      where: { id: lead.id },
+      data: { ownerEmployeeId: actor.id },
+    });
+
+    await prisma.leadActivity
+      .create({
+        data: {
+          leadId: lead.id,
+          type: LeadActivityType.NOTE,
+          content: previousOwnerId ? "Claimed (took over)" : "Claimed (unassigned)",
+          actorId: actor.id,
+        },
+      })
+      .catch(() => undefined);
+
+    if (previousOwnerId && previousOwnerId !== actor.id) {
+      await notify({
+        userId: previousOwnerId,
+        type: NotificationType.LEAD_ASSIGNED,
+        payload: {
+          leadId: lead.id,
+          customerName: lead.customerName,
+          newOwnerId: actor.id,
+          previousOwnerId,
+        },
+      });
+    }
+
+    revalidatePath(`/leads/${lead.id}`);
+    revalidatePath("/leads");
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err, leadId: lead.id }, "lead.claim_failed");
+    return { ok: false, message: "Could not claim the lead" };
   }
 }
