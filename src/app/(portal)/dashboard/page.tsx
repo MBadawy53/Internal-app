@@ -1,11 +1,22 @@
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardPage() {
   const session = await auth();
   const t = await getTranslations("dashboard");
   const tRoles = await getTranslations("roles");
   const name = session?.user?.name ?? session?.user?.email ?? "";
+
+  // Read referralCode live from DB so a freshly-migrated user (referralCode
+  // mirrors groupId) sees the new value without signing out — the JWT may
+  // still hold the old one.
+  const live = session?.user?.id
+    ? await prisma.user
+        .findUnique({ where: { id: session.user.id }, select: { referralCode: true } })
+        .catch(() => null)
+    : null;
+  const referralCode = live?.referralCode ?? session?.user?.referralCode ?? "";
 
   return (
     <div className="space-y-6">
@@ -19,7 +30,7 @@ export default async function DashboardPage() {
           <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("yourReferralCode")}
           </p>
-          <p className="mt-2 font-mono text-xl font-semibold">{session?.user.referralCode}</p>
+          <p className="mt-2 font-mono text-xl font-semibold">{referralCode}</p>
         </div>
         <div className="rounded-lg border bg-card p-5 shadow-soft">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("role")}</p>
