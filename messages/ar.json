@@ -388,6 +388,20 @@
       "actionsHeading": "الإجراءات",
       "save": "حفظ التغييرات",
       "saved": "تم الحفظ.",
+      "features": {
+        "dashboard": "لوحة التحكم",
+        "catalog": "كتالوج المنتجات",
+        "calculator": "الحاسبة (الصفحة)",
+        "calculatorProduct": "الحاسبة — وضع القسط",
+        "calculatorAffordability": "الحاسبة — وضع القدرة على التحمل",
+        "leads": "العملاء المحتملون",
+        "qr": "حملات QR",
+        "ambassadors": "السفراء",
+        "notifications": "الإشعارات",
+        "reports": "التقارير",
+        "products": "الإدارة — المنتجات",
+        "categories": "الإدارة — الفئات"
+      },
       "resources": {
         "catalog": "الكتالوج",
         "product": "المنتجات",

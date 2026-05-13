@@ -136,6 +136,8 @@ enum FeatureKey {
   dashboard
   catalog
   calculator
+  calculatorProduct
+  calculatorAffordability
   leads
   qr
   ambassadors

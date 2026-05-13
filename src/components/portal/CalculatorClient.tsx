@@ -78,6 +78,8 @@ function piastresFromEgp(egp: string): bigint {
 interface Props {
   products: ClientProduct[];
   locale: AppLocale;
+  allowProductMode?: boolean;
+  allowAffordabilityMode?: boolean;
   initial: {
     productId?: string;
     principal?: string;
@@ -87,7 +89,13 @@ interface Props {
   };
 }
 
-export function CalculatorClient({ products, locale, initial }: Props) {
+export function CalculatorClient({
+  products,
+  locale,
+  allowProductMode = true,
+  allowAffordabilityMode = true,
+  initial,
+}: Props) {
   const t = useTranslations("calculator");
   const tResult = useTranslations("calculator.result");
   const tErr = useTranslations("calculator.errors");
@@ -97,7 +105,14 @@ export function CalculatorClient({ products, locale, initial }: Props) {
   const [productId, setProductId] = useState(initial.productId ?? products[0]?.id ?? "");
   const product = useMemo(() => products.find((p) => p.id === productId), [productId, products]);
 
-  const [mode, setMode] = useState<"product" | "affordability">("product");
+  // Default to whichever mode the role can see. If both are disabled the
+  // server already redirected via requireFeatureAccess("calculator").
+  const initialMode: "product" | "affordability" = allowProductMode
+    ? "product"
+    : allowAffordabilityMode
+      ? "affordability"
+      : "product";
+  const [mode, setMode] = useState<"product" | "affordability">(initialMode);
   const [invoice, setInvoice] = useState(initial.invoice ?? "");
   const [dpPercent, setDpPercent] = useState(initial.dpPercent ?? "");
   const [principal, setPrincipal] = useState(initial.principal ?? "");
@@ -295,27 +310,29 @@ export function CalculatorClient({ products, locale, initial }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Mode toggle */}
-      <div role="tablist" className="inline-flex rounded-md border bg-secondary/40 p-1 text-sm">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "product"}
-          onClick={() => setMode("product")}
-          className={`rounded px-3 py-1.5 ${mode === "product" ? "bg-background font-medium shadow-sm" : "text-muted-foreground"}`}
-        >
-          {t("mode.product")}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "affordability"}
-          onClick={() => setMode("affordability")}
-          className={`rounded px-3 py-1.5 ${mode === "affordability" ? "bg-background font-medium shadow-sm" : "text-muted-foreground"}`}
-        >
-          {t("mode.affordability")}
-        </button>
-      </div>
+      {/* Mode toggle — only shown when the role can see both modes. */}
+      {allowProductMode && allowAffordabilityMode ? (
+        <div role="tablist" className="inline-flex rounded-md border bg-secondary/40 p-1 text-sm">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "product"}
+            onClick={() => setMode("product")}
+            className={`rounded px-3 py-1.5 ${mode === "product" ? "bg-background font-medium shadow-sm" : "text-muted-foreground"}`}
+          >
+            {t("mode.product")}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "affordability"}
+            onClick={() => setMode("affordability")}
+            className={`rounded px-3 py-1.5 ${mode === "affordability" ? "bg-background font-medium shadow-sm" : "text-muted-foreground"}`}
+          >
+            {t("mode.affordability")}
+          </button>
+        </div>
+      ) : null}
 
       {mode === "affordability" ? (
         <Card>

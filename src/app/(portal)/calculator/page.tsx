@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { requireActor } from "@/lib/auth/session";
 import { requireFeatureAccess } from "@/lib/auth/permissions";
+import { isFeatureVisible } from "@/lib/auth/rbac";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -58,6 +59,8 @@ export default async function CalculatorPage({
       <CalculatorClient
         products={productsForClient}
         locale={locale}
+        allowProductMode={isFeatureVisible(actor.role, "calculatorProduct")}
+        allowAffordabilityMode={isFeatureVisible(actor.role, "calculatorAffordability")}
         initial={{
           productId: sp.productId,
           principal: sp.principal,

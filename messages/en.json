@@ -388,6 +388,20 @@
       "actionsHeading": "Actions",
       "save": "Save changes",
       "saved": "Saved.",
+      "features": {
+        "dashboard": "Dashboard",
+        "catalog": "Product catalog",
+        "calculator": "Calculator (page)",
+        "calculatorProduct": "Calculator — installment mode",
+        "calculatorAffordability": "Calculator — affordability mode",
+        "leads": "Leads",
+        "qr": "QR campaigns",
+        "ambassadors": "Ambassadors",
+        "notifications": "Notifications",
+        "reports": "Reports",
+        "products": "Admin — products",
+        "categories": "Admin — categories"
+      },
       "resources": {
         "catalog": "Catalog",
         "product": "Products",

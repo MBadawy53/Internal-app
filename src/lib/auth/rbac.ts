@@ -273,6 +273,8 @@ export const FEATURE_KEYS = [
   "dashboard",
   "catalog",
   "calculator",
+  "calculatorProduct",
+  "calculatorAffordability",
   "leads",
   "qr",
   "ambassadors",

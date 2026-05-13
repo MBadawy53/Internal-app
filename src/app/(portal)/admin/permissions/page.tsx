@@ -23,7 +23,7 @@ export default async function PermissionsPage({
   if (actor.role !== Role.ADMIN) redirect("/dashboard");
   const t = await getTranslations("admin.permissions");
   const tRoles = await getTranslations("roles");
-  const tNav = await getTranslations("nav");
+  const tFeatures = await getTranslations("admin.permissions.features");
 
   const sp = await searchParams;
   const requested = (sp.role ?? "").toUpperCase();
@@ -43,7 +43,7 @@ export default async function PermissionsPage({
   const defaults = ROLE_MATRIX[role];
   const features = FEATURE_KEYS.map((f) => ({
     key: f,
-    label: tNav(f),
+    label: tFeatures(f),
     visible: visMap.get(f) ?? true, // default visible
   }));
 
