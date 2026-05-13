@@ -662,6 +662,7 @@
     "title": "QR Campaigns",
     "subtitle": "Track scans and leads from campaign-specific QR codes.",
     "newCampaign": "New campaign",
+    "close": "Cancel",
     "edit": "Edit campaign",
     "empty": "No campaigns yet.",
     "shareUrl": "Share URL",

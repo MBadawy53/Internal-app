@@ -9,7 +9,7 @@ import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QrCampaignForm } from "@/components/portal/QrCampaignForm";
+import { NewCampaignSection } from "@/components/portal/NewCampaignSection";
 
 export default async function QrPage() {
   const actor = await requireActor();
@@ -108,19 +108,12 @@ export default async function QrPage() {
       </header>
 
       {canCreate ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("newCampaign")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <QrCampaignForm
-              employees={employees}
-              products={products}
-              templates={templates}
-              initial={{ employeeId: actor.id }}
-            />
-          </CardContent>
-        </Card>
+        <NewCampaignSection
+          employees={employees}
+          products={products}
+          templates={templates}
+          initial={{ employeeId: actor.id }}
+        />
       ) : null}
 
       {campaigns.length === 0 ? (
