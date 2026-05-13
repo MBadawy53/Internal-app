@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import argon2 from "argon2";
+import { revalidatePath } from "next/cache";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -9,6 +10,71 @@ import { logger } from "@/lib/logger";
 export type ChangePasswordState =
   | { ok: true }
   | { ok: false; message: string; field?: "currentPassword" | "newPassword" | "confirmPassword" };
+
+export type ProfileInfoField = "nameEn" | "nameAr" | "email" | "phone";
+export type ProfileInfoState =
+  | { ok: true }
+  | { ok: false; message?: string; fieldErrors?: Partial<Record<ProfileInfoField, string>> };
+
+const ProfileInfoSchema = z.object({
+  nameEn: z.string().trim().min(2, "Name (EN) must be at least 2 characters").max(120),
+  nameAr: z.string().trim().min(2, "Name (AR) must be at least 2 characters").max(120),
+  email: z.string().email("Invalid email"),
+  phone: z.string().regex(/^\+?[0-9\s-]{8,20}$/u, "Invalid phone number"),
+});
+
+export async function updateProfileInfoAction(
+  _prev: ProfileInfoState | null,
+  fd: FormData,
+): Promise<ProfileInfoState> {
+  const actor = await requireActor();
+
+  const parsed = ProfileInfoSchema.safeParse({
+    nameEn: fd.get("nameEn")?.toString() ?? "",
+    nameAr: fd.get("nameAr")?.toString() ?? "",
+    email: fd.get("email")?.toString() ?? "",
+    phone: fd.get("phone")?.toString() ?? "",
+  });
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<ProfileInfoField, string>> = {};
+    for (const issue of parsed.error.errors) {
+      const key = issue.path[0] as ProfileInfoField | undefined;
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { ok: false, fieldErrors };
+  }
+
+  const nameEn = parsed.data.nameEn.trim();
+  const nameAr = parsed.data.nameAr.trim();
+  const email = parsed.data.email.toLowerCase();
+  const phone = parsed.data.phone.trim();
+
+  const conflict = await prisma.user.findFirst({
+    where: { OR: [{ email }, { phone }], NOT: { id: actor.id } },
+    select: { email: true, phone: true },
+  });
+  if (conflict) {
+    const fieldErrors: Partial<Record<ProfileInfoField, string>> = {};
+    if (conflict.email === email) fieldErrors.email = "Email is already in use";
+    if (conflict.phone === phone) fieldErrors.phone = "Phone is already in use";
+    return { ok: false, fieldErrors };
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: actor.id },
+      data: { nameEn, nameAr, email, phone },
+    });
+    revalidatePath("/profile");
+    return { ok: true };
+  } catch (err) {
+    if ((err as { code?: string }).code === "P2002") {
+      return { ok: false, message: "Email or phone is already in use." };
+    }
+    logger.error({ err, userId: actor.id }, "profile.update_info_failed");
+    return { ok: false, message: "Could not update profile. Please retry." };
+  }
+}
 
 const ChangePasswordSchema = z
   .object({

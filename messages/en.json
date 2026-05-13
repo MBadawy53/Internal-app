@@ -123,6 +123,20 @@
   "profile": {
     "title": "My profile",
     "subtitle": "Update your account settings.",
+    "info": {
+      "title": "Profile",
+      "hint": "Update the information you provided when activating your account.",
+      "groupId": "Group ID",
+      "role": "Role",
+      "businessLine": "Business line",
+      "referralCode": "Referral code",
+      "nameEn": "Full name (English)",
+      "nameAr": "Full name (Arabic)",
+      "email": "Email",
+      "phone": "Phone",
+      "submit": "Save changes",
+      "success": "Profile updated."
+    },
     "password": {
       "title": "Change password",
       "currentPassword": "Current password",

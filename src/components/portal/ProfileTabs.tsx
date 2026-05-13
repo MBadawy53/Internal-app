@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChangePasswordForm } from "@/components/portal/ChangePasswordForm";
+import { ProfileInfoForm, type ProfileInfoInitial } from "@/components/portal/ProfileInfoForm";
 
-type TabId = "password";
+type TabId = "info" | "password";
 
 interface Tab {
   id: TabId;
@@ -12,13 +13,13 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  // Add more tabs here (e.g. profile info) and route them in the switch below.
+  { id: "info", labelKey: "info.title" },
   { id: "password", labelKey: "password.title" },
 ];
 
-export function ProfileTabs() {
+export function ProfileTabs({ initial }: { initial: ProfileInfoInitial }) {
   const t = useTranslations("profile");
-  const [active, setActive] = useState<TabId>("password");
+  const [active, setActive] = useState<TabId>("info");
 
   return (
     <div className="space-y-4">
@@ -45,7 +46,9 @@ export function ProfileTabs() {
         })}
       </div>
 
-      <div role="tabpanel">{active === "password" ? <ChangePasswordForm /> : null}</div>
+      <div role="tabpanel">
+        {active === "info" ? <ProfileInfoForm initial={initial} /> : <ChangePasswordForm />}
+      </div>
     </div>
   );
 }
