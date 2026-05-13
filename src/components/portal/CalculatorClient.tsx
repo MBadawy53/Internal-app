@@ -17,10 +17,12 @@ import {
   CalculatorValidationError,
 } from "@/lib/finance/calculator";
 import {
+  CC_LIMIT_HAIRCUT_BPS,
   DBR_CAP_BPS,
   maxLoanFromInstallment,
   maxMonthlyFromIncome,
   maxPerPeriodFromMonthly,
+  netMonthlyIncome,
 } from "@/lib/finance/affordability";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -118,6 +120,8 @@ export function CalculatorClient({
   const [principal, setPrincipal] = useState(initial.principal ?? "");
   const [tenure, setTenure] = useState(initial.tenure ?? "");
   const [monthlyIncome, setMonthlyIncome] = useState("");
+  const [creditCardLimit, setCreditCardLimit] = useState("");
+  const [existingInstallments, setExistingInstallments] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CalculatorResult | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -243,16 +247,28 @@ export function CalculatorClient({
   };
 
   // ── Affordability mode ────────────────────────────────────────────────────
-  // For each active product, reverse-PMT the customer's affordable monthly
-  // (= 50% of income) over the chosen tenor at the product's declining rate.
-  // Show only products where: tenor fits, computed max loan ≥ product min.
+  // Net income = gross − (credit-card limit × 5%) − existing installments.
+  // Max monthly installment = 50% of net income. For each active product,
+  // reverse-PMT that affordable monthly over the chosen tenor at the
+  // product's declining rate. Show only products where: tenor fits,
+  // computed max loan ≥ product min.
   const incomeNum = Number(monthlyIncome);
+  const ccLimitNum = Number(creditCardLimit);
+  const existingInstNum = Number(existingInstallments);
   const tenureNum = Number(tenure);
+  const safeCc = Number.isFinite(ccLimitNum) && ccLimitNum > 0 ? ccLimitNum : 0;
+  const safeExisting =
+    Number.isFinite(existingInstNum) && existingInstNum > 0 ? existingInstNum : 0;
   const hasAffordabilityInputs =
     Number.isFinite(incomeNum) && incomeNum > 0 && Number.isFinite(tenureNum) && tenureNum > 0;
-  const maxMonthlyPiastres = hasAffordabilityInputs
-    ? maxMonthlyFromIncome(BigInt(Math.round(incomeNum * 100)))
+  const grossPiastres = hasAffordabilityInputs ? BigInt(Math.round(incomeNum * 100)) : 0n;
+  const ccLimitPiastres = BigInt(Math.round(safeCc * 100));
+  const existingInstPiastres = BigInt(Math.round(safeExisting * 100));
+  const ccHaircutPiastres = (ccLimitPiastres * BigInt(CC_LIMIT_HAIRCUT_BPS)) / 10_000n;
+  const netIncomePiastres = hasAffordabilityInputs
+    ? netMonthlyIncome(grossPiastres, ccLimitPiastres, existingInstPiastres)
     : 0n;
+  const maxMonthlyPiastres = hasAffordabilityInputs ? maxMonthlyFromIncome(netIncomePiastres) : 0n;
   const recommendations = useMemo(() => {
     if (mode !== "affordability" || !hasAffordabilityInputs) return [];
     return products
@@ -368,10 +384,66 @@ export function CalculatorClient({
                   onChange={(e) => setTenure(e.target.value)}
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="aff-cc-limit">{t("affordability.creditCardLimit")}</Label>
+                <Input
+                  id="aff-cc-limit"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  value={creditCardLimit}
+                  onChange={(e) => setCreditCardLimit(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("affordability.creditCardHint", {
+                    pct: (CC_LIMIT_HAIRCUT_BPS / 100).toFixed(0),
+                  })}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="aff-existing">{t("affordability.existingInstallments")}</Label>
+                <Input
+                  id="aff-existing"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  value={existingInstallments}
+                  onChange={(e) => setExistingInstallments(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("affordability.existingInstallmentsHint")}
+                </p>
+              </div>
             </div>
 
             {hasAffordabilityInputs ? (
-              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+              <div className="space-y-2 rounded-md border bg-secondary/30 p-3 text-sm">
+                <dl className="grid gap-1 text-xs">
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">{t("affordability.grossIncome")}</dt>
+                    <dd className="font-medium">{formatMoney(grossPiastres, locale)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">
+                      {t("affordability.creditCardCut", {
+                        pct: (CC_LIMIT_HAIRCUT_BPS / 100).toFixed(0),
+                      })}
+                    </dt>
+                    <dd className="font-medium">−{formatMoney(ccHaircutPiastres, locale)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">
+                      {t("affordability.existingInstallmentsCut")}
+                    </dt>
+                    <dd className="font-medium">−{formatMoney(existingInstPiastres, locale)}</dd>
+                  </div>
+                  <div className="mt-1 flex justify-between border-t pt-1">
+                    <dt className="text-muted-foreground">{t("affordability.netIncome")}</dt>
+                    <dd className="font-medium">{formatMoney(netIncomePiastres, locale)}</dd>
+                  </div>
+                </dl>
                 <p>
                   <span className="text-muted-foreground">{t("affordability.maxMonthly")}:</span>{" "}
                   <strong>{formatMoney(maxMonthlyPiastres, locale)}</strong>

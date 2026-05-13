@@ -3,19 +3,41 @@
 // Given a maximum monthly installment the customer can afford and a tenor in
 // months, reverse the standard PMT formula to find the maximum loan principal
 // at a given annual rate. Used by the calculator's affordability mode where
-// the cap is "50% of monthly income".
+// the cap is "50% of net monthly income".
 
 import type { Piastres } from "./money";
 import { MONTHS_PER_PERIOD, PERIODS_PER_YEAR, type InstallmentPeriod } from "./calculator";
 
 export const DBR_CAP_BPS = 5000; // 50.00% (50 / 100 = 5000 bps)
 
+// Assumed monthly obligation on outstanding credit-card limit. 5% of the
+// limit is subtracted from gross income to estimate the customer's CC burden.
+export const CC_LIMIT_HAIRCUT_BPS = 500; // 5.00%
+
+/**
+ * Compute the customer's *net* monthly income after subtracting:
+ *   - 5% of their total credit card limit (assumed CC obligation), and
+ *   - their existing monthly consumer-finance installments.
+ *
+ * Inputs default to 0 so callers can pass only what they have. Clamps at 0
+ * so a negative net never propagates downstream.
+ */
+export function netMonthlyIncome(
+  grossPiastres: Piastres,
+  creditCardLimitPiastres: Piastres = 0n,
+  existingInstallmentsPiastres: Piastres = 0n,
+): Piastres {
+  const ccHaircut = (creditCardLimitPiastres * BigInt(CC_LIMIT_HAIRCUT_BPS)) / 10_000n;
+  const net = grossPiastres - ccHaircut - existingInstallmentsPiastres;
+  return net > 0n ? net : 0n;
+}
+
 /**
  * Maximum monthly installment given a monthly net income and DBR cap.
- * `incomePiastres × DBR_CAP_BPS / 10_000`, rounded down.
+ * `netPiastres × DBR_CAP_BPS / 10_000`, rounded down.
  */
-export function maxMonthlyFromIncome(incomePiastres: Piastres): Piastres {
-  return (incomePiastres * BigInt(DBR_CAP_BPS)) / 10_000n;
+export function maxMonthlyFromIncome(netPiastres: Piastres): Piastres {
+  return (netPiastres * BigInt(DBR_CAP_BPS)) / 10_000n;
 }
 
 /**
