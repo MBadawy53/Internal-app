@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { requireActor } from "@/lib/auth/session";
+import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -17,6 +18,7 @@ export default async function CalculatorPage({
   }>;
 }) {
   const actor = await requireActor();
+  requireFeatureAccess(actor, "calculator");
   const sp = await searchParams;
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("calculator");

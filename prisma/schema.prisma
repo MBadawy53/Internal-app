@@ -132,6 +132,19 @@ enum QrCampaignKind {
   AMBASSADOR_INVITE
 }
 
+enum FeatureKey {
+  dashboard
+  catalog
+  calculator
+  leads
+  qr
+  ambassadors
+  notifications
+  reports
+  products
+  categories
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Identity & Org
 // ─────────────────────────────────────────────────────────────────────────────
@@ -682,4 +695,33 @@ model RateLimitBucket {
   updatedAt   DateTime @updatedAt
 
   @@map("rate_limit_buckets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Runtime RBAC overrides (admin-editable)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Per-role sidebar / feature visibility. Absent row = use the hardcoded
+// default. ADMIN is never read from this table (always sees everything).
+model RoleFeatureAccess {
+  role    Role
+  feature FeatureKey
+  visible Boolean    @default(true)
+
+  @@id([role, feature])
+  @@map("role_feature_access")
+}
+
+// Per-role (action, resource) permission overrides layered on top of the
+// hardcoded ROLE_MATRIX. enabled=false removes a permission the role would
+// otherwise have; enabled=true grants the permission with 'own' scope when
+// the hardcoded matrix didn't grant it. ADMIN is never read from this table.
+model RolePermission {
+  role     Role
+  action   String
+  resource String
+  enabled  Boolean
+
+  @@id([role, action, resource])
+  @@map("role_permissions")
 }

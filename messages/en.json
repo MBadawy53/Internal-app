@@ -379,6 +379,38 @@
   },
   "admin": {
     "title": "Administration",
+    "permissions": {
+      "title": "Role permissions",
+      "subtitle": "Pick a role and tick the features and actions it can access.",
+      "selectRole": "Role",
+      "hint": "Changes apply within ~30 seconds across the app.",
+      "featuresHeading": "Features (sidebar)",
+      "actionsHeading": "Actions",
+      "save": "Save changes",
+      "saved": "Saved.",
+      "resources": {
+        "catalog": "Catalog",
+        "product": "Products",
+        "productCategory": "Categories",
+        "productAttribute": "Attributes",
+        "businessLine": "Business lines",
+        "calculator": "Calculator",
+        "quote": "Quotes",
+        "lead": "Leads",
+        "qr": "QR campaigns",
+        "notification": "Notifications",
+        "report": "Reports"
+      },
+      "actions": {
+        "create": "Create",
+        "read": "View",
+        "update": "Edit",
+        "delete": "Delete",
+        "list": "List",
+        "export": "Export",
+        "assign": "Assign"
+      }
+    },
     "categories": {
       "title": "Categories",
       "subtitle": "Group products into categories under each business line.",

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LeadSource, LeadStatus } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
+import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { leadService } from "@/server/services/lead.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -22,6 +23,7 @@ const LEAD_SOURCES = new Set<string>(Object.values(LeadSource));
 
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const actor = await requireActor();
+  requireFeatureAccess(actor, "leads");
   const sp = await searchParams;
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads");

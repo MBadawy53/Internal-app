@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
+import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
@@ -12,6 +13,7 @@ import { QrCampaignForm } from "@/components/portal/QrCampaignForm";
 
 export default async function QrPage() {
   const actor = await requireActor();
+  requireFeatureAccess(actor, "qr");
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("qr");
 

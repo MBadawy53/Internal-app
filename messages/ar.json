@@ -379,6 +379,38 @@
   },
   "admin": {
     "title": "الإدارة",
+    "permissions": {
+      "title": "صلاحيات الأدوار",
+      "subtitle": "اختر الدور ثم حدد الميزات والإجراءات التي يمكنه الوصول إليها.",
+      "selectRole": "الدور",
+      "hint": "تسري التغييرات خلال ~30 ثانية في كافة التطبيق.",
+      "featuresHeading": "الميزات (الشريط الجانبي)",
+      "actionsHeading": "الإجراءات",
+      "save": "حفظ التغييرات",
+      "saved": "تم الحفظ.",
+      "resources": {
+        "catalog": "الكتالوج",
+        "product": "المنتجات",
+        "productCategory": "الفئات",
+        "productAttribute": "الخصائص",
+        "businessLine": "خطوط العمل",
+        "calculator": "الحاسبة",
+        "quote": "العروض",
+        "lead": "العملاء المحتملون",
+        "qr": "حملات QR",
+        "notification": "الإشعارات",
+        "report": "التقارير"
+      },
+      "actions": {
+        "create": "إنشاء",
+        "read": "عرض",
+        "update": "تعديل",
+        "delete": "حذف",
+        "list": "قائمة",
+        "export": "تصدير",
+        "assign": "تعيين"
+      }
+    },
     "categories": {
       "title": "الفئات",
       "subtitle": "اجمع المنتجات في فئات تحت كل قطاع.",

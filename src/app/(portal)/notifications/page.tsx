@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Bell } from "lucide-react";
 import { requireActor } from "@/lib/auth/session";
+import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { notificationRepository } from "@/server/repositories/notification.repository";
 import { markNotificationReadAction } from "@/server/actions/notifications";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -52,6 +53,7 @@ function summary(
 
 export default async function NotificationsPage() {
   const actor = await requireActor();
+  requireFeatureAccess(actor, "notifications");
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("notifications");
   const items = await notificationRepository.listForUser(actor.id, 100);

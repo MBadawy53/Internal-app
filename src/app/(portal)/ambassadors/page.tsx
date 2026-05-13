@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Role, type Prisma } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
+import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AmbassadorsPage() {
   const actor = await requireActor();
-  // Ambassadors don't have access; bounce them.
+  requireFeatureAccess(actor, "ambassadors");
   if (actor.role === Role.AMBASSADOR) {
     return null;
   }

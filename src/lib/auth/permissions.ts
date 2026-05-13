@@ -1,5 +1,12 @@
 import type { Role } from "@prisma/client";
-import { type Action, type Resource, type Scope, scopeFor } from "./rbac";
+import {
+  type Action,
+  type FeatureKey,
+  type Resource,
+  type Scope,
+  isFeatureVisible,
+  scopeFor,
+} from "./rbac";
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden") {
@@ -65,4 +72,16 @@ export function requirePermission(
     throw new ForbiddenError(`Role ${actor.role} cannot ${action} ${resource}`);
   }
   return scope;
+}
+
+/**
+ * Throws ForbiddenError if the actor's role can't see this feature.
+ * Top-level page components should `requireFeatureAccess(actor, "leads")`
+ * (or similar) right after `requireActor()` so direct-URL access mirrors the
+ * sidebar visibility. ADMIN always passes.
+ */
+export function requireFeatureAccess(actor: ActorContext, feature: FeatureKey): void {
+  if (!isFeatureVisible(actor.role, feature)) {
+    throw new ForbiddenError(`Role ${actor.role} cannot access ${feature}`);
+  }
 }
