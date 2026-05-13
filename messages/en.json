@@ -219,7 +219,7 @@
       "existingInstallments": "Existing monthly installments (EGP)",
       "existingInstallmentsHint": "Other consumer-finance installments the customer already pays.",
       "grossIncome": "Gross income",
-      "creditCardCut": "Credit card haircut ({pct}% of limit)",
+      "creditCardCut": "Credit card cut ({pct}% of limit)",
       "existingInstallmentsCut": "Existing installments",
       "netIncome": "Net income",
       "maxMonthly": "Maximum monthly installment",
