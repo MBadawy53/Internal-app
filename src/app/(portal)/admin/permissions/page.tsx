@@ -3,10 +3,9 @@ import { getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
-import { FEATURE_KEYS, ROLE_MATRIX } from "@/lib/auth/rbac";
+import { EDITABLE_PERMS, FEATURE_KEYS, ROLE_MATRIX } from "@/lib/auth/rbac";
 import { Card, CardContent } from "@/components/ui/card";
 import { PermissionsEditor } from "@/components/portal/PermissionsEditor";
-import { EDITABLE_PERMS } from "@/server/actions/permissions";
 
 const EDITABLE_ROLES: Role[] = [
   Role.EMPLOYEE,

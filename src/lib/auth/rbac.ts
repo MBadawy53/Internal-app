@@ -283,6 +283,47 @@ export const FEATURE_KEYS = [
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
+// (action, resource) pairs admins are allowed to toggle in /admin/permissions.
+// Excludes admin-only resources (user, integrationConfig, auditLog,
+// messageTemplate) so admins can't accidentally hand those out.
+export const EDITABLE_PERMS: ReadonlyArray<{ action: Action; resource: Resource }> = [
+  { action: "read", resource: "catalog" },
+  { action: "list", resource: "product" },
+  { action: "read", resource: "product" },
+  { action: "create", resource: "product" },
+  { action: "update", resource: "product" },
+  { action: "delete", resource: "product" },
+  { action: "list", resource: "productCategory" },
+  { action: "read", resource: "productCategory" },
+  { action: "create", resource: "productCategory" },
+  { action: "update", resource: "productCategory" },
+  { action: "delete", resource: "productCategory" },
+  { action: "list", resource: "productAttribute" },
+  { action: "read", resource: "productAttribute" },
+  { action: "list", resource: "businessLine" },
+  { action: "read", resource: "businessLine" },
+  { action: "read", resource: "calculator" },
+  { action: "create", resource: "quote" },
+  { action: "read", resource: "quote" },
+  { action: "list", resource: "quote" },
+  { action: "create", resource: "lead" },
+  { action: "read", resource: "lead" },
+  { action: "list", resource: "lead" },
+  { action: "update", resource: "lead" },
+  { action: "delete", resource: "lead" },
+  { action: "export", resource: "lead" },
+  { action: "assign", resource: "lead" },
+  { action: "create", resource: "qr" },
+  { action: "read", resource: "qr" },
+  { action: "list", resource: "qr" },
+  { action: "update", resource: "qr" },
+  { action: "delete", resource: "qr" },
+  { action: "read", resource: "notification" },
+  { action: "list", resource: "notification" },
+  { action: "update", resource: "notification" },
+  { action: "read", resource: "report" },
+];
+
 let EFFECTIVE_MATRIX: RoleMatrix = structuredClone(ROLE_MATRIX);
 let VISIBILITY: Partial<Record<Role, Partial<Record<FeatureKey, boolean>>>> = {};
 let LOADED_AT = 0;
