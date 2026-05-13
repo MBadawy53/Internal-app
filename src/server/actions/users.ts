@@ -4,16 +4,17 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
-import { randomBytes } from "node:crypto";
-import { GROUP_ID_REGEX } from "@/lib/auth/config";
+import { EMPLOYEE_ID_REGEX } from "@/lib/auth/config";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { userAdminRepository } from "@/server/repositories/userAdmin.repository";
 
 const ProvisionSchema = z.object({
-  groupId: z.string().regex(GROUP_ID_REGEX, "Group ID must match C0001C–C9999C"),
-  role: z.nativeEnum(Role),
+  groupId: z.string().regex(EMPLOYEE_ID_REGEX, "Group ID must match C0001C–C9999C"),
+  role: z.nativeEnum(Role).refine((r) => r !== Role.AMBASSADOR, {
+    message: "Ambassadors are created via QR-campaign invites, not the admin panel.",
+  }),
   businessLineId: z.string().min(1).optional().nullable(),
   managerId: z.string().min(1).optional().nullable(),
   canEditProducts: z.coerce.boolean().default(false),
@@ -23,13 +24,6 @@ const ProvisionSchema = z.object({
 export type ProvisionUserState =
   | { ok: true; id: string }
   | { ok: false; fieldErrors?: Record<string, string[]>; message?: string };
-
-function makeReferralCode(prefix = "EM"): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  for (const b of randomBytes(6)) out += alphabet[b % alphabet.length];
-  return `${prefix}-${out}`;
-}
 
 export async function provisionUserAction(
   _prev: ProvisionUserState | null,
@@ -62,7 +56,7 @@ export async function provisionUserAction(
       role,
       businessLineId: businessLineId ?? null,
       managerId: managerId ?? null,
-      referralCode: makeReferralCode(),
+      referralCode: groupId,
       canEditProducts,
       canEditCatalog,
     });

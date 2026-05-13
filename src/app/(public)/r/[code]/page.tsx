@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
+import { QrCampaignKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { localized } from "@/lib/i18n/localized";
@@ -10,6 +11,7 @@ import { renderSafeMarkdown } from "@/lib/markdown";
 import { Logo } from "@/components/shared/Logo";
 import { LocaleToggle } from "@/components/portal/LocaleToggle";
 import { PublicLeadForm } from "@/components/portal/PublicLeadForm";
+import { AmbassadorSignupForm } from "@/components/portal/AmbassadorSignupForm";
 
 interface Params {
   params: Promise<{ code: string }>;
@@ -172,7 +174,11 @@ export default async function PublicReferralPage({ params }: Params) {
 
             {!bodyHtml ? <p className="text-sm text-muted-foreground">{t("intro")}</p> : null}
 
-            <PublicLeadForm code={code} />
+            {campaign?.kind === QrCampaignKind.AMBASSADOR_INVITE ? (
+              <AmbassadorSignupForm code={code} />
+            ) : (
+              <PublicLeadForm code={code} />
+            )}
           </div>
         </div>
       </div>

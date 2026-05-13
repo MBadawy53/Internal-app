@@ -77,6 +77,16 @@ async function main() {
         OR 'flatRate' = ANY("requiredAttributes")`,
   );
 
+  // ── Backfill: referral_code now mirrors group_id for any user that has one.
+  // Idempotent; only touches rows where the two columns disagree. Admin
+  // (group_id IS NULL) keeps its previously-generated code.
+  await prisma.$executeRawUnsafe(
+    `UPDATE "users"
+       SET "referralCode" = "groupId"
+     WHERE "groupId" IS NOT NULL
+       AND "referralCode" <> "groupId"`,
+  );
+
   // ── Admin (break-glass: email-only login, no group ID) ─────────────────────
   const adminPasswordHash = await hash(ADMIN_PASSWORD);
   const admin = await prisma.user.upsert({
@@ -115,7 +125,7 @@ async function main() {
         phone: `+20100000${groupSeq.toString().padStart(4, "0")}`,
         role: Role.BUSINESS_LINE_OWNER,
         businessLineId: bl.id,
-        referralCode: makeReferralCode("OW"),
+        referralCode: ownerGid,
         mustCompleteProfile: false,
       },
     });
@@ -134,7 +144,7 @@ async function main() {
         role: Role.TEAM_MANAGER,
         businessLineId: bl.id,
         managerId: owner.id,
-        referralCode: makeReferralCode("MG"),
+        referralCode: managerGid,
         mustCompleteProfile: false,
       },
     });
@@ -154,7 +164,7 @@ async function main() {
           role: Role.EMPLOYEE,
           businessLineId: bl.id,
           managerId: manager.id,
-          referralCode: makeReferralCode("EM"),
+          referralCode: empGid,
           mustCompleteProfile: false,
         },
       });
@@ -380,7 +390,7 @@ async function main() {
       groupId: unactivatedGid,
       role: Role.EMPLOYEE,
       businessLineId: firstBL.id,
-      referralCode: makeReferralCode("NW"),
+      referralCode: unactivatedGid,
       mustCompleteProfile: true,
       // No email / password / name / phone — collected on first login.
     },
@@ -407,8 +417,7 @@ async function main() {
       groupId: gid,
       role: Role.EMPLOYEE,
       businessLineId: bl.id,
-      // Deterministic referral code so re-running the seed never collides.
-      referralCode: `EM-T${i.toString().padStart(4, "0")}`,
+      referralCode: gid,
       mustCompleteProfile: true,
       isActive: true,
     });

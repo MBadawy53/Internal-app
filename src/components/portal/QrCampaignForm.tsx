@@ -30,6 +30,7 @@ export interface CampaignInitial {
   id?: string;
   name?: string;
   employeeId?: string;
+  kind?: "LEAD_CAPTURE" | "AMBASSADOR_INVITE";
   productId?: string | null;
   headerImageUrl?: string | null;
   titleEn?: string | null;
@@ -94,6 +95,9 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
   const [state, formAction, pending] = useActionState<AnyState | null, FormData>(action, null);
 
   const [employeeId, setEmployeeId] = useState(initial?.employeeId ?? "");
+  const [kind, setKind] = useState<"LEAD_CAPTURE" | "AMBASSADOR_INVITE">(
+    initial?.kind ?? "LEAD_CAPTURE",
+  );
   const selectedEmp = employees.find((e) => e.id === employeeId);
   const visibleProducts = useMemo(
     () =>
@@ -102,6 +106,7 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
         : products,
     [products, selectedEmp],
   );
+  const isAmbassadorInvite = kind === "AMBASSADOR_INVITE";
 
   return (
     <form action={formAction} className="space-y-5">
@@ -138,16 +143,37 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="qr-product">{t("product")}</Label>
-          <Select id="qr-product" name="productId" defaultValue={initial?.productId ?? ""}>
-            <option value="">{tCommon("all")}</option>
-            {visibleProducts.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
+          <Label htmlFor="qr-kind">{t("kind")}</Label>
+          <Select
+            id="qr-kind"
+            name="kind"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as "LEAD_CAPTURE" | "AMBASSADOR_INVITE")}
+            disabled={isEdit}
+          >
+            <option value="LEAD_CAPTURE">{t("kindLeadCapture")}</option>
+            <option value="AMBASSADOR_INVITE">{t("kindAmbassadorInvite")}</option>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            {isAmbassadorInvite ? t("kindHintAmbassador") : t("kindHintLead")}
+          </p>
         </div>
+        {!isAmbassadorInvite ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-product">{t("product")}</Label>
+            <Select id="qr-product" name="productId" defaultValue={initial?.productId ?? ""}>
+              <option value="">{tCommon("all")}</option>
+              {visibleProducts.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : (
+          // Keep the field present (as hidden) so the form payload always has a productId entry.
+          <input type="hidden" name="productId" value="" />
+        )}
       </div>
 
       <fieldset className="space-y-3 rounded-md border p-3">

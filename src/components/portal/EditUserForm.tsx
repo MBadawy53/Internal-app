@@ -51,11 +51,13 @@ export function EditUserForm({ userId, groupId, initial, businessLines }: Props)
         <div className="space-y-1.5">
           <Label htmlFor="role">{t("role")}</Label>
           <Select id="role" name="role" defaultValue={initial.role} required>
-            {Object.values(Role).map((r) => (
-              <option key={r} value={r}>
-                {tRoles(r)}
-              </option>
-            ))}
+            {Object.values(Role)
+              .filter((r) => r !== Role.AMBASSADOR || initial.role === Role.AMBASSADOR)
+              .map((r) => (
+                <option key={r} value={r}>
+                  {tRoles(r)}
+                </option>
+              ))}
           </Select>
         </div>
         <div className="space-y-1.5">

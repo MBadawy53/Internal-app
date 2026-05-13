@@ -19,6 +19,7 @@ enum Role {
   TEAM_MANAGER
   BUSINESS_LINE_OWNER
   ADMIN
+  AMBASSADOR
 }
 
 enum Locale {
@@ -126,6 +127,11 @@ enum InstallmentPeriod {
   ANNUALLY
 }
 
+enum QrCampaignKind {
+  LEAD_CAPTURE
+  AMBASSADOR_INVITE
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Identity & Org
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,6 +152,8 @@ model User {
   locale              Locale    @default(EN)
   businessLineId      String?
   managerId           String?
+  // Inviter, set when this user was created via an AMBASSADOR_INVITE campaign.
+  invitedById         String?
   referralCode        String    @unique
   shareConsent        Boolean   @default(false)
   isActive            Boolean   @default(true)
@@ -162,6 +170,8 @@ model User {
   businessLine BusinessLine? @relation(fields: [businessLineId], references: [id])
   manager      User?         @relation("UserManager", fields: [managerId], references: [id])
   reports      User[]        @relation("UserManager")
+  invitedBy    User?         @relation("UserInviter", fields: [invitedById], references: [id])
+  invited      User[]        @relation("UserInviter")
 
   ownedLeads     Lead[]                   @relation("LeadOwner")
   referredLeads  Lead[]                   @relation("LeadReferrer")
@@ -178,6 +188,7 @@ model User {
 
   @@index([businessLineId])
   @@index([managerId])
+  @@index([invitedById])
   @@index([role])
   @@map("users")
 }
@@ -484,14 +495,15 @@ model Quote {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model QrCampaign {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   employeeId String
   name       String
   productId  String?
-  slug       String   @unique
-  scanCount  Int      @default(0)
-  leadCount  Int      @default(0)
-  isActive   Boolean  @default(true)
+  slug       String         @unique
+  kind       QrCampaignKind @default(LEAD_CAPTURE)
+  scanCount  Int            @default(0)
+  leadCount  Int            @default(0)
+  isActive   Boolean        @default(true)
 
   // Public landing customisation. All optional; the page falls back to the
   // employee name / generic copy when not set. Markdown is rendered to safe

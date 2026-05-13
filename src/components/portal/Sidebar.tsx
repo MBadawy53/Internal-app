@@ -11,6 +11,7 @@ import {
   Package,
   QrCode,
   Settings,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { Role } from "@prisma/client";
@@ -25,21 +26,34 @@ interface NavItem {
     | "calculator"
     | "leads"
     | "qr"
+    | "ambassadors"
     | "notifications"
     | "reports"
     | "admin";
   icon: typeof LayoutDashboard;
   roles?: Role[]; // omitted = visible to all authenticated roles
+  hideForRoles?: Role[];
 }
 
 const NAV: NavItem[] = [
   { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
   { href: "/catalog", labelKey: "catalog", icon: Package },
-  { href: "/calculator", labelKey: "calculator", icon: Calculator },
+  {
+    href: "/calculator",
+    labelKey: "calculator",
+    icon: Calculator,
+    hideForRoles: [Role.AMBASSADOR],
+  },
   { href: "/leads", labelKey: "leads", icon: Users },
   { href: "/qr", labelKey: "qr", icon: QrCode },
+  {
+    href: "/ambassadors",
+    labelKey: "ambassadors",
+    icon: Sparkles,
+    hideForRoles: [Role.AMBASSADOR],
+  },
   { href: "/notifications", labelKey: "notifications", icon: Bell },
-  { href: "/reports", labelKey: "reports", icon: BarChart3 },
+  { href: "/reports", labelKey: "reports", icon: BarChart3, hideForRoles: [Role.AMBASSADOR] },
   { href: "/admin", labelKey: "admin", icon: Settings, roles: [Role.ADMIN] },
 ];
 
@@ -53,7 +67,9 @@ export function Sidebar({ role }: { role: Role }) {
         <Logo />
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {NAV.filter((n) => !n.roles || n.roles.includes(role)).map((n) => {
+        {NAV.filter(
+          (n) => (!n.roles || n.roles.includes(role)) && !(n.hideForRoles?.includes(role) ?? false),
+        ).map((n) => {
           const active = pathname === n.href || pathname.startsWith(`${n.href}/`);
           const Icon = n.icon;
           return (

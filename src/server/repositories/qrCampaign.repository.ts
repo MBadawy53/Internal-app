@@ -50,6 +50,7 @@ export const qrCampaignRepository = {
             id: true,
             nameEn: true,
             nameAr: true,
+            role: true,
             businessLineId: true,
           },
         },

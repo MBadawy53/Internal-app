@@ -89,6 +89,7 @@
     "calculator": "Loan Calculator",
     "leads": "Leads",
     "qr": "My QR Codes",
+    "ambassadors": "Ambassadors",
     "notifications": "Notifications",
     "reports": "Reports",
     "admin": "Administration",
@@ -157,7 +158,8 @@
     "EMPLOYEE": "Employee",
     "TEAM_MANAGER": "Team Manager",
     "BUSINESS_LINE_OWNER": "Business Line Owner",
-    "ADMIN": "Administrator"
+    "ADMIN": "Administrator",
+    "AMBASSADOR": "Ambassador"
   },
   "catalog": {
     "title": "Product Catalog",
@@ -563,6 +565,19 @@
       "submit": "Submit enquiry",
       "submitting": "Submitting…",
       "thanks": "Thanks — we've got your details and someone will be in touch shortly."
+    },
+    "ambassadorSignup": {
+      "intro": "Join Contact Financial as an ambassador. You'll get your own referral link to share with prospective customers.",
+      "nameEn": "Full name (English)",
+      "nameAr": "Full name (Arabic)",
+      "email": "Email",
+      "phone": "Phone",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "consent": "I agree to Contact Financial's ambassador terms.",
+      "submit": "Become an ambassador",
+      "submitting": "Creating your account…",
+      "thanks": "Welcome aboard — your account is ready."
     }
   },
   "qrTemplates": {
@@ -604,6 +619,11 @@
     "form": {
       "name": "Campaign name",
       "employee": "Owner (employee)",
+      "kind": "Campaign type",
+      "kindLeadCapture": "Lead capture",
+      "kindAmbassadorInvite": "Ambassador invite",
+      "kindHintLead": "Customers landing here submit a lead.",
+      "kindHintAmbassador": "People landing here join as ambassadors under your account.",
       "product": "Linked product (optional)",
       "create": "Create campaign",
       "created": "Campaign created — slug {slug}",
@@ -621,6 +641,15 @@
       "bodyAr": "Body (Arabic) — Markdown",
       "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
     }
+  },
+  "ambassadors": {
+    "title": "My ambassadors",
+    "subtitle": "People who joined Contact Financial through your invite campaigns.",
+    "empty": "No ambassadors yet. Create an Ambassador-invite QR campaign to start.",
+    "leads": "Leads brought in",
+    "invitedBy": "Invited by",
+    "viewLeads": "View their leads →",
+    "inactive": "Inactive"
   },
   "errors": {
     "notFound": "Page not found",

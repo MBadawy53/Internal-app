@@ -80,6 +80,7 @@ export default async function EditQrCampaignPage({ params }: Params) {
               id: campaign.id,
               name: campaign.name,
               employeeId: campaign.employeeId,
+              kind: campaign.kind,
               productId: campaign.productId,
               headerImageUrl: campaign.headerImageUrl,
               titleEn: campaign.titleEn,

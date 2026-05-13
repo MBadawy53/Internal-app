@@ -8,8 +8,11 @@ import { logger } from "@/lib/logger";
 import { edgeAuthConfig } from "./edge-config";
 import "./types";
 
-// Group ID format: C followed by 4 digits (0001–9999) followed by C, e.g. C0001C.
-export const GROUP_ID_REGEX = /^C\d{4}C$/u;
+// Group ID format: C followed by 4 digits followed by C (employee, e.g. C0001C),
+// or R followed by 4 digits followed by R (ambassador, e.g. R0001R).
+export const EMPLOYEE_ID_REGEX = /^C\d{4}C$/u;
+export const AMBASSADOR_ID_REGEX = /^R\d{4}R$/u;
+export const GROUP_ID_REGEX = /^(?:C\d{4}C|R\d{4}R)$/u;
 
 const CredentialsSchema = z.object({
   identifier: z.string().min(1),

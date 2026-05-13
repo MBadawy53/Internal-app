@@ -221,6 +221,33 @@ export const ROLE_MATRIX: RoleMatrix = {
     "list:messageTemplate": "all",
     "update:messageTemplate": "all",
   },
+
+  AMBASSADOR: {
+    "read:catalog": "all",
+    "list:product": "all",
+    "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
+
+    "create:lead": "own",
+    "read:lead": "own",
+    "list:lead": "own",
+    "update:lead": "own",
+
+    "create:qr": "own",
+    "read:qr": "own",
+    "list:qr": "own",
+    "update:qr": "own",
+    "delete:qr": "own",
+
+    "read:notification": "own",
+    "list:notification": "own",
+    "update:notification": "own",
+  },
 };
 
 /**
