@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { Role } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { announcementRepository } from "@/server/repositories/announcement.repository";
@@ -22,15 +23,24 @@ export default async function DashboardPage() {
     : null;
   const referralCode = live?.referralCode ?? session?.user?.referralCode ?? "";
 
-  // Active announcements targeted at this user.
-  const announcements = session?.user
-    ? await announcementRepository
-        .listVisible({
-          role: session.user.role,
-          businessLineId: session.user.businessLineId,
-        })
-        .catch(() => [])
-    : [];
+  // Active announcements targeted at this user. We surface the actual error
+  // for admins so a missing table / failing query doesn't disappear silently.
+  let announcements: Awaited<ReturnType<typeof announcementRepository.listVisible>> = [];
+  let announcementsError: string | null = null;
+  let totalAnnouncementsInDb = 0;
+  if (session?.user) {
+    try {
+      announcements = await announcementRepository.listVisible({
+        role: session.user.role,
+        businessLineId: session.user.businessLineId,
+      });
+    } catch (err) {
+      announcementsError = (err as Error).message ?? "Unknown error";
+    }
+    if (session.user.role === Role.ADMIN) {
+      totalAnnouncementsInDb = await prisma.announcement.count().catch(() => 0);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -57,6 +67,14 @@ export default async function DashboardPage() {
               </div>
             </article>
           ))}
+        </div>
+      ) : null}
+
+      {session?.user?.role === Role.ADMIN ? (
+        <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          Admin debug — announcements visible to you: {announcements.length} · rows in DB:{" "}
+          {totalAnnouncementsInDb}
+          {announcementsError ? ` · error: ${announcementsError}` : ""}
         </div>
       ) : null}
 
