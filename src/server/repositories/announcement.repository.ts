@@ -13,11 +13,14 @@ export const announcementRepository = {
    * within the (optional) start/end window, and either no role filter or the
    * actor's role is listed; same for business line.
    *
-   * Admins always see every active in-window announcement — they're managing
-   * the broadcasts, so a "preview" view at /dashboard avoids confusion when
-   * an announcement targets a different role.
+   * Admins bypass every filter (isActive, dates, role, BL) so the dashboard
+   * always shows whatever they've created — useful for previewing and
+   * avoids confusion when a banner is paused or scheduled.
    */
   listVisible: async (actor: { role: Role; businessLineId: string | null }) => {
+    if (actor.role === Role.ADMIN) {
+      return prisma.announcement.findMany({ orderBy: { createdAt: "desc" }, take: 50 });
+    }
     const now = new Date();
     const rows = await prisma.announcement.findMany({
       where: {
@@ -30,7 +33,6 @@ export const announcementRepository = {
       orderBy: { createdAt: "desc" },
       take: 50,
     });
-    if (actor.role === Role.ADMIN) return rows;
     return rows.filter((r) => {
       const roleOk = r.targetRoles.length === 0 || r.targetRoles.includes(actor.role);
       const blOk =
