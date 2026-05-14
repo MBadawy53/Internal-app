@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Role } from "@prisma/client";
+import { type Role } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { announcementRepository } from "@/server/repositories/announcement.repository";
@@ -28,6 +28,15 @@ export default async function DashboardPage() {
   let announcements: Awaited<ReturnType<typeof announcementRepository.listVisible>> = [];
   let announcementsError: string | null = null;
   let totalAnnouncementsInDb = 0;
+  let allAnnouncementsRaw: {
+    id: string;
+    titleEn: string;
+    isActive: boolean;
+    startsAt: Date | null;
+    endsAt: Date | null;
+    targetRoles: Role[];
+    targetBusinessLineIds: string[];
+  }[] = [];
   if (session?.user) {
     try {
       announcements = await announcementRepository.listVisible({
@@ -37,9 +46,24 @@ export default async function DashboardPage() {
     } catch (err) {
       announcementsError = (err as Error).message ?? "Unknown error";
     }
-    if (session.user.role === Role.ADMIN) {
-      totalAnnouncementsInDb = await prisma.announcement.count().catch(() => 0);
-    }
+    totalAnnouncementsInDb = await prisma.announcement.count().catch(() => 0);
+    // Temporary diagnostic: pull the raw rows so any user can see why a row
+    // didn't match. Will be removed once banner visibility is sorted.
+    allAnnouncementsRaw = (await prisma.announcement
+      .findMany({
+        select: {
+          id: true,
+          titleEn: true,
+          isActive: true,
+          startsAt: true,
+          endsAt: true,
+          targetRoles: true,
+          targetBusinessLineIds: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      })
+      .catch(() => [])) as typeof allAnnouncementsRaw;
   }
 
   return (
@@ -70,32 +94,20 @@ export default async function DashboardPage() {
         </div>
       ) : null}
 
-      {session?.user?.role === Role.ADMIN ? (
+      {session?.user ? (
         <details className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer">
-            Admin debug — visible to you: {announcements.length} · rows in DB:{" "}
+            Announcement debug — visible: {announcements.length} · rows in DB:{" "}
             {totalAnnouncementsInDb}
             {announcementsError ? ` · error: ${announcementsError}` : ""}
           </summary>
-          <pre className="mt-2 whitespace-pre-wrap break-all text-[10px] leading-snug">
-            {JSON.stringify(
-              announcements.map((a) => ({
-                id: a.id,
-                titleEn: a.titleEn,
-                isActive: a.isActive,
-                startsAt: a.startsAt,
-                endsAt: a.endsAt,
-                targetRoles: a.targetRoles,
-                targetBusinessLineIds: a.targetBusinessLineIds,
-              })),
-              null,
-              2,
-            )}
-          </pre>
           <p className="mt-2 text-[10px]">
-            Your role: {session.user.role} · your businessLineId:{" "}
-            {session.user.businessLineId ?? "null"}
+            Your role: <strong>{session.user.role}</strong> · your businessLineId:{" "}
+            <strong>{session.user.businessLineId ?? "null"}</strong>
           </p>
+          <pre className="mt-2 whitespace-pre-wrap break-all text-[10px] leading-snug">
+            {JSON.stringify(allAnnouncementsRaw, null, 2)}
+          </pre>
         </details>
       ) : null}
 
