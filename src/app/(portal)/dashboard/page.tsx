@@ -71,11 +71,32 @@ export default async function DashboardPage() {
       ) : null}
 
       {session?.user?.role === Role.ADMIN ? (
-        <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          Admin debug — announcements visible to you: {announcements.length} · rows in DB:{" "}
-          {totalAnnouncementsInDb}
-          {announcementsError ? ` · error: ${announcementsError}` : ""}
-        </div>
+        <details className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer">
+            Admin debug — visible to you: {announcements.length} · rows in DB:{" "}
+            {totalAnnouncementsInDb}
+            {announcementsError ? ` · error: ${announcementsError}` : ""}
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap break-all text-[10px] leading-snug">
+            {JSON.stringify(
+              announcements.map((a) => ({
+                id: a.id,
+                titleEn: a.titleEn,
+                isActive: a.isActive,
+                startsAt: a.startsAt,
+                endsAt: a.endsAt,
+                targetRoles: a.targetRoles,
+                targetBusinessLineIds: a.targetBusinessLineIds,
+              })),
+              null,
+              2,
+            )}
+          </pre>
+          <p className="mt-2 text-[10px]">
+            Your role: {session.user.role} · your businessLineId:{" "}
+            {session.user.businessLineId ?? "null"}
+          </p>
+        </details>
       ) : null}
 
       <div>
