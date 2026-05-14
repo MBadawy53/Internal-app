@@ -1,4 +1,4 @@
-import type { Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const announcementRepository = {
@@ -12,6 +12,10 @@ export const announcementRepository = {
    * Active announcements visible to the given actor right now: `isActive`,
    * within the (optional) start/end window, and either no role filter or the
    * actor's role is listed; same for business line.
+   *
+   * Admins always see every active in-window announcement — they're managing
+   * the broadcasts, so a "preview" view at /dashboard avoids confusion when
+   * an announcement targets a different role.
    */
   listVisible: async (actor: { role: Role; businessLineId: string | null }) => {
     const now = new Date();
@@ -26,6 +30,7 @@ export const announcementRepository = {
       orderBy: { createdAt: "desc" },
       take: 50,
     });
+    if (actor.role === Role.ADMIN) return rows;
     return rows.filter((r) => {
       const roleOk = r.targetRoles.length === 0 || r.targetRoles.includes(actor.role);
       const blOk =
