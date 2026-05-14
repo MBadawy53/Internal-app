@@ -35,9 +35,13 @@ export const announcementRepository = {
     });
     return rows.filter((r) => {
       const roleOk = r.targetRoles.length === 0 || r.targetRoles.includes(actor.role);
+      // Users without a businessLineId (ambassadors, system admin) are
+      // outside the BL hierarchy, so they always satisfy a BL filter —
+      // otherwise admin couldn't ever announce to them.
       const blOk =
         r.targetBusinessLineIds.length === 0 ||
-        (actor.businessLineId !== null && r.targetBusinessLineIds.includes(actor.businessLineId));
+        actor.businessLineId === null ||
+        r.targetBusinessLineIds.includes(actor.businessLineId);
       return roleOk && blOk;
     });
   },
