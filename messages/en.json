@@ -387,6 +387,37 @@
   },
   "admin": {
     "title": "Administration",
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "Broadcast banners that appear at the top of the dashboard.",
+      "new": "New announcement",
+      "edit": "Edit announcement",
+      "empty": "No announcements yet.",
+      "inactive": "Inactive",
+      "allRoles": "All roles",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete",
+      "form": {
+        "titleEn": "Title (English)",
+        "titleAr": "Title (Arabic)",
+        "bodyEn": "Body (English)",
+        "bodyAr": "Body (Arabic)",
+        "image": "Image",
+        "imageHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+        "clearImage": "Remove image",
+        "targetRoles": "Target roles",
+        "targetRolesHint": "Leave empty to target all roles.",
+        "targetBusinessLines": "Target business lines",
+        "targetBusinessLinesHint": "Leave empty to target every business line.",
+        "startsAt": "Starts at",
+        "endsAt": "Ends at",
+        "isActive": "Active",
+        "sendNotification": "Send an in-app notification to targeted users",
+        "alreadySent": "already sent",
+        "create": "Create announcement"
+      }
+    },
     "permissions": {
       "title": "Role permissions",
       "subtitle": "Pick a role and tick the features and actions it can access.",

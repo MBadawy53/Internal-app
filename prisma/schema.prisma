@@ -727,3 +727,34 @@ model RolePermission {
   @@id([role, action, resource])
   @@map("role_permissions")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Announcements — admin-broadcast messages shown at the top of the dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Announcement {
+  id          String   @id @default(cuid())
+  titleEn     String
+  titleAr     String
+  bodyEn      String
+  bodyAr      String
+  imageUrl    String?
+  // Target audience. Empty arrays = "no filter on this dimension"; an
+  // announcement matches a user when both lists are empty or include that
+  // user's role / businessLineId.
+  targetRoles          Role[]   @default([])
+  targetBusinessLineIds String[] @default([])
+  isActive    Boolean  @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  // True iff a push (in-app notification) was dispatched at creation time.
+  pushNotificationSent Boolean @default(false)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@map("announcements")
+}

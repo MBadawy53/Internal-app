@@ -93,6 +93,17 @@ export default async function AdminPage() {
             </Card>
           </Link>
         ) : null}
+        {isAdmin ? (
+          <Link href="/admin/announcements" className="block">
+            <Card className="transition-shadow hover:shadow-md">
+              <CardHeader>
+                <CardTitle>{t("admin.announcements.title")}</CardTitle>
+                <CardDescription>{t("admin.announcements.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent />
+            </Card>
+          </Link>
+        ) : null}
       </div>
     </div>
   );
