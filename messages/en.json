@@ -580,7 +580,7 @@
         "insuranceRequired": "Insurance required",
         "minDownPaymentBps": "Minimum down payment (%)",
         "earlySettlementFeeBps": "Early settlement fee (%)",
-        "latePaymentFeeBps": "Late payment fee (basis points)",
+        "latePaymentFeeBps": "Late payment fee (%)",
         "heroImageUrl": "Hero image",
         "isFeatured": "Featured",
         "isActive": "Active"

@@ -515,11 +515,10 @@ export function ProductForm({
               />
             ) : null}
             {isVisible("latePayment") ? (
-              <NumField
+              <PercentField
                 name="latePaymentFeeBps"
                 label={tFields("latePaymentFeeBps")}
-                defaultValue={initial?.latePaymentFeeBps ?? 0}
-                step={1}
+                defaultBps={initial?.latePaymentFeeBps ?? 0}
                 required={isRequired("latePayment")}
               />
             ) : null}

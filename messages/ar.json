@@ -580,7 +580,7 @@
         "insuranceRequired": "التأمين إجباري",
         "minDownPaymentBps": "الحد الأدنى للدفعة المقدمة (%)",
         "earlySettlementFeeBps": "رسوم السداد المبكر (%)",
-        "latePaymentFeeBps": "رسوم التأخير (نقطة أساس)",
+        "latePaymentFeeBps": "رسوم التأخير (%)",
         "heroImageUrl": "الصورة الرئيسية",
         "isFeatured": "مميز",
         "isActive": "نشط"
