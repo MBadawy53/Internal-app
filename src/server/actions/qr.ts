@@ -306,40 +306,25 @@ export async function submitPublicLeadAction(
     return { ok: true };
   }
 
-  // Resolve code: campaign slug first, then user referral code.
+  // Resolve code: campaign slug first, then user referral code. We DON'T
+  // assign business line / owner / product from the link — those are left
+  // for an admin to triage later. We keep `referredByEmployeeId` so the
+  // person whose link was scanned still sees the lead in their scope.
   const campaign = await qrCampaignRepository.findActiveBySlug(d.code);
-  let ownerEmployeeId: string | null = null;
-  let businessLineId: string | null = null;
-  let productId: string | null = null;
+  let referrerId: string | null = null;
   let campaignId: string | null = null;
   if (campaign) {
-    ownerEmployeeId = campaign.employee.id;
-    businessLineId = campaign.product?.businessLineId ?? campaign.employee.businessLineId ?? null;
-    productId = campaign.product?.id ?? null;
+    referrerId = campaign.employee.id;
     campaignId = campaign.id;
   } else {
     const employee = await prisma.user.findUnique({
       where: { referralCode: d.code },
-      select: {
-        id: true,
-        role: true,
-        businessLineId: true,
-        isActive: true,
-        invitedBy: { select: { businessLineId: true } },
-      },
+      select: { id: true, isActive: true },
     });
     if (!employee || !employee.isActive) {
       return { ok: false, message: "Invalid referral code" };
     }
-    ownerEmployeeId = employee.id;
-    // Ambassadors don't belong to a BL themselves; fall back to the inviting
-    // employee's BL so the lead can still be routed.
-    businessLineId = employee.businessLineId ?? employee.invitedBy?.businessLineId ?? null;
-  }
-
-  if (!businessLineId) {
-    logger.error({ code: d.code }, "qr.public_lead.no_business_line");
-    return { ok: false, message: "Could not route this enquiry." };
+    referrerId = employee.id;
   }
 
   try {
@@ -354,10 +339,7 @@ export async function submitPublicLeadAction(
       consentIp: ip === "unknown" ? null : ip,
       consentUserAgent: userAgent ?? null,
       currentStatus: LeadStatus.NEW,
-      businessLine: { connect: { id: businessLineId } },
-      owner: { connect: { id: ownerEmployeeId! } },
-      referredBy: { connect: { id: ownerEmployeeId! } },
-      ...(productId ? { product: { connect: { id: productId } } } : {}),
+      ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),
     });
 
@@ -375,26 +357,28 @@ export async function submitPublicLeadAction(
           content: campaignId
             ? `Submitted via QR campaign (${d.code})`
             : `Submitted via referral link (${d.code})`,
-          actorId: ownerEmployeeId!,
+          actorId: referrerId!,
         },
       })
       .catch(() => undefined);
 
-    // Notify the owning employee. In-app for now; channels in Phase 5.
-    await prisma.notification
-      .create({
-        data: {
-          userId: ownerEmployeeId!,
-          type: NotificationType.NEW_LEAD_FROM_QR,
-          payloadJson: {
-            leadId: lead.id,
-            customerName: d.customerName,
-            customerPhone: d.customerPhone,
-            campaignSlug: campaign?.slug ?? null,
+    // Notify the referrer (the person whose link / QR brought this lead in).
+    if (referrerId) {
+      await prisma.notification
+        .create({
+          data: {
+            userId: referrerId,
+            type: NotificationType.NEW_LEAD_FROM_QR,
+            payloadJson: {
+              leadId: lead.id,
+              customerName: d.customerName,
+              customerPhone: d.customerPhone,
+              campaignSlug: campaign?.slug ?? null,
+            },
           },
-        },
-      })
-      .catch(() => undefined);
+        })
+        .catch(() => undefined);
+    }
 
     revalidatePath("/leads");
     return { ok: true };

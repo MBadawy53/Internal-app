@@ -42,7 +42,9 @@ export default async function LeadDetailPage({ params }: Params) {
     <div className="space-y-6">
       <header>
         <p className="text-xs font-medium uppercase tracking-wide text-brand-700">
-          {localized(locale, lead.businessLine.nameEn, lead.businessLine.nameAr)}
+          {lead.businessLine
+            ? localized(locale, lead.businessLine.nameEn, lead.businessLine.nameAr)
+            : "—"}
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{lead.customerName}</h1>
         <div className="brand-underline mt-2 w-16" />

@@ -407,7 +407,7 @@ model Lead {
   source               LeadSource
   referredByEmployeeId String?
   ownerEmployeeId      String?
-  businessLineId       String
+  businessLineId       String?
   productId            String?
   campaignId           String?
   currentStatus        LeadStatus @default(NEW)
@@ -423,7 +423,7 @@ model Lead {
 
   referredBy   User?               @relation("LeadReferrer", fields: [referredByEmployeeId], references: [id])
   owner        User?               @relation("LeadOwner", fields: [ownerEmployeeId], references: [id])
-  businessLine BusinessLine        @relation(fields: [businessLineId], references: [id])
+  businessLine BusinessLine?       @relation(fields: [businessLineId], references: [id])
   product      Product?            @relation(fields: [productId], references: [id])
   campaign     QrCampaign?         @relation(fields: [campaignId], references: [id])
   history      LeadStatusHistory[]

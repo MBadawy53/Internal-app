@@ -53,7 +53,7 @@ export async function GET(req: Request): Promise<Response> {
       l.customerName,
       l.customerPhone,
       decryptOptional(l.customerEmailEnc) ?? "",
-      l.businessLine.nameEn,
+      l.businessLine?.nameEn ?? "",
       l.product?.nameEn ?? "",
       l.currentStatus,
       l.source,

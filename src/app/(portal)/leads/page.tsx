@@ -113,7 +113,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">{l.customerPhone}</td>
                     <td className="px-3 py-2">
-                      {localized(locale, l.businessLine.nameEn, l.businessLine.nameAr)}
+                      {l.businessLine
+                        ? localized(locale, l.businessLine.nameEn, l.businessLine.nameAr)
+                        : "—"}
                     </td>
                     <td className="px-3 py-2">
                       <span className="inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider">
