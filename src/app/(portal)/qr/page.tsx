@@ -23,67 +23,39 @@ export default async function QrPage() {
     businessLineId: actor.businessLineId,
   });
 
-  // Everyone with an account can create their own campaign. Admin and BL
-  // owner additionally pick the owning employee from a wider list.
-  const canCreate = true;
-  const isWideCreator = actor.role === Role.ADMIN || actor.role === Role.BUSINESS_LINE_OWNER;
+  // Create + edit are admin-only. Other roles can only view campaigns scoped
+  // to them by `qrCampaignRepository.listForActor`.
+  const isAdmin = actor.role === Role.ADMIN;
 
   let employees: { id: string; name: string; businessLineId?: string }[] = [];
   let products: { id: string; name: string; businessLineId: string }[] = [];
   let templates: Awaited<ReturnType<typeof qrLandingTemplateRepository.list>> = [];
-  if (canCreate) {
+  if (isAdmin) {
     templates = await qrLandingTemplateRepository.list();
-    if (isWideCreator) {
-      const where =
-        actor.role === Role.ADMIN
-          ? { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } }
-          : {
-              isActive: true,
-              role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] },
-              businessLineId: actor.businessLineId ?? undefined,
-            };
-      const emps = await prisma.user.findMany({
-        where,
-        select: { id: true, nameEn: true, nameAr: true, businessLineId: true },
-        orderBy: { nameEn: "asc" },
-        take: 500,
-      });
-      employees = emps.map((e) => ({
-        id: e.id,
-        name: localized(locale, e.nameEn ?? "", e.nameAr ?? ""),
-        businessLineId: e.businessLineId ?? undefined,
-      }));
-      // Admins aren't in the EMPLOYEE/TEAM_MANAGER filter, but they need to
-      // be selectable as the owner of campaigns they create. Prepend (me).
-      if (!employees.some((e) => e.id === actor.id)) {
-        const me = await prisma.user.findUnique({
-          where: { id: actor.id },
-          select: { nameEn: true, nameAr: true, businessLineId: true },
-        });
-        if (me) {
-          employees.unshift({
-            id: actor.id,
-            name: `${localized(locale, me.nameEn ?? "", me.nameAr ?? "")} (me)`,
-            businessLineId: me.businessLineId ?? undefined,
-          });
-        }
-      }
-    } else {
-      // Employees can only own their own campaigns; the dropdown is a single
-      // option (the actor) so the action's self-scoping is also reflected in
-      // the UI.
+    const emps = await prisma.user.findMany({
+      where: { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } },
+      select: { id: true, nameEn: true, nameAr: true, businessLineId: true },
+      orderBy: { nameEn: "asc" },
+      take: 500,
+    });
+    employees = emps.map((e) => ({
+      id: e.id,
+      name: localized(locale, e.nameEn ?? "", e.nameAr ?? ""),
+      businessLineId: e.businessLineId ?? undefined,
+    }));
+    // Admins aren't in the EMPLOYEE/TEAM_MANAGER filter, but they need to
+    // be selectable as the owner of campaigns they create. Prepend (me).
+    if (!employees.some((e) => e.id === actor.id)) {
       const me = await prisma.user.findUnique({
         where: { id: actor.id },
         select: { nameEn: true, nameAr: true, businessLineId: true },
       });
       if (me) {
-        employees = [
-          {
-            id: actor.id,
-            name: `${localized(locale, me.nameEn ?? "", me.nameAr ?? "")} (me)`,
-            businessLineId: me.businessLineId ?? undefined,
-          },
-        ];
+        employees.unshift({
+          id: actor.id,
+          name: `${localized(locale, me.nameEn ?? "", me.nameAr ?? "")} (me)`,
+          businessLineId: me.businessLineId ?? undefined,
+        });
       }
     }
     const prods = await catalogService.listProducts(actor);
@@ -107,7 +79,7 @@ export default async function QrPage() {
         <p className="mt-2 text-sm text-muted-foreground">{t("subtitle")}</p>
       </header>
 
-      {canCreate ? (
+      {isAdmin ? (
         <NewCampaignSection
           employees={employees}
           products={products}
@@ -179,7 +151,7 @@ export default async function QrPage() {
                         <a className="text-brand-700 hover:underline" href={pngUrl} download>
                           {t("downloadPng")}
                         </a>
-                        {isWideCreator || c.employeeId === actor.id ? (
+                        {isAdmin ? (
                           <a className="text-brand-700 hover:underline" href={`/qr/${c.id}/edit`}>
                             {t("edit")}
                           </a>

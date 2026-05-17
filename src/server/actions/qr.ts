@@ -64,11 +64,11 @@ export async function createCampaignAction(
   fd: FormData,
 ): Promise<CreateCampaignState> {
   const actor = await requireActor();
-  // Anyone with create:qr in the RBAC matrix can run this. The role-based
-  // matrix grants 'own' to EMPLOYEE/TEAM_MANAGER/BL_OWNER and 'all' to ADMIN,
-  // so we just check the action permission and force ownership for the
-  // self-scoped roles.
-  // (RBAC: all roles currently have create:qr.)
+  // Admin-only. Campaign creation requires picking an employee owner and a
+  // landing template, so we keep it in the admin tools.
+  if (actor.role !== Role.ADMIN) {
+    return { ok: false, message: "Forbidden" };
+  }
 
   const parsed = CreateCampaignSchema.safeParse({
     name: fd.get("name")?.toString().trim() ?? "",
@@ -82,15 +82,7 @@ export async function createCampaignAction(
   }
   const d = parsed.data;
 
-  // Ambassadors are not allowed to mint other users — only employees and above
-  // can own an AMBASSADOR_INVITE campaign.
-  if (d.kind === QrCampaignKind.AMBASSADOR_INVITE && actor.role === Role.AMBASSADOR) {
-    return { ok: false, message: "Forbidden" };
-  }
-
-  // Non-admin / non-BL-owner roles can only create campaigns for themselves.
-  const isOwnerScope = actor.role !== Role.ADMIN && actor.role !== Role.BUSINESS_LINE_OWNER;
-  const employeeId = isOwnerScope ? actor.id : d.employeeId;
+  const employeeId = d.employeeId;
   if (!employeeId) {
     return { ok: false, message: "Owner is required" };
   }
@@ -146,16 +138,9 @@ export async function updateCampaignAction(
   fd: FormData,
 ): Promise<UpdateCampaignState> {
   const actor = await requireActor();
-  // Admin / BL owner can edit any campaign in their scope; an employee can
-  // only edit their own.
-  if (actor.role !== Role.ADMIN && actor.role !== Role.BUSINESS_LINE_OWNER) {
-    const existing = await prisma.qrCampaign.findUnique({
-      where: { id },
-      select: { employeeId: true },
-    });
-    if (!existing || existing.employeeId !== actor.id) {
-      return { ok: false, message: "Forbidden" };
-    }
+  // Admin-only.
+  if (actor.role !== Role.ADMIN) {
+    return { ok: false, message: "Forbidden" };
   }
   const parsed = UpdateCampaignSchema.safeParse({
     name: fd.get("name")?.toString().trim() ?? "",
@@ -167,9 +152,6 @@ export async function updateCampaignAction(
     return { ok: false, message: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
   const d = parsed.data;
-  if (d.kind === QrCampaignKind.AMBASSADOR_INVITE && actor.role === Role.AMBASSADOR) {
-    return { ok: false, message: "Forbidden" };
-  }
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
   try {
     await prisma.qrCampaign.update({
@@ -208,15 +190,9 @@ export async function setCampaignActiveAction(
   const id = fd.get("id")?.toString();
   const isActive = fd.get("isActive")?.toString() === "true";
   if (!id) return { ok: false, message: "Missing id" };
-  // Admin / BL owner can toggle any; employees only their own.
-  if (actor.role !== Role.ADMIN && actor.role !== Role.BUSINESS_LINE_OWNER) {
-    const existing = await prisma.qrCampaign.findUnique({
-      where: { id },
-      select: { employeeId: true },
-    });
-    if (!existing || existing.employeeId !== actor.id) {
-      return { ok: false, message: "Forbidden" };
-    }
+  // Admin-only.
+  if (actor.role !== Role.ADMIN) {
+    return { ok: false, message: "Forbidden" };
   }
   try {
     await qrCampaignRepository.setActive(id, isActive);
