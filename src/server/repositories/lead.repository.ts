@@ -17,33 +17,26 @@ export interface ListLeadFilters {
  * Translate the actor's RBAC scope into a Prisma where clause. The repository
  * is the single place where scope→query happens, so service / action layers
  * just hand us the scope they were granted.
+ *
+ * Visibility policy (current):
+ *   - `all`    → admin sees every lead.
+ *   - anything else → "own" view: leads I own, leads I referred, OR leads owned
+ *                     by an ambassador I invited. Team/BL/own all collapse to
+ *                     this rule.
  */
 function scopeFilter(
   scope: Scope,
   actor: { id: string; businessLineId: string | null },
 ): Prisma.LeadWhereInput {
-  switch (scope) {
-    case "all":
-      return {};
-    case "businessLine":
-      return actor.businessLineId ? { businessLineId: actor.businessLineId } : { id: "__none__" };
-    case "team":
-      // The actor sees their own leads plus any owned by users who report to them.
-      return {
-        OR: [
-          { ownerEmployeeId: actor.id },
-          { referredByEmployeeId: actor.id },
-          { owner: { managerId: actor.id } },
-        ],
-      };
-    case "own":
-      return {
-        OR: [{ ownerEmployeeId: actor.id }, { referredByEmployeeId: actor.id }],
-      };
-    case "none":
-    default:
-      return { id: "__none__" };
-  }
+  if (scope === "all") return {};
+  if (scope === "none") return { id: "__none__" };
+  return {
+    OR: [
+      { ownerEmployeeId: actor.id },
+      { referredByEmployeeId: actor.id },
+      { owner: { invitedById: actor.id } },
+    ],
+  };
 }
 
 export const leadRepository = {

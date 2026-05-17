@@ -13,30 +13,19 @@ export const leadService = {
     const lead = await leadRepository.findById(id);
     if (!lead) return null;
 
-    // Same scope→visibility rules as the list filter. Centralised here so
-    // direct detail lookups can't bypass scope.
-    switch (scope) {
-      case "all":
-        return lead;
-      case "businessLine":
-        return lead.businessLineId === actor.businessLineId ? lead : null;
-      case "team": {
-        if (lead.ownerEmployeeId === actor.id || lead.referredByEmployeeId === actor.id) {
-          return lead;
-        }
-        if (!lead.ownerEmployeeId) return null;
-        const owner = await prisma.user.findUnique({
-          where: { id: lead.ownerEmployeeId },
-          select: { managerId: true },
-        });
-        return owner?.managerId === actor.id ? lead : null;
-      }
-      case "own":
-        return lead.ownerEmployeeId === actor.id || lead.referredByEmployeeId === actor.id
-          ? lead
-          : null;
-      default:
-        return null;
+    // Mirror the list filter: admin sees everything; everyone else sees
+    // leads they own, leads they referred, or leads owned by ambassadors
+    // they invited.
+    if (scope === "all") return lead;
+    if (scope === "none") return null;
+    if (lead.ownerEmployeeId === actor.id || lead.referredByEmployeeId === actor.id) {
+      return lead;
     }
+    if (!lead.ownerEmployeeId) return null;
+    const owner = await prisma.user.findUnique({
+      where: { id: lead.ownerEmployeeId },
+      select: { invitedById: true },
+    });
+    return owner?.invitedById === actor.id ? lead : null;
   },
 };
