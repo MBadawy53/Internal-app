@@ -50,7 +50,7 @@ export default async function AmbassadorsPage({
             isActive: true,
             createdAt: true,
             invitedBy: { select: { id: true, nameEn: true, nameAr: true } },
-            _count: { select: { ownedLeads: true } },
+            _count: { select: { ownedLeads: true, referredLeads: true } },
           },
           orderBy: { createdAt: "desc" },
           take: 500,
@@ -113,7 +113,7 @@ export default async function AmbassadorsPage({
                   <p className="text-xs text-muted-foreground">{a.phone ?? "—"}</p>
                   <p>
                     <span className="text-muted-foreground">{t("leads")}: </span>
-                    <strong>{a._count.ownedLeads}</strong>
+                    <strong>{a._count.ownedLeads + a._count.referredLeads}</strong>
                   </p>
                   {actor.role === Role.ADMIN || actor.role === Role.BUSINESS_LINE_OWNER ? (
                     <p className="text-xs text-muted-foreground">
