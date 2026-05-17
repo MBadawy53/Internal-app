@@ -146,7 +146,7 @@ export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemp
       const created = await qrCampaignRepository.create({
         name: tpl.name,
         slug,
-        kind: QrCampaignKind.LEAD_CAPTURE,
+        kind: tpl.kind,
         employee: { connect: { id: actor.id } },
         headerImageUrl: tpl.headerImageUrl,
         titleEn: tpl.titleEn,

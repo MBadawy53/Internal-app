@@ -30,6 +30,7 @@ export default async function EditQrTemplatePage({ params }: Params) {
             initial={{
               id: tpl.id,
               name: tpl.name,
+              kind: tpl.kind,
               headerImageUrl: tpl.headerImageUrl,
               titleEn: tpl.titleEn,
               titleAr: tpl.titleAr,

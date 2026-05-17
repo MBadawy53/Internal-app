@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Role } from "@prisma/client";
+import { QrCampaignKind, Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
@@ -12,6 +12,7 @@ export type TemplateActionState = { ok: true; id: string } | { ok: false; messag
 
 const TemplateSchema = z.object({
   name: z.string().min(2).max(120),
+  kind: z.nativeEnum(QrCampaignKind).default(QrCampaignKind.LEAD_CAPTURE),
   headerImageUrl: z.string().url().max(500).optional().or(z.literal("")),
   titleEn: z.string().max(120).optional().or(z.literal("")),
   titleAr: z.string().max(120).optional().or(z.literal("")),
@@ -24,6 +25,7 @@ const TemplateSchema = z.object({
 function readFields(fd: FormData) {
   return {
     name: fd.get("name")?.toString().trim() ?? "",
+    kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     headerImageUrl: fd.get("headerImageUrl")?.toString().trim() ?? "",
     titleEn: fd.get("titleEn")?.toString().trim() ?? "",
     titleAr: fd.get("titleAr")?.toString().trim() ?? "",
@@ -58,6 +60,7 @@ export async function createTemplateAction(
   try {
     await qrLandingTemplateRepository.create({
       name: d.name,
+      kind: d.kind,
       headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
       titleEn: nullIfEmpty(d.titleEn ?? ""),
       titleAr: nullIfEmpty(d.titleAr ?? ""),
@@ -90,6 +93,7 @@ export async function updateTemplateAction(
   try {
     await qrLandingTemplateRepository.update(id, {
       name: d.name,
+      kind: d.kind,
       headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
       titleEn: nullIfEmpty(d.titleEn ?? ""),
       titleAr: nullIfEmpty(d.titleAr ?? ""),

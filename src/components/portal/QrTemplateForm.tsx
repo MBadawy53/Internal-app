@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createTemplateAction,
@@ -15,6 +16,7 @@ import {
 export interface TemplateInitial {
   id?: string;
   name?: string;
+  kind?: "LEAD_CAPTURE" | "AMBASSADOR_INVITE";
   headerImageUrl?: string | null;
   titleEn?: string | null;
   titleAr?: string | null;
@@ -40,16 +42,26 @@ export function QrTemplateForm({ initial }: Props) {
 
   return (
     <form action={formAction} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="t-name">{t("name")}</Label>
-        <Input
-          id="t-name"
-          name="name"
-          required
-          minLength={2}
-          maxLength={120}
-          defaultValue={initial?.name ?? ""}
-        />
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="t-name">{t("name")}</Label>
+          <Input
+            id="t-name"
+            name="name"
+            required
+            minLength={2}
+            maxLength={120}
+            defaultValue={initial?.name ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="t-kind">{t("kind")}</Label>
+          <Select id="t-kind" name="kind" defaultValue={initial?.kind ?? "LEAD_CAPTURE"}>
+            <option value="LEAD_CAPTURE">{t("kindLeadCapture")}</option>
+            <option value="AMBASSADOR_INVITE">{t("kindAmbassadorInvite")}</option>
+          </Select>
+          <p className="text-xs text-muted-foreground">{t("kindHint")}</p>
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="t-header">{t("headerImageUrl")}</Label>

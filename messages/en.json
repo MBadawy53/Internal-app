@@ -669,6 +669,27 @@
       "submit": "Become an ambassador",
       "submitting": "Creating your account…",
       "thanks": "Welcome aboard — your account is ready."
+    },
+    "ambassadorApplication": {
+      "intro": "Apply to become a Contact Financial ambassador. Our team will review and contact you.",
+      "name": "Full name",
+      "phone": "Phone",
+      "nationalIdImage": "National ID photo",
+      "nationalIdImageHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+      "submit": "Submit application",
+      "submitting": "Submitting…",
+      "thanks": "Thanks — your application is in. We'll be in touch shortly."
+    },
+    "ambassadorInvite": {
+      "title": "Set up your ambassador account",
+      "subtitle": "Confirm your phone and choose a password to finish.",
+      "intro": "You were approved as a Contact Financial ambassador. Set a password to get started.",
+      "phone": "Phone",
+      "phoneHint": "Enter the same phone number you used in your application.",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "submit": "Activate my account",
+      "submitting": "Activating…"
     }
   },
   "qrTemplates": {
@@ -686,6 +707,10 @@
     },
     "form": {
       "name": "Template name",
+      "kind": "Template type",
+      "kindLeadCapture": "Lead capture",
+      "kindAmbassadorInvite": "Ambassador application",
+      "kindHint": "Choose what the public landing page collects: a lead enquiry or an ambassador application.",
       "headerImageUrl": "Header image URL",
       "titleEn": "Title (English)",
       "titleAr": "Title (Arabic)",
@@ -757,7 +782,28 @@
     "leads": "Leads brought in",
     "invitedBy": "Invited by",
     "viewLeads": "View their leads →",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "tabs": {
+      "active": "Active ambassadors",
+      "pending": "Pending applications"
+    },
+    "applications": {
+      "empty": "No pending applications.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmReject": "Confirm rejection",
+      "cancel": "Cancel",
+      "approved": "Approved. Share this link with the candidate:",
+      "rejectedConfirmation": "Application rejected.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "e.g. Documents unclear, please resubmit",
+      "copy": "Copy link",
+      "copied": "Copied!",
+      "whatsapp": "Send on WhatsApp",
+      "whatsappMessage": "You've been approved as a Contact Financial ambassador. Set your password here:",
+      "expiresHint": "Link expires in 7 days.",
+      "submitting": "Working…"
+    }
   },
   "errors": {
     "notFound": "Page not found",

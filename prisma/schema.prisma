@@ -538,6 +538,7 @@ model QrCampaign {
   product  Product? @relation(fields: [productId], references: [id])
   scans    QrScan[]
   leads    Lead[]
+  applications AmbassadorApplication[]
 
   @@index([employeeId])
   @@map("qr_campaigns")
@@ -548,8 +549,9 @@ model QrCampaign {
 // fields after that (no live link), so editing a template later doesn't
 // silently mutate live campaigns.
 model QrLandingTemplate {
-  id             String   @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
+  kind           QrCampaignKind @default(LEAD_CAPTURE)
   headerImageUrl String?
   titleEn        String?
   titleAr        String?
@@ -557,9 +559,9 @@ model QrLandingTemplate {
   subtitleAr     String?
   bodyMdEn       String?
   bodyMdAr       String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@map("qr_landing_templates")
 }
@@ -757,4 +759,45 @@ model Announcement {
   @@index([startsAt])
   @@index([endsAt])
   @@map("announcements")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ambassador applications — incoming applications from public landing pages
+// served by AMBASSADOR_INVITE campaigns. The employee who owns the campaign
+// reviews each one, then approves (generating an invite link the candidate
+// follows to set a password) or rejects with a reason.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AmbassadorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AmbassadorApplication {
+  id                  String                      @id @default(cuid())
+  campaignId          String
+  employeeId          String
+  name                String
+  phone               String
+  nationalIdImageUrl  String?
+  status              AmbassadorApplicationStatus @default(PENDING)
+  rejectedReason      String?
+  approvedAt          DateTime?
+  approvedById        String?
+  rejectedAt          DateTime?
+  // SHA-256 of the invite token; raw token is shown once to the employee.
+  inviteTokenHash     String?
+  inviteTokenExpiresAt DateTime?
+  acceptedAt          DateTime?
+  createdUserId       String?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  campaign QrCampaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([employeeId])
+  @@index([status])
+  @@map("ambassador_applications")
 }

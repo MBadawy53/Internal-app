@@ -11,7 +11,7 @@ import { renderSafeMarkdown } from "@/lib/markdown";
 import { Logo } from "@/components/shared/Logo";
 import { LocaleToggle } from "@/components/portal/LocaleToggle";
 import { PublicLeadForm } from "@/components/portal/PublicLeadForm";
-import { AmbassadorSignupForm } from "@/components/portal/AmbassadorSignupForm";
+import { AmbassadorApplicationForm } from "@/components/portal/AmbassadorApplicationForm";
 
 interface Params {
   params: Promise<{ code: string }>;
@@ -175,7 +175,7 @@ export default async function PublicReferralPage({ params }: Params) {
             {!bodyHtml ? <p className="text-sm text-muted-foreground">{t("intro")}</p> : null}
 
             {campaign?.kind === QrCampaignKind.AMBASSADOR_INVITE ? (
-              <AmbassadorSignupForm code={code} />
+              <AmbassadorApplicationForm code={code} />
             ) : (
               <PublicLeadForm code={code} />
             )}
