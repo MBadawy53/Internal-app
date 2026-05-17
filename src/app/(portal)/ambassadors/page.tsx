@@ -126,7 +126,11 @@ export default async function AmbassadorsPage({
                   <p>
                     <Link
                       className="text-brand-700 hover:underline"
-                      href={`/leads?ownerId=${a.id}`}
+                      href={
+                        actor.role === Role.ADMIN && a.invitedBy?.id
+                          ? `/ambassadors/leads?employeeId=${a.invitedBy.id}`
+                          : "/ambassadors/leads"
+                      }
                     >
                       {t("viewLeads")}
                     </Link>

@@ -787,6 +787,20 @@
       "active": "Active ambassadors",
       "pending": "Pending applications"
     },
+    "leads": {
+      "title": "Ambassador leads",
+      "subtitle": "All leads brought in by your {count} ambassador(s).",
+      "empty": "No leads yet from your ambassadors.",
+      "open": "Open →",
+      "columns": {
+        "customer": "Customer",
+        "phone": "Phone",
+        "ambassador": "Ambassador",
+        "businessLine": "Business line",
+        "status": "Status",
+        "createdAt": "Created"
+      }
+    },
     "applications": {
       "empty": "No pending applications.",
       "approve": "Approve",
