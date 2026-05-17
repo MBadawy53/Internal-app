@@ -704,6 +704,15 @@
     "inactive": "Inactive",
     "browseTemplates": "Browse templates",
     "useTemplate": "Use this template",
+    "range": {
+      "label": "Range",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "all": "All time",
+      "from": "From",
+      "to": "To"
+    },
     "gallery": {
       "title": "Campaign templates",
       "subtitle": "Pick a template to create your own campaign with a unique share link and QR code.",

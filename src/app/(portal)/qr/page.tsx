@@ -12,18 +12,76 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCampaignSection } from "@/components/portal/NewCampaignSection";
+import { QrRangeFilter } from "@/components/portal/QrRangeFilter";
 
-export default async function QrPage() {
+type RangePreset = "7d" | "30d" | "90d" | "all";
+
+function resolveRange(sp: { range?: string; from?: string; to?: string }): {
+  from: Date | null;
+  to: Date | null;
+} {
+  const parseDate = (s: string | undefined) => {
+    if (!s) return null;
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+  const custom = parseDate(sp.from);
+  const customTo = parseDate(sp.to);
+  if (custom || customTo) {
+    return {
+      from: custom,
+      to: customTo ? new Date(customTo.getTime() + 24 * 60 * 60 * 1000) : null,
+    };
+  }
+  const preset = (sp.range as RangePreset | undefined) ?? "30d";
+  if (preset === "all") return { from: null, to: null };
+  const days = preset === "7d" ? 7 : preset === "90d" ? 90 : 30;
+  return { from: new Date(Date.now() - days * 24 * 60 * 60 * 1000), to: null };
+}
+
+export default async function QrPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+}) {
   const actor = await requireActor();
   requireFeatureAccess(actor, "qr");
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("qr");
+  const sp = await searchParams;
 
   const campaigns = await qrCampaignRepository.listForActor({
     id: actor.id,
     role: actor.role,
     businessLineId: actor.businessLineId,
   });
+
+  const { from, to } = resolveRange(sp);
+  const createdAt =
+    from || to ? { ...(from ? { gte: from } : {}), ...(to ? { lt: to } : {}) } : undefined;
+
+  // Per-campaign scan + lead counts in the chosen range.
+  const campaignIds = campaigns.map((c) => c.id);
+  const [scanGroups, leadGroups] = await Promise.all([
+    campaignIds.length === 0
+      ? []
+      : prisma.qrScan.groupBy({
+          by: ["campaignId"],
+          where: { campaignId: { in: campaignIds }, ...(createdAt ? { createdAt } : {}) },
+          _count: { _all: true },
+        }),
+    campaignIds.length === 0
+      ? []
+      : prisma.lead.groupBy({
+          by: ["campaignId"],
+          where: { campaignId: { in: campaignIds }, ...(createdAt ? { createdAt } : {}) },
+          _count: { _all: true },
+        }),
+  ]);
+  const scanByCampaign = new Map<string, number>();
+  for (const g of scanGroups) if (g.campaignId) scanByCampaign.set(g.campaignId, g._count._all);
+  const leadByCampaign = new Map<string, number>();
+  for (const g of leadGroups) if (g.campaignId) leadByCampaign.set(g.campaignId, g._count._all);
 
   // Create + edit are admin-only. Other roles can only view campaigns scoped
   // to them by `qrCampaignRepository.listForActor`.
@@ -81,7 +139,8 @@ export default async function QrPage() {
         <p className="mt-2 text-sm text-muted-foreground">{t("subtitle")}</p>
       </header>
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <QrRangeFilter />
         <Link href="/qr/templates">
           <Button type="button" variant="outline">
             {t("browseTemplates")}
@@ -107,8 +166,9 @@ export default async function QrPage() {
           {campaigns.map((c) => {
             const shareUrl = `${publicBase}/r/${c.slug}`;
             const pngUrl = `/api/qr/${c.slug}.png`;
-            const conv =
-              c.scanCount > 0 ? `${Math.round((c.leadCount / c.scanCount) * 100)}%` : "—";
+            const scans = scanByCampaign.get(c.id) ?? 0;
+            const leads = leadByCampaign.get(c.id) ?? 0;
+            const conv = scans > 0 ? `${Math.round((leads / scans) * 100)}%` : "—";
             return (
               <Card key={c.id} className={c.isActive ? "" : "opacity-60"}>
                 <CardHeader>
@@ -151,9 +211,9 @@ export default async function QrPage() {
                       </p>
                       <p>
                         <span className="text-muted-foreground">{t("scans")}: </span>
-                        <strong>{c.scanCount}</strong>{" "}
+                        <strong>{scans}</strong>{" "}
                         <span className="text-muted-foreground">· {t("leads")}: </span>
-                        <strong>{c.leadCount}</strong>{" "}
+                        <strong>{leads}</strong>{" "}
                         <span className="text-muted-foreground">· {t("conversion")}: </span>
                         <strong>{conv}</strong>
                       </p>
