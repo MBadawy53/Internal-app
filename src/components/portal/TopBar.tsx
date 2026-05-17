@@ -16,7 +16,7 @@ export function TopBar({ name, role, referralCode, unreadNotificationsCount = 0 
   const hasUnread = unreadNotificationsCount > 0;
   const badge = unreadNotificationsCount > 99 ? "99+" : String(unreadNotificationsCount);
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 pe-6 ps-16 backdrop-blur md:ps-6">
       <div className="flex items-center gap-3">
         <BackButton />
         <code className="hidden rounded-full border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground sm:inline">
