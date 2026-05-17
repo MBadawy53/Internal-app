@@ -8,7 +8,9 @@ import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemp
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { NewCampaignSection } from "@/components/portal/NewCampaignSection";
 
 export default async function QrPage() {
@@ -78,6 +80,14 @@ export default async function QrPage() {
         <div className="brand-underline mt-2 w-16" />
         <p className="mt-2 text-sm text-muted-foreground">{t("subtitle")}</p>
       </header>
+
+      <div className="flex justify-end">
+        <Link href="/qr/templates">
+          <Button type="button" variant="outline">
+            {t("browseTemplates")}
+          </Button>
+        </Link>
+      </div>
 
       {isAdmin ? (
         <NewCampaignSection

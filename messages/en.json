@@ -702,6 +702,13 @@
     "conversion": "Conversion",
     "downloadPng": "Download QR PNG",
     "inactive": "Inactive",
+    "browseTemplates": "Browse templates",
+    "useTemplate": "Use this template",
+    "gallery": {
+      "title": "Campaign templates",
+      "subtitle": "Pick a template to create your own campaign with a unique share link and QR code.",
+      "empty": "No templates available yet."
+    },
     "form": {
       "name": "Campaign name",
       "employee": "Owner (employee)",

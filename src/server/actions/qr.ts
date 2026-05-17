@@ -121,6 +121,53 @@ export async function createCampaignAction(
   return { ok: false, message: "Could not allocate a unique slug; please retry." };
 }
 
+// ── Use template ───────────────────────────────────────────────────────────
+
+export type UseTemplateState = { ok: true; slug: string } | { ok: false; message: string };
+
+/**
+ * Mint a new LEAD_CAPTURE campaign for the current user from an admin-managed
+ * landing template. Any role that has `create:qr` (own scope) can run this —
+ * the campaign is always owned by the actor, so it doesn't grant create rights
+ * for other users. Each call produces a fresh campaign with a unique slug so
+ * each user gets their own share URL / QR.
+ */
+export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemplateState> {
+  const actor = await requireActor();
+  const templateId = fd.get("templateId")?.toString();
+  if (!templateId) return { ok: false, message: "Missing template id" };
+
+  const tpl = await prisma.qrLandingTemplate.findUnique({ where: { id: templateId } });
+  if (!tpl || !tpl.isActive) return { ok: false, message: "Template not available" };
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const slug = makeCampaignSlug();
+    try {
+      const created = await qrCampaignRepository.create({
+        name: tpl.name,
+        slug,
+        kind: QrCampaignKind.LEAD_CAPTURE,
+        employee: { connect: { id: actor.id } },
+        headerImageUrl: tpl.headerImageUrl,
+        titleEn: tpl.titleEn,
+        titleAr: tpl.titleAr,
+        subtitleEn: tpl.subtitleEn,
+        subtitleAr: tpl.subtitleAr,
+        bodyMdEn: tpl.bodyMdEn,
+        bodyMdAr: tpl.bodyMdAr,
+      });
+      revalidatePath("/qr");
+      return { ok: true, slug: created.slug };
+    } catch (err) {
+      const msg = (err as Error).message ?? "";
+      if (msg.includes("Unique constraint")) continue;
+      logger.error({ err, templateId }, "qr.use_template_failed");
+      return { ok: false, message: "Could not create campaign from template" };
+    }
+  }
+  return { ok: false, message: "Could not allocate a unique slug; please retry." };
+}
+
 // ── Update ─────────────────────────────────────────────────────────────────
 
 export type UpdateCampaignState = { ok: true } | { ok: false; message: string };
