@@ -354,6 +354,12 @@
       "product": "المنتج (اختياري)",
       "owner": "تعيين المسؤول",
       "preferredContactTime": "وقت التواصل المفضل",
+      "preferredContactTimeAny": "— أي وقت —",
+      "preferredContactTimeSlots": {
+        "morning": "10 ص – 2 م",
+        "afternoon": "2 م – 6 م",
+        "evening": "6 م – 10 م"
+      },
       "customerNote": "ملاحظة العميل",
       "consent": "وافق العميل على التواصل بشأن هذا الطلب."
     },

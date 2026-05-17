@@ -113,7 +113,12 @@ export function LeadForm({ businessLines, products, owners, showOwnerPicker, ini
         ) : null}
         <div className="space-y-1.5">
           <Label htmlFor="preferredContactTime">{t("preferredContactTime")}</Label>
-          <Input id="preferredContactTime" name="preferredContactTime" maxLength={120} />
+          <Select id="preferredContactTime" name="preferredContactTime" defaultValue="">
+            <option value="">{t("preferredContactTimeAny")}</option>
+            <option value="10:00–14:00">{t("preferredContactTimeSlots.morning")}</option>
+            <option value="14:00–18:00">{t("preferredContactTimeSlots.afternoon")}</option>
+            <option value="18:00–22:00">{t("preferredContactTimeSlots.evening")}</option>
+          </Select>
         </div>
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="customerNote">{t("customerNote")}</Label>

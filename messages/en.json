@@ -354,6 +354,12 @@
       "product": "Product (optional)",
       "owner": "Assign owner",
       "preferredContactTime": "Preferred contact time",
+      "preferredContactTimeAny": "— Any time —",
+      "preferredContactTimeSlots": {
+        "morning": "10 AM – 2 PM",
+        "afternoon": "2 PM – 6 PM",
+        "evening": "6 PM – 10 PM"
+      },
       "customerNote": "Customer note",
       "consent": "The customer has consented to be contacted about this enquiry."
     },

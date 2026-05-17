@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { submitPublicLeadAction, type PublicLeadState } from "@/server/actions/qr";
@@ -53,7 +54,12 @@ export function PublicLeadForm({ code }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="pl-time">{tForm("preferredContactTime")}</Label>
-          <Input id="pl-time" name="preferredContactTime" maxLength={120} />
+          <Select id="pl-time" name="preferredContactTime" defaultValue="">
+            <option value="">{tForm("preferredContactTimeAny")}</option>
+            <option value="10:00–14:00">{tForm("preferredContactTimeSlots.morning")}</option>
+            <option value="14:00–18:00">{tForm("preferredContactTimeSlots.afternoon")}</option>
+            <option value="18:00–22:00">{tForm("preferredContactTimeSlots.evening")}</option>
+          </Select>
         </div>
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="pl-note">{tForm("customerNote")}</Label>
