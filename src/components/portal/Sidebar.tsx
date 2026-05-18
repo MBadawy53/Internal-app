@@ -12,6 +12,7 @@ import {
   Menu,
   Package,
   Percent,
+  Plug,
   QrCode,
   Settings,
   Sparkles,
@@ -31,7 +32,8 @@ type FeatureKey =
   | "ambassadors"
   | "commission"
   | "notifications"
-  | "reports";
+  | "reports"
+  | "configuration";
 
 interface NavItem {
   href: string;
@@ -51,6 +53,12 @@ const NAV: NavItem[] = [
   { href: "/commission", labelKey: "commission", icon: Percent, feature: "commission" },
   { href: "/notifications", labelKey: "notifications", icon: Bell, feature: "notifications" },
   { href: "/reports", labelKey: "reports", icon: BarChart3, feature: "reports" },
+  {
+    href: "/configuration",
+    labelKey: "configuration",
+    icon: Plug,
+    roles: [Role.ADMIN],
+  },
   { href: "/admin", labelKey: "admin", icon: Settings, roles: [Role.ADMIN] },
 ];
 

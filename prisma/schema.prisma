@@ -146,6 +146,7 @@ enum FeatureKey {
   products
   categories
   commission
+  configuration
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

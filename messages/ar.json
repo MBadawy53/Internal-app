@@ -97,6 +97,7 @@
     "commission": "العمولات",
     "notifications": "الإشعارات",
     "reports": "التقارير",
+    "configuration": "الإعدادات",
     "admin": "الإدارة",
     "adminCategories": "الفئات",
     "adminProducts": "المنتجات",
@@ -473,6 +474,7 @@
         "commission": "العمولات",
         "notifications": "الإشعارات",
         "reports": "التقارير",
+        "configuration": "الإعدادات",
         "products": "الإدارة — المنتجات",
         "categories": "الإدارة — الفئات"
       },
@@ -802,6 +804,36 @@
       "bodyEn": "النص الأساسي (إنجليزي) — Markdown",
       "bodyAr": "النص الأساسي (عربي) — Markdown",
       "bodyHint": "Markdown: **عريض**، *مائل*، [رابط](https://…)، - قوائم، ## عنوان. أي HTML يُحذف."
+    }
+  },
+  "configuration": {
+    "title": "الإعدادات",
+    "subtitle": "مفاتيح الـAPI والربط بالقنوات الخارجية. كل البيانات الحساسة مخزنة مشفّرة.",
+    "whatsapp": {
+      "title": "واتساب",
+      "subtitle": "بيانات Meta WhatsApp Business Cloud API.",
+      "accessToken": "Access token",
+      "accessTokenHint": "التوكن طويل المدى الصادر من Meta لتطبيق الواتساب بتاعك.",
+      "phoneNumberId": "Phone number ID",
+      "businessAccountId": "Business account ID (اختياري)",
+      "isEnabled": "مفعّل",
+      "storedSecret": "•••••• محفوظ",
+      "storedSecretHint": "اتركه فاضي عشان يفضل التوكن المحفوظ، أو دخّل قيمة جديدة عشان تستبدله."
+    },
+    "email": {
+      "title": "الإيميل (SMTP)",
+      "subtitle": "سيرفر SMTP لإرسال الإيميلات.",
+      "smtpHost": "SMTP host",
+      "smtpPort": "Port",
+      "smtpUser": "اسم المستخدم",
+      "smtpPass": "كلمة المرور",
+      "smtpPassHint": "محفوظة مشفّرة. اتركها فاضية عشان تفضل القديمة.",
+      "smtpSecure": "استخدم TLS/SSL",
+      "fromAddress": "إيميل المرسِل",
+      "fromName": "اسم المرسِل",
+      "isEnabled": "مفعّل",
+      "storedSecret": "•••••• محفوظ",
+      "storedSecretHint": "اتركها فاضية عشان تفضل المحفوظة، أو دخّل قيمة جديدة عشان تستبدلها."
     }
   },
   "commission": {

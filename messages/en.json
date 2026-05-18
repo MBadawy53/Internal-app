@@ -97,6 +97,7 @@
     "commission": "Commission",
     "notifications": "Notifications",
     "reports": "Reports",
+    "configuration": "Configuration",
     "admin": "Administration",
     "adminCategories": "Categories",
     "adminProducts": "Products",
@@ -473,6 +474,7 @@
         "commission": "Commission",
         "notifications": "Notifications",
         "reports": "Reports",
+        "configuration": "Configuration",
         "products": "Admin — products",
         "categories": "Admin — categories"
       },
@@ -802,6 +804,36 @@
       "bodyEn": "Body (English) — Markdown",
       "bodyAr": "Body (Arabic) — Markdown",
       "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
+    }
+  },
+  "configuration": {
+    "title": "Configuration",
+    "subtitle": "API keys and integrations for outbound channels. Secrets are encrypted at rest.",
+    "whatsapp": {
+      "title": "WhatsApp",
+      "subtitle": "Meta Business Cloud API credentials.",
+      "accessToken": "Access token",
+      "accessTokenHint": "Long-lived token issued by Meta for your WhatsApp Business app.",
+      "phoneNumberId": "Phone number ID",
+      "businessAccountId": "Business account ID (optional)",
+      "isEnabled": "Enabled",
+      "storedSecret": "•••••• stored",
+      "storedSecretHint": "Leave blank to keep the saved token; enter a new value to replace it."
+    },
+    "email": {
+      "title": "Email (SMTP)",
+      "subtitle": "Outbound SMTP relay used for transactional emails.",
+      "smtpHost": "SMTP host",
+      "smtpPort": "Port",
+      "smtpUser": "Username",
+      "smtpPass": "Password",
+      "smtpPassHint": "Stored encrypted. Leave blank to keep the current password.",
+      "smtpSecure": "Use TLS/SSL",
+      "fromAddress": "From address",
+      "fromName": "From name",
+      "isEnabled": "Enabled",
+      "storedSecret": "•••••• stored",
+      "storedSecretHint": "Leave blank to keep the saved password; enter a new value to replace it."
     }
   },
   "commission": {
