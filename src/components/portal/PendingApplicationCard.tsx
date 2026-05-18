@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,7 +92,12 @@ export function PendingApplicationCard({ id, name, phone, nationalIdImageUrl, cr
             </a>
           ) : null}
           <div className="flex-1 space-y-1 text-sm">
-            <p className="font-medium">{name}</p>
+            <Link
+              href={`/ambassadors/applications/${id}`}
+              className="font-medium text-brand-700 hover:underline"
+            >
+              {name}
+            </Link>
             <p className="text-xs text-muted-foreground">{phone}</p>
             <p className="text-xs text-muted-foreground">{new Date(createdAt).toLocaleString()}</p>
           </div>

@@ -785,7 +785,7 @@
     "inactive": "Inactive",
     "tabs": {
       "active": "Active ambassadors",
-      "pending": "Pending applications"
+      "pending": "Pending Ambassadors"
     },
     "leads": {
       "title": "Ambassador leads",
@@ -801,8 +801,24 @@
         "createdAt": "Created"
       }
     },
+    "profile": {
+      "backToList": "Back to pending ambassadors",
+      "name": "Name",
+      "phone": "Phone",
+      "appliedAt": "Applied",
+      "campaign": "Campaign",
+      "acceptedAt": "Accepted at",
+      "rejectedReason": "Reason for rejection",
+      "nationalId": "National ID photo",
+      "openFullSize": "Open full size →"
+    },
     "applications": {
-      "empty": "No pending applications.",
+      "empty": "No pending ambassadors.",
+      "statuses": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
       "approve": "Approve",
       "reject": "Reject",
       "confirmReject": "Confirm rejection",

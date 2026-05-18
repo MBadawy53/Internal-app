@@ -785,7 +785,7 @@
     "inactive": "غير نشط",
     "tabs": {
       "active": "السفراء النشطون",
-      "pending": "طلبات قيد المراجعة"
+      "pending": "السفراء قيد المراجعة"
     },
     "leads": {
       "title": "عملاء السفراء",
@@ -801,8 +801,24 @@
         "createdAt": "تاريخ الإنشاء"
       }
     },
+    "profile": {
+      "backToList": "العودة إلى السفراء قيد المراجعة",
+      "name": "الاسم",
+      "phone": "الهاتف",
+      "appliedAt": "تاريخ التقديم",
+      "campaign": "الحملة",
+      "acceptedAt": "تاريخ القبول",
+      "rejectedReason": "سبب الرفض",
+      "nationalId": "صورة الرقم القومي",
+      "openFullSize": "فتح الحجم الكامل ←"
+    },
     "applications": {
-      "empty": "لا توجد طلبات قيد المراجعة.",
+      "empty": "لا يوجد سفراء قيد المراجعة.",
+      "statuses": {
+        "PENDING": "قيد المراجعة",
+        "APPROVED": "تمت الموافقة",
+        "REJECTED": "مرفوض"
+      },
       "approve": "موافقة",
       "reject": "رفض",
       "confirmReject": "تأكيد الرفض",
