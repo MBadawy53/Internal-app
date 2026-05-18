@@ -10,6 +10,7 @@ import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProductsBulkPanel } from "@/components/portal/ProductsBulkPanel";
 
 export default async function AdminProductsPage() {
   const session = await auth();
@@ -38,6 +39,8 @@ export default async function AdminProductsPage() {
           <Link href="/admin/products/new">{t("new")}</Link>
         </Button>
       </header>
+
+      {isAdmin ? <ProductsBulkPanel /> : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {products.map((p) => (

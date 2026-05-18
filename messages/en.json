@@ -607,6 +607,15 @@
       "new": "New product",
       "edit": "Edit product",
       "deleteConfirm": "Are you sure you want to deactivate this product?",
+      "bulk": {
+        "title": "Bulk edit via CSV",
+        "subtitle": "Download the current products, edit in Excel, upload to apply. Rows with a blank id are created as new products.",
+        "download": "Download CSV",
+        "upload": "Upload",
+        "summary": "{created} created · {updated} updated.",
+        "errorsToggle": "Show row errors",
+        "rowPrefix": "Row {row}"
+      },
       "sections": {
         "basics": "Basics",
         "descriptions": "Descriptions",
