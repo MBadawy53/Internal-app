@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -10,9 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginAction, type LoginActionState } from "@/server/actions/auth";
 
+type Persona = "employee" | "ambassador";
+
 export function LoginForm({ from }: { from?: string }) {
   const t = useTranslations("auth.login");
   const router = useRouter();
+  const [persona, setPersona] = useState<Persona>("employee");
   const [state, formAction, pending] = useActionState<LoginActionState | null, FormData>(
     loginAction,
     null,
@@ -28,9 +31,44 @@ export function LoginForm({ from }: { from?: string }) {
   const errorMessage =
     state && !state.ok && state.error !== "mustOnboard" ? t(`errors.${state.error}`) : null;
 
+  const placeholder =
+    persona === "ambassador" ? t("identifierPlaceholderAmbassador") : t("identifierPlaceholder");
+  const hint = persona === "ambassador" ? t("identifierHintAmbassador") : t("identifierHint");
+
   return (
     <form action={formAction} className="space-y-5">
       {from ? <input type="hidden" name="from" value={from} /> : null}
+
+      <div role="tablist" className="inline-flex rounded-md border bg-secondary/40 p-1 text-sm">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={persona === "employee"}
+          onClick={() => setPersona("employee")}
+          className={
+            "rounded px-3 py-1.5 text-xs " +
+            (persona === "employee"
+              ? "bg-background font-medium shadow-sm"
+              : "text-muted-foreground")
+          }
+        >
+          {t("personaEmployee")}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={persona === "ambassador"}
+          onClick={() => setPersona("ambassador")}
+          className={
+            "rounded px-3 py-1.5 text-xs " +
+            (persona === "ambassador"
+              ? "bg-background font-medium shadow-sm"
+              : "text-muted-foreground")
+          }
+        >
+          {t("personaAmbassador")}
+        </button>
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="identifier">{t("identifier")}</Label>
@@ -39,12 +77,12 @@ export function LoginForm({ from }: { from?: string }) {
           name="identifier"
           type="text"
           autoComplete="username"
-          placeholder={t("identifierPlaceholder")}
+          placeholder={placeholder}
           required
           autoCapitalize="characters"
           spellCheck={false}
         />
-        <p className="text-xs text-muted-foreground">{t("identifierHint")}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       </div>
 
       <div className="space-y-2">
