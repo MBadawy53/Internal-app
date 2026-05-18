@@ -94,6 +94,7 @@
     "leads": "Leads",
     "qr": "My QR Codes",
     "ambassadors": "Ambassadors",
+    "commission": "Commission",
     "notifications": "Notifications",
     "reports": "Reports",
     "admin": "Administration",
@@ -397,6 +398,29 @@
   },
   "admin": {
     "title": "Administration",
+    "commission": {
+      "title": "Commission tables",
+      "subtitle": "Set the per-product commission rates that Employees and Ambassadors see in their portal.",
+      "edit": "Edit",
+      "personaEmployee": "Employee",
+      "personaAmbassador": "Ambassador",
+      "emptyProducts": "No products yet.",
+      "editTitle": "Edit commission",
+      "editor": {
+        "isActive": "Visible to this persona",
+        "from": "From (EGP)",
+        "to": "To (EGP)",
+        "openEnded": "∞ (open)",
+        "valueType": "Type",
+        "valueAmount": "Value",
+        "label": "Label (optional)",
+        "percent": "Percent (%)",
+        "flat": "Flat (EGP)",
+        "remove": "Remove",
+        "addRow": "Add tier",
+        "notes": "Notes (optional)"
+      }
+    },
     "announcements": {
       "title": "Announcements",
       "subtitle": "Broadcast banners that appear at the top of the dashboard.",
@@ -446,6 +470,7 @@
         "leads": "Leads",
         "qr": "QR campaigns",
         "ambassadors": "Ambassadors",
+        "commission": "Commission",
         "notifications": "Notifications",
         "reports": "Reports",
         "products": "Admin — products",
@@ -777,6 +802,19 @@
       "bodyEn": "Body (English) — Markdown",
       "bodyAr": "Body (Arabic) — Markdown",
       "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
+    }
+  },
+  "commission": {
+    "title": "Commission",
+    "subtitle": {
+      "EMPLOYEE": "Your per-product commission rates.",
+      "AMBASSADOR": "Your per-product commission rates as an ambassador."
+    },
+    "empty": "No commission rates published yet.",
+    "noTiers": "No tiers configured.",
+    "columns": {
+      "bracket": "Loan amount",
+      "value": "Commission"
     }
   },
   "ambassadors": {

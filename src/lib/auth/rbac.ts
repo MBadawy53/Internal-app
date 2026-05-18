@@ -282,6 +282,7 @@ export const FEATURE_KEYS = [
   "reports",
   "products",
   "categories",
+  "commission",
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 

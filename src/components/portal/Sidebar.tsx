@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Percent,
   QrCode,
   Settings,
   Sparkles,
@@ -28,6 +29,7 @@ type FeatureKey =
   | "leads"
   | "qr"
   | "ambassadors"
+  | "commission"
   | "notifications"
   | "reports";
 
@@ -46,6 +48,7 @@ const NAV: NavItem[] = [
   { href: "/leads", labelKey: "leads", icon: Users, feature: "leads" },
   { href: "/qr", labelKey: "qr", icon: QrCode, feature: "qr" },
   { href: "/ambassadors", labelKey: "ambassadors", icon: Sparkles, feature: "ambassadors" },
+  { href: "/commission", labelKey: "commission", icon: Percent, feature: "commission" },
   { href: "/notifications", labelKey: "notifications", icon: Bell, feature: "notifications" },
   { href: "/reports", labelKey: "reports", icon: BarChart3, feature: "reports" },
   { href: "/admin", labelKey: "admin", icon: Settings, roles: [Role.ADMIN] },

@@ -145,6 +145,7 @@ enum FeatureKey {
   reports
   products
   categories
+  commission
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -323,6 +324,7 @@ model Product {
   updatedBy       User?                   @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
   attributeValues ProductAttributeValue[]
   leads           Lead[]
+  commissions     ProductCommission[]
   quotes          Quote[]
   campaigns       QrCampaign[]
 
@@ -800,4 +802,51 @@ model AmbassadorApplication {
   @@index([employeeId])
   @@index([status])
   @@map("ambassador_applications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Commission tables — admin-managed, per product per persona, with optional
+// loan-amount tiers. Each tier carries either a percent (bps) or a flat
+// piastres amount (admin chooses per row).
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CommissionPersona {
+  EMPLOYEE
+  AMBASSADOR
+}
+
+model ProductCommission {
+  id        String            @id @default(cuid())
+  productId String
+  persona   CommissionPersona
+  isActive  Boolean           @default(true)
+  notes     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  product Product          @relation(fields: [productId], references: [id])
+  tiers   CommissionTier[]
+
+  @@unique([productId, persona])
+  @@index([productId])
+  @@map("product_commissions")
+}
+
+model CommissionTier {
+  id                 String   @id @default(cuid())
+  commissionId       String
+  sortOrder          Int      @default(0)
+  fromAmountPiastres BigInt   @default(0)
+  toAmountPiastres   BigInt?  // null = no upper bound
+  // Exactly one of these two carries the value:
+  ratePercentBps     Int? // 0–10_000 = 0.00–100.00%
+  flatPiastres       BigInt?
+  label              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  commission ProductCommission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@index([commissionId])
+  @@map("commission_tiers")
 }
