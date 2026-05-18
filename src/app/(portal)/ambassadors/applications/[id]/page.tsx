@@ -114,13 +114,15 @@ export default async function AmbassadorApplicationProfile({ params }: Params) {
         </Card>
       </div>
 
-      {app.status === AmbassadorApplicationStatus.PENDING ? (
+      {app.status === AmbassadorApplicationStatus.PENDING ||
+      (app.status === AmbassadorApplicationStatus.APPROVED && !app.acceptedAt) ? (
         <PendingApplicationCard
           id={app.id}
           name={app.name}
           phone={app.phone}
           nationalIdImageUrl={null}
           createdAt={app.createdAt}
+          status={app.status}
         />
       ) : null}
     </div>

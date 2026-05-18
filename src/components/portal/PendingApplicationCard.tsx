@@ -3,12 +3,14 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { AmbassadorApplicationStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   approveAmbassadorApplicationAction,
+  regenerateAmbassadorInviteAction,
   rejectAmbassadorApplicationAction,
 } from "@/server/actions/ambassadorApplications";
 
@@ -18,9 +20,17 @@ interface Props {
   phone: string;
   nationalIdImageUrl: string | null;
   createdAt: Date;
+  status?: AmbassadorApplicationStatus;
 }
 
-export function PendingApplicationCard({ id, name, phone, nationalIdImageUrl, createdAt }: Props) {
+export function PendingApplicationCard({
+  id,
+  name,
+  phone,
+  nationalIdImageUrl,
+  createdAt,
+  status = AmbassadorApplicationStatus.PENDING,
+}: Props) {
   const t = useTranslations("ambassadors.applications");
   const [pending, start] = useTransition();
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
@@ -28,7 +38,11 @@ export function PendingApplicationCard({ id, name, phone, nationalIdImageUrl, cr
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [reason, setReason] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [done, setDone] = useState<"approved" | "rejected" | null>(null);
+  // Pre-seed the "approved" view when the row is already approved-not-accepted
+  // so the employee can come back later and re-issue the link.
+  const [done, setDone] = useState<"approved" | "rejected" | null>(
+    status === AmbassadorApplicationStatus.APPROVED ? "approved" : null,
+  );
 
   function approve() {
     setErrorMsg(null);
@@ -39,6 +53,20 @@ export function PendingApplicationCard({ id, name, phone, nationalIdImageUrl, cr
       if (res.ok) {
         setInviteUrl(res.inviteUrl ?? null);
         setDone("approved");
+      } else {
+        setErrorMsg(res.message);
+      }
+    });
+  }
+
+  function regenerate() {
+    setErrorMsg(null);
+    start(async () => {
+      const fd = new FormData();
+      fd.set("id", id);
+      const res = await regenerateAmbassadorInviteAction(null, fd);
+      if (res.ok) {
+        setInviteUrl(res.inviteUrl ?? null);
       } else {
         setErrorMsg(res.message);
       }
@@ -103,24 +131,39 @@ export function PendingApplicationCard({ id, name, phone, nationalIdImageUrl, cr
           </div>
         </div>
 
-        {done === "approved" && inviteUrl ? (
+        {done === "approved" ? (
           <div className="space-y-2 rounded-md border bg-emerald-50 p-3 text-xs">
             <p className="font-medium text-emerald-700">{t("approved")}</p>
-            <p className="break-all">{inviteUrl}</p>
+            {inviteUrl ? <p className="break-all">{inviteUrl}</p> : null}
             <div className="flex flex-wrap gap-2">
-              <Button type="button" size="sm" variant="outline" onClick={copyInviteUrl}>
-                {copied ? t("copied") : t("copy")}
+              {inviteUrl ? (
+                <>
+                  <Button type="button" size="sm" variant="outline" onClick={copyInviteUrl}>
+                    {copied ? t("copied") : t("copy")}
+                  </Button>
+                  {whatsappHref ? (
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center rounded-md border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+                    >
+                      {t("whatsapp")}
+                    </a>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-muted-foreground">{t("inviteHidden")}</p>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={pending}
+                onClick={regenerate}
+              >
+                {pending ? t("submitting") : inviteUrl ? t("regenerate") : t("getLink")}
               </Button>
-              {whatsappHref ? (
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center rounded-md border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
-                >
-                  {t("whatsapp")}
-                </a>
-              ) : null}
             </div>
             <p className="text-muted-foreground">{t("expiresHint")}</p>
           </div>

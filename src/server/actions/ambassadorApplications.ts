@@ -151,6 +151,43 @@ export async function approveAmbassadorApplicationAction(
   return { ok: true, inviteUrl: `${publicBase()}/invite/${raw}` };
 }
 
+/**
+ * Mint a fresh invite token for an already-approved-but-not-accepted
+ * application. Used when the employee lost the original link before sharing
+ * (we only ever stored a hash, so we can't replay it). Same actor checks.
+ */
+export async function regenerateAmbassadorInviteAction(
+  _prev: ReviewState | null,
+  fd: FormData,
+): Promise<ReviewState> {
+  const actor = await requireActor();
+  const id = fd.get("id")?.toString();
+  if (!id) return { ok: false, message: "Missing id" };
+  const app = await prisma.ambassadorApplication.findUnique({ where: { id } });
+  if (!app) return { ok: false, message: "Application not found" };
+  if (actor.role !== Role.ADMIN && app.employeeId !== actor.id) {
+    return { ok: false, message: "Forbidden" };
+  }
+  if (app.status !== AmbassadorApplicationStatus.APPROVED || app.acceptedAt) {
+    return { ok: false, message: "Invite no longer applicable" };
+  }
+  const { raw, hash } = newInviteToken();
+  try {
+    await prisma.ambassadorApplication.update({
+      where: { id },
+      data: {
+        inviteTokenHash: hash,
+        inviteTokenExpiresAt: new Date(Date.now() + INVITE_TTL_MS),
+      },
+    });
+  } catch (err) {
+    logger.error({ err, id }, "ambassadorApp.regenerate_failed");
+    return { ok: false, message: "Could not regenerate, please retry." };
+  }
+  revalidatePath("/ambassadors");
+  return { ok: true, inviteUrl: `${publicBase()}/invite/${raw}` };
+}
+
 export async function rejectAmbassadorApplicationAction(
   _prev: ReviewState | null,
   fd: FormData,

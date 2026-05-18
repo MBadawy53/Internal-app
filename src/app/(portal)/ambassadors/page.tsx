@@ -59,9 +59,15 @@ export default async function AmbassadorsPage({
 
   // Pending applications visibility: admin sees all; everyone else sees only
   // applications submitted to a campaign they own.
+  // "Pending" tab shows PENDING applications + APPROVED-not-yet-accepted ones
+  // so the employee can still reach the invite link until the candidate
+  // activates their account.
   const appWhere: Prisma.AmbassadorApplicationWhereInput = {
-    status: AmbassadorApplicationStatus.PENDING,
     ...(actor.role === Role.ADMIN ? {} : { employeeId: actor.id }),
+    OR: [
+      { status: AmbassadorApplicationStatus.PENDING },
+      { status: AmbassadorApplicationStatus.APPROVED, acceptedAt: null },
+    ],
   };
   const applications =
     tab === "pending"
@@ -154,6 +160,7 @@ export default async function AmbassadorsPage({
               phone={a.phone}
               nationalIdImageUrl={a.nationalIdImageUrl}
               createdAt={a.createdAt}
+              status={a.status}
             />
           ))}
         </div>

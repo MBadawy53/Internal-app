@@ -832,6 +832,9 @@
       "whatsapp": "Send on WhatsApp",
       "whatsappMessage": "You've been approved as a Contact Financial ambassador. Set your password here:",
       "expiresHint": "Link expires in 7 days.",
+      "inviteHidden": "Invite link is hidden after page refresh. Get a fresh one →",
+      "getLink": "Get invite link",
+      "regenerate": "Regenerate link",
       "submitting": "Working…"
     }
   },
