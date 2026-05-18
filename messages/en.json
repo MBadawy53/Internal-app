@@ -849,8 +849,11 @@
     "title": "Commission",
     "subtitle": {
       "EMPLOYEE": "Your per-product commission rates.",
-      "AMBASSADOR": "Your per-product commission rates as an ambassador."
+      "AMBASSADOR": "Your per-product commission rates as an ambassador.",
+      "ADMIN": "All per-product commission rates in the system."
     },
+    "sectionEmployee": "Employee commissions",
+    "sectionAmbassador": "Ambassador commissions",
     "empty": "No commission rates published yet.",
     "noTiers": "No tiers configured.",
     "columns": {
