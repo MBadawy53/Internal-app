@@ -327,6 +327,16 @@ export async function submitPublicLeadAction(
     referrerId = employee.id;
   }
 
+  // Resolve the referrer for the auto-NOTE so leads coming in through an
+  // ambassador's link surface that name on the timeline.
+  const referrer = await prisma.user.findUnique({
+    where: { id: referrerId },
+    select: { role: true, nameEn: true, nameAr: true, groupId: true },
+  });
+  const referrerName =
+    referrer?.nameEn?.trim() || referrer?.nameAr?.trim() || referrer?.groupId || "";
+  const isAmbassadorReferrer = referrer?.role === Role.AMBASSADOR;
+
   try {
     const lead = await leadRepository.create({
       customerName: d.customerName,
@@ -354,9 +364,11 @@ export async function submitPublicLeadAction(
         data: {
           leadId: lead.id,
           type: LeadActivityType.NOTE,
-          content: campaignId
-            ? `Submitted via QR campaign (${d.code})`
-            : `Submitted via referral link (${d.code})`,
+          content:
+            (campaignId
+              ? `Submitted via QR campaign (${d.code})`
+              : `Submitted via referral link (${d.code})`) +
+            (isAmbassadorReferrer && referrerName ? ` — Ambassador: ${referrerName}` : ""),
           actorId: referrerId!,
         },
       })
