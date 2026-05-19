@@ -202,12 +202,38 @@ model User {
   productCreated Product[]                @relation("ProductCreatedBy")
   productUpdated Product[]                @relation("ProductUpdatedBy")
   integrationUpd IntegrationConfig[]      @relation("IntegrationUpdatedBy")
+  passwordResets PasswordResetToken[]
+  passwordResetsIssued PasswordResetToken[] @relation("PasswordResetIssuedBy")
 
   @@index([businessLineId])
   @@index([managerId])
   @@index([invitedById])
   @@index([role])
   @@map("users")
+}
+
+// Single-use, SHA-256-hashed password reset tokens. The raw token is shown
+// once (in the channel delivery or admin response) — only the hash is stored
+// so a DB leak can't be replayed. Self-serve flow looks up by hash; tokens
+// are short-lived and invalidated on use.
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  userId      String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  // null for self-serve; set to the admin's userId for admin-issued resets.
+  issuedById  String?
+  // for delivery audit + rate-limit forensics.
+  requestIp   String?
+  createdAt   DateTime  @default(now())
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuedBy User? @relation("PasswordResetIssuedBy", fields: [issuedById], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 model BusinessLine {

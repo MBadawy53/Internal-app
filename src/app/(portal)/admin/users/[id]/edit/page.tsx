@@ -8,6 +8,7 @@ import { userAdminRepository } from "@/server/repositories/userAdmin.repository"
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { EditUserForm } from "@/components/portal/EditUserForm";
+import { AdminResetPasswordPanel } from "@/components/portal/AdminResetPasswordPanel";
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -46,6 +47,8 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
           name: localized(locale, b.nameEn, b.nameAr),
         }))}
       />
+
+      <AdminResetPasswordPanel userId={user.id} />
     </div>
   );
 }

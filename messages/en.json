@@ -59,6 +59,18 @@
         "unknown": "Something went wrong. Please try again."
       }
     },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your group ID or email. If we find an account, we'll send a reset link.",
+      "identifier": "Group ID or email",
+      "identifierPlaceholder": "C0001C or you@contact.eg",
+      "identifierHint": "Employees use their group ID (e.g. C0001C). Ambassadors use their ambassador ID (e.g. R0001R).",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your inbox or WhatsApp.",
+      "sentBody": "If an account matches, you'll receive a reset link shortly. The link expires in 30 minutes. If you can't find it, ask your administrator to issue one for you.",
+      "backToLogin": "Back to sign in"
+    },
     "onboard": {
       "title": "Activate your account",
       "subtitle": "First time signing in? Complete your profile below.",
@@ -599,6 +611,17 @@
         "canEditProductsHelp": "Create, update, or deactivate any product across all business lines.",
         "canEditCatalog": "Edit categories & product variables",
         "canEditCatalogHelp": "Manage product categories and the informational variables shown on each product."
+      },
+      "resetPassword": {
+        "title": "Issue password reset link",
+        "subtitle": "Generates a single-use reset link valid for 30 minutes. Use when the user can't receive the self-serve link via email or WhatsApp.",
+        "issue": "Generate reset link",
+        "reissue": "Generate a new link",
+        "issuing": "Generating…",
+        "issuedTitle": "Reset link ready.",
+        "issuedBody": "Share this link with the user via a secure channel. It expires in 30 minutes and can be used only once.",
+        "copy": "Copy",
+        "copied": "Copied"
       }
     },
     "products": {
@@ -730,6 +753,18 @@
       "passwordConfirm": "Confirm password",
       "submit": "Activate my account",
       "submitting": "Activating…"
+    },
+    "passwordReset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password to sign back in.",
+      "password": "New password",
+      "passwordHint": "At least 8 characters.",
+      "passwordConfirm": "Confirm password",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "doneTitle": "Password updated.",
+      "doneBody": "Your new password is active. Sign in to continue.",
+      "toLogin": "Go to sign in"
     }
   },
   "qrTemplates": {

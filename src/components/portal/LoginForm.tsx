@@ -110,12 +110,19 @@ export function LoginForm({ from }: { from?: string }) {
         {pending ? t("submitting") : t("submit")}
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">
-        {t("firstTime")}{" "}
-        <Link href="/onboard" className="font-medium text-primary hover:underline">
-          {t("activateAccount")}
-        </Link>
-      </p>
+      <div className="space-y-1 text-center text-xs text-muted-foreground">
+        <p>
+          <Link href="/forgot" className="font-medium text-primary hover:underline">
+            {t("forgotPassword")}
+          </Link>
+        </p>
+        <p>
+          {t("firstTime")}{" "}
+          <Link href="/onboard" className="font-medium text-primary hover:underline">
+            {t("activateAccount")}
+          </Link>
+        </p>
+      </div>
     </form>
   );
 }
