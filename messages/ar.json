@@ -118,6 +118,7 @@
     "ambassadors": "السفراء",
     "commission": "العمولات",
     "notifications": "الإشعارات",
+    "suggestions": "الاقتراحات",
     "reports": "التقارير",
     "configuration": "الإعدادات",
     "admin": "الإدارة",
@@ -139,6 +140,7 @@
       "LEAD_ASSIGNED": "تم تعيين عميل",
       "LEAD_STATUS_CHANGED": "تغيّرت الحالة",
       "LEAD_REFERRED": "وصل عميل بدعوة",
+      "SUGGESTION_UPDATED": "تحديث اقتراح",
       "SYSTEM": "النظام"
     },
     "summaries": {
@@ -146,7 +148,45 @@
       "newLeadManual": "تم إضافة عميل جديد: {name}",
       "statusChanged": "{name}: {from} → {to}",
       "referred": "وصلك عميل بدعوة: {name}",
-      "assigned": "تم تعيين عميل لك: {name}"
+      "assigned": "تم تعيين عميل لك: {name}",
+      "suggestionUpdated": "اقتراحك '{title}' بقى {status}"
+    }
+  },
+  "suggestions": {
+    "title": "الاقتراحات",
+    "subtitle": "شارك فكرة، أبلِغ عن مشكلة، أو ابعت ملاحظة. الأدمن بيراجع كل المقترحات.",
+    "subtitleAdmin": "كل المقترحات المقدمة من الموظفين والسفراء.",
+    "new": "اقتراح جديد",
+    "edit": "تعديل",
+    "editTitle": "تعديل الاقتراح",
+    "empty": "لا توجد مقترحات حتى الآن.",
+    "adminResponse": "رد الأدمن",
+    "adminPanel": "تحديث الحالة",
+    "backToList": "العودة إلى القائمة",
+    "categories": {
+      "IDEA": "فكرة",
+      "BUG": "مشكلة فنية",
+      "COMPLAINT": "شكوى",
+      "OTHER": "أخرى"
+    },
+    "statuses": {
+      "NEW": "جديد",
+      "UNDER_REVIEW": "قيد المراجعة",
+      "ACCEPTED": "مقبول",
+      "IMPLEMENTED": "تم تنفيذه",
+      "REJECTED": "مرفوض"
+    },
+    "form": {
+      "title": "العنوان",
+      "category": "الفئة",
+      "body": "التفاصيل",
+      "bodyHint": "وضّح الفكرة أو المشكلة بشكل محدد.",
+      "attachment": "صورة (اختيارية)",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF، حتى 5 ميجا.",
+      "submit": "إرسال",
+      "status": "الحالة",
+      "response": "رد للمقدّم (اختياري)",
+      "responseHint": "بيظهر للمقدّم. هتوصله نوتيفيكيشن لما يتغير."
     }
   },
   "profile": {

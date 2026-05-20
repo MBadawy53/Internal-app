@@ -9,6 +9,7 @@ import {
   Bell,
   Calculator,
   LayoutDashboard,
+  Lightbulb,
   Menu,
   Package,
   Percent,
@@ -33,7 +34,8 @@ type FeatureKey =
   | "commission"
   | "notifications"
   | "reports"
-  | "configuration";
+  | "configuration"
+  | "suggestions";
 
 interface NavItem {
   href: string;
@@ -52,6 +54,7 @@ const NAV: NavItem[] = [
   { href: "/ambassadors", labelKey: "ambassadors", icon: Sparkles, feature: "ambassadors" },
   { href: "/commission", labelKey: "commission", icon: Percent, feature: "commission" },
   { href: "/notifications", labelKey: "notifications", icon: Bell, feature: "notifications" },
+  { href: "/suggestions", labelKey: "suggestions", icon: Lightbulb, feature: "suggestions" },
   { href: "/reports", labelKey: "reports", icon: BarChart3, feature: "reports" },
   {
     href: "/configuration",

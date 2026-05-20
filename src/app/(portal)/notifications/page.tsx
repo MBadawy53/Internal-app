@@ -44,6 +44,11 @@ function summary(
       return t("summaries.referred", { name: payload.customerName });
     case "LEAD_ASSIGNED":
       return t("summaries.assigned", { name: payload.customerName });
+    case "SUGGESTION_UPDATED":
+      return t("summaries.suggestionUpdated", {
+        title: payload.title,
+        status: payload.status,
+      });
     case "SYSTEM":
       return typeof payload.message === "string" ? payload.message : payload.kind;
   }
@@ -89,6 +94,8 @@ export default async function NotificationsPage() {
                   payload && "leadId" in payload && typeof payload.leadId === "string"
                     ? payload.leadId
                     : undefined;
+                const suggestionId =
+                  payload?.type === "SUGGESTION_UPDATED" ? payload.suggestionId : undefined;
                 const isUnread = !n.readAt;
                 return (
                   <li
@@ -115,6 +122,14 @@ export default async function NotificationsPage() {
                         {leadId ? (
                           <Link
                             href={`/leads/${leadId}`}
+                            className="text-brand-700 hover:underline"
+                          >
+                            {t("view")}
+                          </Link>
+                        ) : null}
+                        {suggestionId ? (
+                          <Link
+                            href={`/suggestions/${suggestionId}`}
                             className="text-brand-700 hover:underline"
                           >
                             {t("view")}

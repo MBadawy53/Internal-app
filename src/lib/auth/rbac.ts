@@ -284,6 +284,7 @@ export const FEATURE_KEYS = [
   "categories",
   "commission",
   "configuration",
+  "suggestions",
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 

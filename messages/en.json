@@ -118,6 +118,7 @@
     "ambassadors": "Ambassadors",
     "commission": "Commission",
     "notifications": "Notifications",
+    "suggestions": "Suggestions",
     "reports": "Reports",
     "configuration": "Configuration",
     "admin": "Administration",
@@ -139,6 +140,7 @@
       "LEAD_ASSIGNED": "Lead assigned",
       "LEAD_STATUS_CHANGED": "Status changed",
       "LEAD_REFERRED": "Lead referred",
+      "SUGGESTION_UPDATED": "Suggestion updated",
       "SYSTEM": "System"
     },
     "summaries": {
@@ -146,7 +148,45 @@
       "newLeadManual": "New lead added: {name}",
       "statusChanged": "{name}: {from} → {to}",
       "referred": "Lead referred to you: {name}",
-      "assigned": "Lead assigned to you: {name}"
+      "assigned": "Lead assigned to you: {name}",
+      "suggestionUpdated": "Your suggestion '{title}' is now {status}"
+    }
+  },
+  "suggestions": {
+    "title": "Suggestions",
+    "subtitle": "Share an idea, report a bug, or send feedback. Admins review every submission.",
+    "subtitleAdmin": "Every suggestion submitted by employees and ambassadors.",
+    "new": "New suggestion",
+    "edit": "Edit",
+    "editTitle": "Edit suggestion",
+    "empty": "No suggestions yet.",
+    "adminResponse": "Admin response",
+    "adminPanel": "Update status",
+    "backToList": "Back to suggestions",
+    "categories": {
+      "IDEA": "Idea",
+      "BUG": "Bug",
+      "COMPLAINT": "Complaint",
+      "OTHER": "Other"
+    },
+    "statuses": {
+      "NEW": "New",
+      "UNDER_REVIEW": "Under review",
+      "ACCEPTED": "Accepted",
+      "IMPLEMENTED": "Implemented",
+      "REJECTED": "Rejected"
+    },
+    "form": {
+      "title": "Title",
+      "category": "Category",
+      "body": "Details",
+      "bodyHint": "Describe the idea, the bug, or the issue — be specific.",
+      "attachment": "Screenshot (optional)",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+      "submit": "Submit",
+      "status": "Status",
+      "response": "Response to submitter (optional)",
+      "responseHint": "Visible to the submitter. They get notified when this changes."
     }
   },
   "profile": {

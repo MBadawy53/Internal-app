@@ -75,6 +75,7 @@ enum NotificationType {
   LEAD_ASSIGNED
   LEAD_STATUS_CHANGED
   LEAD_REFERRED
+  SUGGESTION_UPDATED
   SYSTEM
 }
 
@@ -147,6 +148,7 @@ enum FeatureKey {
   categories
   commission
   configuration
+  suggestions
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +206,8 @@ model User {
   integrationUpd IntegrationConfig[]      @relation("IntegrationUpdatedBy")
   passwordResets PasswordResetToken[]
   passwordResetsIssued PasswordResetToken[] @relation("PasswordResetIssuedBy")
+  suggestions    Suggestion[]             @relation("SuggestionSubmitter")
+  suggestionsReplied Suggestion[]         @relation("SuggestionResponder")
 
   @@index([businessLineId])
   @@index([managerId])
@@ -234,6 +238,48 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("password_reset_tokens")
+}
+
+enum SuggestionCategory {
+  IDEA
+  BUG
+  COMPLAINT
+  OTHER
+}
+
+enum SuggestionStatus {
+  NEW
+  UNDER_REVIEW
+  ACCEPTED
+  IMPLEMENTED
+  REJECTED
+}
+
+// Employee / ambassador idea, bug report, complaint, etc. Visible to the
+// submitter and admins. Admins can move it through the status machine and
+// leave a single response field; the submitter gets a SUGGESTION_UPDATED
+// notification whenever either changes.
+model Suggestion {
+  id                 String             @id @default(cuid())
+  submitterId        String
+  category           SuggestionCategory @default(IDEA)
+  status             SuggestionStatus   @default(NEW)
+  title              String
+  body               String
+  attachmentUrl      String?
+  adminResponse      String?
+  adminResponseById  String?
+  adminResponseAt    DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  submitter       User  @relation("SuggestionSubmitter", fields: [submitterId], references: [id], onDelete: Cascade)
+  adminResponseBy User? @relation("SuggestionResponder", fields: [adminResponseById], references: [id], onDelete: SetNull)
+
+  @@index([submitterId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("suggestions")
 }
 
 model BusinessLine {

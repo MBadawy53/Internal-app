@@ -45,6 +45,13 @@ export type NotificationPayload =
       referrerId: string;
     }
   | {
+      type: typeof NotificationType.SUGGESTION_UPDATED;
+      suggestionId: string;
+      title: string;
+      status: string;
+      adminResponseChanged: boolean;
+    }
+  | {
       type: typeof NotificationType.SYSTEM;
       kind: string;
       [key: string]: unknown;
@@ -91,6 +98,14 @@ const leadReferred = z.object({
   referrerId: z.string(),
 });
 
+const suggestionUpdated = z.object({
+  type: z.literal(NotificationType.SUGGESTION_UPDATED),
+  suggestionId: z.string(),
+  title: z.string(),
+  status: z.string(),
+  adminResponseChanged: z.boolean(),
+});
+
 const systemPayload = z
   .object({ type: z.literal(NotificationType.SYSTEM), kind: z.string() })
   .passthrough();
@@ -101,6 +116,7 @@ export const notificationPayloadSchema = z.discriminatedUnion("type", [
   leadAssigned,
   leadStatusChanged,
   leadReferred,
+  suggestionUpdated,
   systemPayload,
 ]);
 
