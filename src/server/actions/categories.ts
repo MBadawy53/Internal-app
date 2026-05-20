@@ -8,6 +8,9 @@ import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
 import { isProductAttributeKey } from "@/lib/catalog/attributes";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
@@ -155,4 +158,21 @@ export async function deleteCategoryAction(id: string): Promise<void> {
   await productCategoryRepository.softDelete(id, actor.id);
   revalidatePath("/admin/categories");
   revalidatePath("/catalog");
+}
+
+export async function deleteCategorySafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "productCategory",
+    id,
+    hard: () => prisma.productCategory.delete({ where: { id } }),
+    soft: () => productCategoryRepository.softDelete(id, actor.id),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/categories");
+    revalidatePath("/catalog");
+  }
+  return result;
 }

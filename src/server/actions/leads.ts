@@ -13,6 +13,7 @@ import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
 import { canTransition, needsReason } from "@/lib/leads/state-machine";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const CreateLeadSchema = z.object({
   customerName: z.string().min(1).max(160),
@@ -302,4 +303,27 @@ export async function claimLeadAction(
     logger.error({ err, leadId: lead.id }, "lead.claim_failed");
     return { ok: false, message: "Could not claim the lead" };
   }
+}
+
+/**
+ * Admin-only hard delete. Leads carry audit history (LeadStatusHistory,
+ * LeadActivity) which cascades on delete, plus Quote rows which DON'T cascade
+ * — so a lead with quotes can't be hard-deleted. There's no isActive on Lead;
+ * we don't soft-delete, we just refuse if FKs block the delete.
+ */
+export async function deleteLeadAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "lead",
+    id,
+    hard: () => prisma.lead.delete({ where: { id } }),
+    // No soft-delete equivalent for leads. Leaving this off causes smartDelete
+    // to surface "This item is referenced elsewhere…" when FKs block.
+  });
+  if (result.ok) {
+    revalidatePath("/leads");
+  }
+  return result;
 }

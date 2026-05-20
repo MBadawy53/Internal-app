@@ -30,7 +30,17 @@
     "saving": "جارٍ الحفظ…",
     "deleting": "جارٍ الحذف…",
     "confirm": "تأكيد",
-    "print": "طباعة"
+    "print": "طباعة",
+    "delete": {
+      "delete": "حذف",
+      "confirm": "متأكد؟",
+      "yes": "نعم، احذف",
+      "cancel": "إلغاء",
+      "deleting": "جارٍ الحذف…",
+      "doneHard": "تم الحذف ✓",
+      "doneSoft": "تم التعطيل ✓",
+      "failed": "تعذّر الحذف."
+    }
   },
   "auth": {
     "login": {

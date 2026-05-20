@@ -6,7 +6,11 @@ import { requireActor } from "@/lib/auth/session";
 import { announcementRepository } from "@/server/repositories/announcement.repository";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { deleteAnnouncementAction, toggleAnnouncementAction } from "@/server/actions/announcements";
+import {
+  deleteAnnouncementSafeAction,
+  toggleAnnouncementAction,
+} from "@/server/actions/announcements";
+import { DeleteButton } from "@/components/portal/DeleteButton";
 import type { AppLocale } from "@/lib/i18n/config";
 import { localized } from "@/lib/i18n/localized";
 
@@ -83,12 +87,10 @@ export default async function AnnouncementsPage() {
                       {a.isActive ? t("deactivate") : t("activate")}
                     </button>
                   </form>
-                  <form action={deleteAnnouncementAction}>
-                    <input type="hidden" name="id" value={a.id} />
-                    <button type="submit" className="text-destructive hover:underline">
-                      {t("delete")}
-                    </button>
-                  </form>
+                  <DeleteButton
+                    action={deleteAnnouncementSafeAction.bind(null, a.id)}
+                    variant="ghost"
+                  />
                 </div>
               </CardContent>
             </Card>

@@ -6,6 +6,8 @@ import { CommissionPersona, Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { commissionRepository } from "@/server/repositories/commission.repository";
+import { prisma } from "@/lib/prisma";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 import { logger } from "@/lib/logger";
 
 const TierSchema = z
@@ -118,4 +120,21 @@ export async function saveCommissionAction(
     logger.error({ err, productId: head.productId }, "commission.save_failed");
     return { ok: false, message: "Could not save the commission table, please retry." };
   }
+}
+
+export async function deleteCommissionAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) throw new ForbiddenError("Admin only");
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "productCommission",
+    id,
+    hard: () => prisma.productCommission.delete({ where: { id } }),
+    soft: () => prisma.productCommission.update({ where: { id }, data: { isActive: false } }),
+  });
+  if (result.ok) {
+    revalidatePath("/commission");
+    revalidatePath("/admin/commission");
+  }
+  return result;
 }

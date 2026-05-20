@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ProductType } from "@prisma/client";
+import { ProductType, Role } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
@@ -13,6 +13,8 @@ import { productCategoryRepository } from "@/server/repositories/productCategory
 import { attributeRepository } from "@/server/repositories/attribute.repository";
 import { makeAttributeConfig, type ProductAttributeKey } from "@/lib/catalog/attributes";
 import { coerceAttributeValue, type AttributeOptionsJson } from "@/lib/catalog/attribute-values";
+import { prisma } from "@/lib/prisma";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const ProductInputSchema = z
   .object({
@@ -267,6 +269,23 @@ export async function deleteProductAction(id: string): Promise<void> {
   await productRepository.softDelete(id, actor.id);
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
+}
+
+export async function deleteProductSafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "product",
+    id,
+    hard: () => prisma.product.delete({ where: { id } }),
+    soft: () => productRepository.softDelete(id, actor.id),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/products");
+    revalidatePath("/catalog");
+  }
+  return result;
 }
 
 /**

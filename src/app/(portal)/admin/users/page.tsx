@@ -9,6 +9,8 @@ import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsersSearchBar } from "@/components/portal/UsersSearchBar";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteUserSafeAction } from "@/server/actions/users";
 
 interface SearchParams {
   q?: string;
@@ -107,7 +109,9 @@ export default async function AdminUsersPage({
                   </a>
                 </div>
               </CardHeader>
-              <CardContent />
+              <CardContent className="flex justify-end">
+                <DeleteButton action={deleteUserSafeAction.bind(null, u.id)} variant="ghost" />
+              </CardContent>
             </Card>
           );
         })}

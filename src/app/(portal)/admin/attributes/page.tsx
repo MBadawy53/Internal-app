@@ -8,6 +8,8 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteAttributeSafeAction } from "@/server/actions/attributes";
 
 export default async function AdminAttributesPage() {
   const session = await auth();
@@ -63,6 +65,7 @@ export default async function AdminAttributesPage() {
                   >
                     edit
                   </Link>
+                  <DeleteButton action={deleteAttributeSafeAction.bind(null, a.id)} iconOnly />
                 </div>
               </CardHeader>
               <CardContent />

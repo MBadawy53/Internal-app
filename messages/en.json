@@ -30,7 +30,17 @@
     "saving": "Saving…",
     "deleting": "Deleting…",
     "confirm": "Confirm",
-    "print": "Print"
+    "print": "Print",
+    "delete": {
+      "delete": "Delete",
+      "confirm": "Delete?",
+      "yes": "Yes, delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "doneHard": "Deleted ✓",
+      "doneSoft": "Deactivated ✓",
+      "failed": "Could not delete."
+    }
   },
   "auth": {
     "login": {

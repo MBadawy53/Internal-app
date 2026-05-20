@@ -8,6 +8,9 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { attributeRepository } from "@/server/repositories/attribute.repository";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 // Attribute keys may use dots for namespacing (e.g. "insurance.company-name").
@@ -151,4 +154,20 @@ export async function deactivateAttributeAction(id: string): Promise<void> {
   requirePermission(actor, "delete", "productAttribute");
   await attributeRepository.setActive(id, false);
   revalidatePath("/admin/attributes");
+}
+
+export async function deleteAttributeSafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "productAttribute",
+    id,
+    hard: () => prisma.attribute.delete({ where: { id } }),
+    soft: () => attributeRepository.setActive(id, false),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/attributes");
+  }
+  return result;
 }

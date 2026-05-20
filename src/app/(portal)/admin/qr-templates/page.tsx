@@ -6,6 +6,8 @@ import { requireActor } from "@/lib/auth/session";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteTemplateAction } from "@/server/actions/qrTemplates";
 
 export default async function QrTemplatesPage() {
   const actor = await requireActor();
@@ -53,12 +55,19 @@ export default async function QrTemplatesPage() {
                       {tpl.isActive ? t("active") : t("inactive")}
                     </td>
                     <td className="px-3 py-2 text-right text-xs">
-                      <Link
-                        className="text-brand-700 hover:underline"
-                        href={`/admin/qr-templates/${tpl.id}/edit`}
-                      >
-                        {t("edit")}
-                      </Link>
+                      <div className="inline-flex items-center gap-3">
+                        <Link
+                          className="text-brand-700 hover:underline"
+                          href={`/admin/qr-templates/${tpl.id}/edit`}
+                        >
+                          {t("edit")}
+                        </Link>
+                        <DeleteButton
+                          action={deleteTemplateAction.bind(null, tpl.id)}
+                          variant="ghost"
+                          iconOnly
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

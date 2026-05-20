@@ -7,6 +7,8 @@ import { QrCampaignKind, Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
+import { prisma } from "@/lib/prisma";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 export type TemplateActionState = { ok: true; id: string } | { ok: false; message: string };
 
@@ -107,6 +109,21 @@ export async function updateTemplateAction(
     logger.error({ err, id }, "qrTemplate.update_failed");
     return { ok: false, message: "Update failed" };
   }
+}
+
+export async function deleteTemplateAction(id: string): Promise<SmartDeleteResult> {
+  await adminOnly();
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "qrLandingTemplate",
+    id,
+    hard: () => prisma.qrLandingTemplate.delete({ where: { id } }),
+    soft: () => prisma.qrLandingTemplate.update({ where: { id }, data: { isActive: false } }),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/qr-templates");
+  }
+  return result;
 }
 
 export async function setTemplateActiveAction(

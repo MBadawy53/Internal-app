@@ -9,6 +9,8 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { userAdminRepository } from "@/server/repositories/userAdmin.repository";
+import { prisma } from "@/lib/prisma";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const ProvisionSchema = z.object({
   groupId: z.string().regex(EMPLOYEE_ID_REGEX, "Group ID must match C0001C–C9999C"),
@@ -127,4 +129,21 @@ export async function reactivateUserAction(id: string): Promise<void> {
   requirePermission(actor, "update", "user");
   await userAdminRepository.setActive(id, true);
   revalidatePath("/admin/users");
+}
+
+export async function deleteUserSafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  if (id === actor.id) return { ok: false, message: "You can't delete your own account." };
+  const result = await smartDelete({
+    label: "user",
+    id,
+    hard: () => prisma.user.delete({ where: { id } }),
+    soft: () => userAdminRepository.setActive(id, false),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/users");
+  }
+  return result;
 }

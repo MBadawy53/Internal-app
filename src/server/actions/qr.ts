@@ -27,6 +27,7 @@ import {
   type LeadFormField,
 } from "@/lib/leadForm/types";
 import { makeCampaignSlug } from "@/lib/qr/slug";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 export type CreateCampaignState = { ok: true; slug: string } | { ok: false; message: string };
 
@@ -259,6 +260,23 @@ export async function updateCampaignAction(
     logger.error({ err, id }, "qr.update_failed");
     return { ok: false, message: "Update failed" };
   }
+}
+
+export async function deleteCampaignAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "qrCampaign",
+    id,
+    hard: () => prisma.qrCampaign.delete({ where: { id } }),
+    soft: () => prisma.qrCampaign.update({ where: { id }, data: { isActive: false } }),
+  });
+  if (result.ok) {
+    revalidatePath("/qr");
+    revalidatePath(`/qr/${id}/edit`);
+  }
+  return result;
 }
 
 export type ToggleCampaignState = { ok: true } | { ok: false; message: string };

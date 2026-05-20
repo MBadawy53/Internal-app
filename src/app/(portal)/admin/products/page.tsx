@@ -11,6 +11,8 @@ import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductsBulkPanel } from "@/components/portal/ProductsBulkPanel";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteProductSafeAction } from "@/server/actions/products";
 
 export default async function AdminProductsPage() {
   const session = await auth();
@@ -77,9 +79,14 @@ export default async function AdminProductsPage() {
                 >
                   {p.isActive ? "active" : "inactive"}
                 </span>
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/admin/products/${p.id}/edit`}>{tCommon("edit")}</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/admin/products/${p.id}/edit`}>{tCommon("edit")}</Link>
+                  </Button>
+                  {isAdmin ? (
+                    <DeleteButton action={deleteProductSafeAction.bind(null, p.id)} iconOnly />
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>

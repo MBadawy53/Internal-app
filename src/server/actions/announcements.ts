@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { announcementRepository } from "@/server/repositories/announcement.repository";
 import { ImageUploadError, uploadImage } from "@/lib/upload/image";
 import { logger } from "@/lib/logger";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const Schema = z
   .object({
@@ -240,6 +241,23 @@ export async function deleteAnnouncementAction(fd: FormData): Promise<void> {
   await announcementRepository.remove(id).catch(() => undefined);
   revalidatePath("/admin/announcements");
   revalidatePath("/dashboard");
+}
+
+export async function deleteAnnouncementSafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "announcement",
+    id,
+    hard: () => prisma.announcement.delete({ where: { id } }),
+    soft: () => prisma.announcement.update({ where: { id }, data: { isActive: false } }),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/announcements");
+    revalidatePath("/dashboard");
+  }
+  return result;
 }
 
 export async function toggleAnnouncementAction(fd: FormData): Promise<void> {

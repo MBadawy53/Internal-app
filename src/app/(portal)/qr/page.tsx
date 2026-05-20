@@ -13,7 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCampaignSection } from "@/components/portal/NewCampaignSection";
 import { QrRangeFilter } from "@/components/portal/QrRangeFilter";
+import { DeleteButton } from "@/components/portal/DeleteButton";
 import { readFields } from "@/lib/leadForm/types";
+import { deleteCampaignAction } from "@/server/actions/qr";
 
 type RangePreset = "7d" | "30d" | "90d" | "all";
 
@@ -212,6 +214,11 @@ export default async function QrPage({
                       </p>
                     </div>
                   </div>
+                  {isAdmin ? (
+                    <div className="flex justify-end pt-2">
+                      <DeleteButton action={deleteCampaignAction.bind(null, c.id)} />
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             );

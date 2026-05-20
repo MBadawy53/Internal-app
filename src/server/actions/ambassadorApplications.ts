@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger";
 import { ImageUploadError, uploadImage } from "@/lib/upload/image";
 import { hashInviteToken, newInviteToken } from "@/lib/invite/token";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 // ── Public submit ──────────────────────────────────────────────────────────
 
@@ -340,4 +341,30 @@ export async function acceptAmbassadorInviteAction(
   } catch (err) {
     throw err;
   }
+}
+
+export async function deleteAmbassadorApplicationAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (!id) return { ok: false, message: "Missing id" };
+  const app = await prisma.ambassadorApplication.findUnique({ where: { id } });
+  if (!app) return { ok: false, message: "Application not found" };
+  // Admin can delete any; owning employee can delete their own.
+  if (actor.role !== Role.ADMIN && app.employeeId !== actor.id) {
+    return { ok: false, message: "Forbidden" };
+  }
+  const result = await smartDelete({
+    label: "ambassadorApplication",
+    id,
+    hard: () => prisma.ambassadorApplication.delete({ where: { id } }),
+    // No isActive on AmbassadorApplication — fall back to marking REJECTED.
+    soft: () =>
+      prisma.ambassadorApplication.update({
+        where: { id },
+        data: { status: AmbassadorApplicationStatus.REJECTED, rejectedAt: new Date() },
+      }),
+  });
+  if (result.ok) {
+    revalidatePath("/ambassadors");
+  }
+  return result;
 }
