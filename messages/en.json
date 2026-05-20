@@ -425,37 +425,6 @@
   "admin": {
     "title": "Administration",
     "leadForm": {
-      "title": "Lead form fields",
-      "subtitle": "Add or edit the custom fields shown to employees on /leads/new and to customers on the public QR landing page.",
-      "new": "New template",
-      "edit": "Edit template",
-      "empty": "No templates yet. Create one and mark it as default to power the lead forms.",
-      "default": "Default",
-      "inactive": "Inactive",
-      "fieldCount": "{count, plural, =0 {No fields} one {# field} other {# fields}}",
-      "editor": {
-        "name": "Template name",
-        "isDefault": "Use as the default template",
-        "isActive": "Active",
-        "fieldsTitle": "Fields",
-        "addField": "Add field",
-        "noFields": "No custom fields yet. Click 'Add field' to start.",
-        "fieldKey": "Field key (snake_case)",
-        "fieldType": "Type",
-        "labelEn": "Label (English)",
-        "labelAr": "Label (Arabic)",
-        "placeholderEn": "Placeholder (English)",
-        "placeholderAr": "Placeholder (Arabic)",
-        "required": "Required",
-        "min": "Minimum",
-        "max": "Maximum",
-        "options": "Options",
-        "addOption": "Add option",
-        "noOptions": "No options yet. Add at least one for a dropdown.",
-        "optionValue": "Value",
-        "optionLabelEn": "Label (English)",
-        "optionLabelAr": "Label (Arabic)"
-      },
       "types": {
         "TEXT": "Short text",
         "TEXTAREA": "Long text",
@@ -846,11 +815,7 @@
       "subtitleEn": "Subtitle (English)",
       "subtitleAr": "Subtitle (Arabic)",
       "bodyEn": "Body (English) — Markdown",
-      "bodyAr": "Body (Arabic) — Markdown",
-      "leadFormTemplate": "Custom lead-form fields",
-      "leadFormUseDefault": "Use the default template",
-      "leadFormDefaultBadge": "default",
-      "leadFormHint": "Pick which lead-form fields campaigns minted from this landing template will use. Leave on the default to inherit the global setting."
+      "bodyAr": "Body (Arabic) — Markdown"
     }
   },
   "qr": {

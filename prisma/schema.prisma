@@ -468,6 +468,7 @@ model Lead {
   @@index([referredByEmployeeId])
   @@index([businessLineId])
   @@index([productId])
+  @@index([campaignId])
   @@index([currentStatus])
   @@index([createdAt])
   @@index([customerPhone])
@@ -531,7 +532,7 @@ model Quote {
 
   employee User    @relation(fields: [employeeId], references: [id])
   product  Product @relation(fields: [productId], references: [id])
-  lead     Lead?   @relation(fields: [leadId], references: [id])
+  lead     Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([leadId])
