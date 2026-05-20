@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,6 @@ import {
   type UpdateCampaignState,
 } from "@/server/actions/qr";
 
-interface EmployeeOption {
-  id: string;
-  name: string;
-  businessLineId?: string;
-}
-
 interface ProductOption {
   id: string;
   name: string;
@@ -29,7 +23,6 @@ interface ProductOption {
 export interface CampaignInitial {
   id?: string;
   name?: string;
-  employeeId?: string;
   kind?: "LEAD_CAPTURE" | "AMBASSADOR_INVITE";
   productId?: string | null;
   headerImageUrl?: string | null;
@@ -54,13 +47,12 @@ export interface TemplateOption {
 }
 
 interface Props {
-  employees: EmployeeOption[];
   products: ProductOption[];
   templates?: TemplateOption[];
   initial?: CampaignInitial;
 }
 
-export function QrCampaignForm({ employees, products, templates = [], initial }: Props) {
+export function QrCampaignForm({ products, templates = [], initial }: Props) {
   const t = useTranslations("qr.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
@@ -94,24 +86,15 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
 
   const [state, formAction, pending] = useActionState<AnyState | null, FormData>(action, null);
 
-  const [employeeId, setEmployeeId] = useState(initial?.employeeId ?? "");
   const [kind, setKind] = useState<"LEAD_CAPTURE" | "AMBASSADOR_INVITE">(
     initial?.kind ?? "LEAD_CAPTURE",
-  );
-  const selectedEmp = employees.find((e) => e.id === employeeId);
-  const visibleProducts = useMemo(
-    () =>
-      selectedEmp?.businessLineId
-        ? products.filter((p) => p.businessLineId === selectedEmp.businessLineId)
-        : products,
-    [products, selectedEmp],
   );
   const isAmbassadorInvite = kind === "AMBASSADOR_INVITE";
 
   return (
     <form action={formAction} className="space-y-5">
-      <div className="grid gap-3 md:grid-cols-4">
-        <div className="space-y-1.5 md:col-span-2">
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="space-y-1.5">
           <Label htmlFor="qr-name">{t("name")}</Label>
           <Input
             id="qr-name"
@@ -121,26 +104,6 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
             maxLength={120}
             defaultValue={initial?.name ?? ""}
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="qr-employee">{t("employee")}</Label>
-          <Select
-            id="qr-employee"
-            name="employeeId"
-            value={employeeId}
-            onChange={(e) => setEmployeeId(e.target.value)}
-            required
-            disabled={isEdit}
-          >
-            <option value="" disabled>
-              —
-            </option>
-            {employees.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="qr-kind">{t("kind")}</Label>
@@ -163,7 +126,7 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
             <Label htmlFor="qr-product">{t("product")}</Label>
             <Select id="qr-product" name="productId" defaultValue={initial?.productId ?? ""}>
               <option value="">{tCommon("all")}</option>
-              {visibleProducts.map((p) => (
+              {products.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>

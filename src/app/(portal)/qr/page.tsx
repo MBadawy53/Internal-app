@@ -87,37 +87,10 @@ export default async function QrPage({
   // to them by `qrCampaignRepository.listForActor`.
   const isAdmin = actor.role === Role.ADMIN;
 
-  let employees: { id: string; name: string; businessLineId?: string }[] = [];
   let products: { id: string; name: string; businessLineId: string }[] = [];
   let templates: Awaited<ReturnType<typeof qrLandingTemplateRepository.list>> = [];
   if (isAdmin) {
     templates = await qrLandingTemplateRepository.list();
-    const emps = await prisma.user.findMany({
-      where: { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } },
-      select: { id: true, nameEn: true, nameAr: true, businessLineId: true },
-      orderBy: { nameEn: "asc" },
-      take: 500,
-    });
-    employees = emps.map((e) => ({
-      id: e.id,
-      name: localized(locale, e.nameEn ?? "", e.nameAr ?? ""),
-      businessLineId: e.businessLineId ?? undefined,
-    }));
-    // Admins aren't in the EMPLOYEE/TEAM_MANAGER filter, but they need to
-    // be selectable as the owner of campaigns they create. Prepend (me).
-    if (!employees.some((e) => e.id === actor.id)) {
-      const me = await prisma.user.findUnique({
-        where: { id: actor.id },
-        select: { nameEn: true, nameAr: true, businessLineId: true },
-      });
-      if (me) {
-        employees.unshift({
-          id: actor.id,
-          name: `${localized(locale, me.nameEn ?? "", me.nameAr ?? "")} (me)`,
-          businessLineId: me.businessLineId ?? undefined,
-        });
-      }
-    }
     const prods = await catalogService.listProducts(actor);
     products = prods.map((p) => ({
       id: p.id,
@@ -149,12 +122,7 @@ export default async function QrPage({
       </div>
 
       {isAdmin ? (
-        <NewCampaignSection
-          employees={employees}
-          products={products}
-          templates={templates}
-          initial={{ employeeId: actor.id }}
-        />
+        <NewCampaignSection products={products} templates={templates} initial={{}} />
       ) : null}
 
       {campaigns.length === 0 ? (

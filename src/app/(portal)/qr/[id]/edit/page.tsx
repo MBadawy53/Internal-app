@@ -25,17 +25,6 @@ export default async function EditQrCampaignPage({ params }: Params) {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("qr");
 
-  const emps = await prisma.user.findMany({
-    where: { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } },
-    select: { id: true, nameEn: true, nameAr: true, businessLineId: true },
-    orderBy: { nameEn: "asc" },
-    take: 500,
-  });
-  const employees = emps.map((e) => ({
-    id: e.id,
-    name: localized(locale, e.nameEn ?? "", e.nameAr ?? ""),
-    businessLineId: e.businessLineId ?? undefined,
-  }));
   const prods = await catalogService.listProducts(actor);
   const products = prods.map((p) => ({
     id: p.id,
@@ -53,13 +42,11 @@ export default async function EditQrCampaignPage({ params }: Params) {
       <Card>
         <CardContent className="pt-6">
           <QrCampaignForm
-            employees={employees}
             products={products}
             templates={await qrLandingTemplateRepository.list()}
             initial={{
               id: campaign.id,
               name: campaign.name,
-              employeeId: campaign.employeeId,
               kind: campaign.kind,
               productId: campaign.productId,
               headerImageUrl: campaign.headerImageUrl,

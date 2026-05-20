@@ -28,7 +28,6 @@ export type CreateCampaignState = { ok: true; slug: string } | { ok: false; mess
 
 const CreateCampaignSchema = z.object({
   name: z.string().min(2).max(120),
-  employeeId: z.string().min(1),
   kind: z.nativeEnum(QrCampaignKind).default(QrCampaignKind.LEAD_CAPTURE),
   productId: z.string().optional().or(z.literal("")),
   headerImageUrl: z.string().url().max(500).optional().or(z.literal("")),
@@ -74,7 +73,6 @@ export async function createCampaignAction(
 
   const parsed = CreateCampaignSchema.safeParse({
     name: fd.get("name")?.toString().trim() ?? "",
-    employeeId: fd.get("employeeId")?.toString() ?? "",
     kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     productId: fd.get("productId")?.toString() ?? "",
     ...readLandingFields(fd),
@@ -84,10 +82,10 @@ export async function createCampaignAction(
   }
   const d = parsed.data;
 
-  const employeeId = d.employeeId;
-  if (!employeeId) {
-    return { ok: false, message: "Owner is required" };
-  }
+  // The actor is always the campaign's owner — the form no longer asks for
+  // one. To assign a campaign to a different user, an admin creates it here
+  // and then can reassign through Prisma (or a future admin-only action).
+  const employeeId = actor.id;
 
   // Ambassador-invite campaigns don't carry a product (they collect new users,
   // not leads). Strip it out so the form's product field can be ignored.
@@ -179,7 +177,7 @@ export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemp
 
 export type UpdateCampaignState = { ok: true } | { ok: false; message: string };
 
-const UpdateCampaignSchema = CreateCampaignSchema.omit({ employeeId: true });
+const UpdateCampaignSchema = CreateCampaignSchema;
 
 /**
  * Update an existing campaign's name + landing content. Employee owner can't

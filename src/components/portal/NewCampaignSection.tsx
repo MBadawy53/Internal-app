@@ -11,13 +11,12 @@ import {
 } from "@/components/portal/QrCampaignForm";
 
 interface Props {
-  employees: { id: string; name: string; businessLineId?: string }[];
   products: { id: string; name: string; businessLineId: string }[];
   templates: TemplateOption[];
   initial: CampaignInitial;
 }
 
-export function NewCampaignSection({ employees, products, templates, initial }: Props) {
+export function NewCampaignSection({ products, templates, initial }: Props) {
   const t = useTranslations("qr");
   const [open, setOpen] = useState(false);
 
@@ -42,12 +41,7 @@ export function NewCampaignSection({ employees, products, templates, initial }: 
         </div>
       </CardHeader>
       <CardContent>
-        <QrCampaignForm
-          employees={employees}
-          products={products}
-          templates={templates}
-          initial={initial}
-        />
+        <QrCampaignForm products={products} templates={templates} initial={initial} />
       </CardContent>
     </Card>
   );
