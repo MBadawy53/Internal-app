@@ -4,7 +4,6 @@ import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
-import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -57,7 +56,6 @@ export default async function EditQrCampaignPage({ params }: Params) {
             employees={employees}
             products={products}
             templates={await qrLandingTemplateRepository.list()}
-            leadFormTemplates={await leadFormTemplateRepository.listActive()}
             initial={{
               id: campaign.id,
               name: campaign.name,
@@ -71,7 +69,6 @@ export default async function EditQrCampaignPage({ params }: Params) {
               subtitleAr: campaign.subtitleAr,
               bodyMdEn: campaign.bodyMdEn,
               bodyMdAr: campaign.bodyMdAr,
-              leadFormTemplateId: campaign.leadFormTemplateId,
             }}
           />
         </CardContent>

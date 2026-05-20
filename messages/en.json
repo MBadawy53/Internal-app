@@ -836,7 +836,11 @@
       "subtitleEn": "Subtitle (English)",
       "subtitleAr": "Subtitle (Arabic)",
       "bodyEn": "Body (English) — Markdown",
-      "bodyAr": "Body (Arabic) — Markdown"
+      "bodyAr": "Body (Arabic) — Markdown",
+      "leadFormTemplate": "Custom lead-form fields",
+      "leadFormUseDefault": "Use the default template",
+      "leadFormDefaultBadge": "default",
+      "leadFormHint": "Pick which lead-form fields campaigns minted from this landing template will use. Leave on the default to inherit the global setting."
     }
   },
   "qr": {
@@ -891,12 +895,7 @@
       "subtitleAr": "Subtitle (Arabic)",
       "bodyEn": "Body (English) — Markdown",
       "bodyAr": "Body (Arabic) — Markdown",
-      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped.",
-      "leadFormSection": "Lead form fields",
-      "leadFormTemplate": "Custom fields template",
-      "leadFormUseDefault": "Use the default template",
-      "leadFormDefaultBadge": "default",
-      "leadFormHint": "Pick a lead form template to override the questions shown to customers on this campaign's landing page. Leave on the default to inherit it."
+      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
     }
   },
   "configuration": {

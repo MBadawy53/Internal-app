@@ -38,7 +38,6 @@ const CreateCampaignSchema = z.object({
   subtitleAr: z.string().max(240).optional().or(z.literal("")),
   bodyMdEn: z.string().max(5000).optional().or(z.literal("")),
   bodyMdAr: z.string().max(5000).optional().or(z.literal("")),
-  leadFormTemplateId: z.string().optional().or(z.literal("")),
 });
 
 function readLandingFields(fd: FormData) {
@@ -78,7 +77,6 @@ export async function createCampaignAction(
     employeeId: fd.get("employeeId")?.toString() ?? "",
     kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     productId: fd.get("productId")?.toString() ?? "",
-    leadFormTemplateId: fd.get("leadFormTemplateId")?.toString() ?? "",
     ...readLandingFields(fd),
   });
   if (!parsed.success) {
@@ -91,12 +89,9 @@ export async function createCampaignAction(
     return { ok: false, message: "Owner is required" };
   }
 
-  // Ambassador-invite campaigns don't carry a product or a lead form override
-  // (they collect new users, not leads). Strip those out so the form's fields
-  // can be ignored when this kind is selected.
+  // Ambassador-invite campaigns don't carry a product (they collect new users,
+  // not leads). Strip it out so the form's product field can be ignored.
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
-  const leadFormTemplateId =
-    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.leadFormTemplateId;
 
   // Slug must be unique; retry on the (vanishingly rare) collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -108,9 +103,6 @@ export async function createCampaignAction(
         kind: d.kind,
         employee: { connect: { id: employeeId } },
         ...(productId ? { product: { connect: { id: productId } } } : {}),
-        ...(leadFormTemplateId
-          ? { leadFormTemplate: { connect: { id: leadFormTemplateId } } }
-          : {}),
         headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
         titleEn: nullIfEmpty(d.titleEn ?? ""),
         titleAr: nullIfEmpty(d.titleAr ?? ""),
@@ -165,6 +157,11 @@ export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemp
         subtitleAr: tpl.subtitleAr,
         bodyMdEn: tpl.bodyMdEn,
         bodyMdAr: tpl.bodyMdAr,
+        // Snapshot the lead-form choice into the new campaign so changes to
+        // the landing template afterwards only affect future campaigns.
+        ...(tpl.leadFormTemplateId
+          ? { leadFormTemplate: { connect: { id: tpl.leadFormTemplateId } } }
+          : {}),
       });
       revalidatePath("/qr");
       return { ok: true, slug: created.slug };
@@ -203,7 +200,6 @@ export async function updateCampaignAction(
     name: fd.get("name")?.toString().trim() ?? "",
     kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     productId: fd.get("productId")?.toString() ?? "",
-    leadFormTemplateId: fd.get("leadFormTemplateId")?.toString() ?? "",
     ...readLandingFields(fd),
   });
   if (!parsed.success) {
@@ -211,8 +207,6 @@ export async function updateCampaignAction(
   }
   const d = parsed.data;
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
-  const leadFormTemplateId =
-    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.leadFormTemplateId;
   try {
     await prisma.qrCampaign.update({
       where: { id },
@@ -222,9 +216,6 @@ export async function updateCampaignAction(
         ...(productId
           ? { product: { connect: { id: productId } } }
           : { product: { disconnect: true } }),
-        ...(leadFormTemplateId
-          ? { leadFormTemplate: { connect: { id: leadFormTemplateId } } }
-          : { leadFormTemplate: { disconnect: true } }),
         headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
         titleEn: nullIfEmpty(d.titleEn ?? ""),
         titleAr: nullIfEmpty(d.titleAr ?? ""),

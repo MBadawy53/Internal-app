@@ -491,6 +491,7 @@ model LeadFormTemplate {
 
   leads     Lead[]
   campaigns QrCampaign[] @relation("CampaignLeadFormTemplate")
+  landingTemplates QrLandingTemplate[] @relation("LandingTemplateLeadForm")
 
   @@index([isDefault])
   @@map("lead_form_templates")
@@ -618,9 +619,15 @@ model QrLandingTemplate {
   subtitleAr     String?
   bodyMdEn       String?
   bodyMdAr       String?
+  // Lead form template applied to campaigns minted from this landing
+  // template. Copied to QrCampaign.leadFormTemplateId at apply time, so
+  // changing this later only affects newly-minted campaigns.
+  leadFormTemplateId String?
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+
+  leadFormTemplate LeadFormTemplate? @relation("LandingTemplateLeadForm", fields: [leadFormTemplateId], references: [id])
 
   @@map("qr_landing_templates")
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
+import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrTemplateForm } from "@/components/portal/QrTemplateForm";
 
@@ -17,7 +18,7 @@ export default async function NewQrTemplatePage() {
       </header>
       <Card>
         <CardContent className="pt-6">
-          <QrTemplateForm />
+          <QrTemplateForm leadFormTemplates={await leadFormTemplateRepository.listActive()} />
         </CardContent>
       </Card>
     </div>

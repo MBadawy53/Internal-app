@@ -20,6 +20,7 @@ const TemplateSchema = z.object({
   subtitleAr: z.string().max(240).optional().or(z.literal("")),
   bodyMdEn: z.string().max(5000).optional().or(z.literal("")),
   bodyMdAr: z.string().max(5000).optional().or(z.literal("")),
+  leadFormTemplateId: z.string().optional().or(z.literal("")),
 });
 
 function readFields(fd: FormData) {
@@ -33,6 +34,7 @@ function readFields(fd: FormData) {
     subtitleAr: fd.get("subtitleAr")?.toString().trim() ?? "",
     bodyMdEn: fd.get("bodyMdEn")?.toString() ?? "",
     bodyMdAr: fd.get("bodyMdAr")?.toString() ?? "",
+    leadFormTemplateId: fd.get("leadFormTemplateId")?.toString() ?? "",
   };
 }
 
@@ -57,6 +59,8 @@ export async function createTemplateAction(
     return { ok: false, message: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
   const d = parsed.data;
+  const pickedLeadForm =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : (d.leadFormTemplateId ?? "");
   try {
     await qrLandingTemplateRepository.create({
       name: d.name,
@@ -68,6 +72,7 @@ export async function createTemplateAction(
       subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
       bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+      ...(pickedLeadForm ? { leadFormTemplate: { connect: { id: pickedLeadForm } } } : {}),
     });
   } catch (err) {
     logger.error({ err }, "qrTemplate.create_failed");
@@ -90,6 +95,8 @@ export async function updateTemplateAction(
     return { ok: false, message: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
   const d = parsed.data;
+  const pickedLeadForm =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : (d.leadFormTemplateId ?? "");
   try {
     await qrLandingTemplateRepository.update(id, {
       name: d.name,
@@ -101,6 +108,9 @@ export async function updateTemplateAction(
       subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
       bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+      ...(pickedLeadForm
+        ? { leadFormTemplate: { connect: { id: pickedLeadForm } } }
+        : { leadFormTemplate: { disconnect: true } }),
     });
     revalidatePath("/admin/qr-templates");
     revalidatePath(`/admin/qr-templates/${id}/edit`);

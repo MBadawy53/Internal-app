@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,16 +24,28 @@ export interface TemplateInitial {
   subtitleAr?: string | null;
   bodyMdEn?: string | null;
   bodyMdAr?: string | null;
+  leadFormTemplateId?: string | null;
+}
+
+export interface LeadFormTemplateOption {
+  id: string;
+  name: string;
+  isDefault: boolean;
 }
 
 interface Props {
   initial?: TemplateInitial;
+  leadFormTemplates?: LeadFormTemplateOption[];
 }
 
-export function QrTemplateForm({ initial }: Props) {
+export function QrTemplateForm({ initial, leadFormTemplates = [] }: Props) {
   const t = useTranslations("qrTemplates.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
+  const [kind, setKind] = useState<"LEAD_CAPTURE" | "AMBASSADOR_INVITE">(
+    initial?.kind ?? "LEAD_CAPTURE",
+  );
+  const isAmbassadorInvite = kind === "AMBASSADOR_INVITE";
   const action = isEdit ? updateTemplateAction.bind(null, initial!.id!) : createTemplateAction;
   const [state, formAction, pending] = useActionState<TemplateActionState | null, FormData>(
     action,
@@ -56,13 +68,38 @@ export function QrTemplateForm({ initial }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="t-kind">{t("kind")}</Label>
-          <Select id="t-kind" name="kind" defaultValue={initial?.kind ?? "LEAD_CAPTURE"}>
+          <Select
+            id="t-kind"
+            name="kind"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as "LEAD_CAPTURE" | "AMBASSADOR_INVITE")}
+          >
             <option value="LEAD_CAPTURE">{t("kindLeadCapture")}</option>
             <option value="AMBASSADOR_INVITE">{t("kindAmbassadorInvite")}</option>
           </Select>
           <p className="text-xs text-muted-foreground">{t("kindHint")}</p>
         </div>
       </div>
+
+      {!isAmbassadorInvite && leadFormTemplates.length > 0 ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="t-lead-form">{t("leadFormTemplate")}</Label>
+          <Select
+            id="t-lead-form"
+            name="leadFormTemplateId"
+            defaultValue={initial?.leadFormTemplateId ?? ""}
+          >
+            <option value="">{t("leadFormUseDefault")}</option>
+            {leadFormTemplates.map((tpl) => (
+              <option key={tpl.id} value={tpl.id}>
+                {tpl.name}
+                {tpl.isDefault ? ` (${t("leadFormDefaultBadge")})` : ""}
+              </option>
+            ))}
+          </Select>
+          <p className="text-xs text-muted-foreground">{t("leadFormHint")}</p>
+        </div>
+      ) : null}
       <div className="space-y-1.5">
         <Label htmlFor="t-header">{t("headerImageUrl")}</Label>
         <Input
