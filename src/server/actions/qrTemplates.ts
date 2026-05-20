@@ -61,8 +61,10 @@ export async function createTemplateAction(
   const d = parsed.data;
   const pickedLeadForm =
     d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : (d.leadFormTemplateId ?? "");
+  logger.info({ pickedLeadForm, kind: d.kind }, "qrTemplate.create.input");
+  let createdId: string | null = null;
   try {
-    await qrLandingTemplateRepository.create({
+    const created = await qrLandingTemplateRepository.create({
       name: d.name,
       kind: d.kind,
       headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
@@ -74,13 +76,23 @@ export async function createTemplateAction(
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
       ...(pickedLeadForm ? { leadFormTemplate: { connect: { id: pickedLeadForm } } } : {}),
     });
+    createdId = created.id;
+    logger.info(
+      { id: created.id, savedLeadFormTemplateId: created.leadFormTemplateId },
+      "qrTemplate.create.saved",
+    );
   } catch (err) {
     logger.error({ err }, "qrTemplate.create_failed");
     return { ok: false, message: "Could not create template" };
   }
   // redirect() throws a NEXT_REDIRECT signal that must propagate — keep it
-  // outside the try/catch so it isn't reported as a create failure.
+  // outside the try/catch so it isn't reported as a create failure. We land
+  // on the edit page so the admin can visually confirm the saved value
+  // (including the lead-form picker) without an extra click.
   revalidatePath("/admin/qr-templates");
+  if (createdId) {
+    redirect(`/admin/qr-templates/${createdId}/edit`);
+  }
   redirect("/admin/qr-templates");
 }
 
@@ -97,8 +109,9 @@ export async function updateTemplateAction(
   const d = parsed.data;
   const pickedLeadForm =
     d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : (d.leadFormTemplateId ?? "");
+  logger.info({ id, pickedLeadForm, kind: d.kind }, "qrTemplate.update.input");
   try {
-    await qrLandingTemplateRepository.update(id, {
+    const updated = await qrLandingTemplateRepository.update(id, {
       name: d.name,
       kind: d.kind,
       headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
@@ -112,6 +125,10 @@ export async function updateTemplateAction(
         ? { leadFormTemplate: { connect: { id: pickedLeadForm } } }
         : { leadFormTemplate: { disconnect: true } }),
     });
+    logger.info(
+      { id, savedLeadFormTemplateId: updated.leadFormTemplateId },
+      "qrTemplate.update.saved",
+    );
     revalidatePath("/admin/qr-templates");
     revalidatePath(`/admin/qr-templates/${id}/edit`);
     return { ok: true, id };
