@@ -8,7 +8,6 @@ import {
   Bell,
   Calculator,
   LayoutDashboard,
-  Menu,
   Package,
   Percent,
   Plug,
@@ -58,11 +57,9 @@ const NAV: NavItem[] = [
 ];
 
 /**
- * Sticky bottom navigation for mobile. Renders the first four items
- * the user has access to, plus a "Menu" tab that opens the full
- * sidebar drawer (which lives in Sidebar.tsx — communicated via a
- * `mobile-nav:open` window event so the two components stay
- * decoupled).
+ * Sticky bottom navigation for mobile. Renders the first five items
+ * the user has access to. The drawer with everything else is opened
+ * from the top-left hamburger in Sidebar.tsx.
  */
 export function MobileBottomNav({
   role,
@@ -77,7 +74,7 @@ export function MobileBottomNav({
 
   const items = NAV.filter(
     (n) => (!n.roles || n.roles.includes(role)) && (!n.feature || visible.has(n.feature)),
-  ).slice(0, 4);
+  ).slice(0, 5);
 
   const renderLink = (n: NavItem) => {
     const active = pathname === n.href || pathname.startsWith(`${n.href}/`);
@@ -104,15 +101,6 @@ export function MobileBottomNav({
       className="fixed inset-x-0 bottom-0 z-30 flex border-t bg-background/95 backdrop-blur md:hidden"
     >
       {items.map(renderLink)}
-      <button
-        type="button"
-        onClick={() => window.dispatchEvent(new CustomEvent("mobile-nav:open"))}
-        className="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-        aria-label={t("more")}
-      >
-        <Menu className="h-5 w-5" aria-hidden />
-        <span className="leading-none">{t("more")}</span>
-      </button>
     </nav>
   );
 }

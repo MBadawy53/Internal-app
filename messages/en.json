@@ -123,8 +123,7 @@
     "admin": "Administration",
     "adminCategories": "Categories",
     "adminProducts": "Products",
-    "profile": "My profile",
-    "more": "More"
+    "profile": "My profile"
   },
   "notifications": {
     "title": "Notifications",
