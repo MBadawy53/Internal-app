@@ -891,7 +891,12 @@
       "subtitleAr": "Subtitle (Arabic)",
       "bodyEn": "Body (English) — Markdown",
       "bodyAr": "Body (Arabic) — Markdown",
-      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
+      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped.",
+      "leadFormSection": "Lead form fields",
+      "leadFormTemplate": "Custom fields template",
+      "leadFormUseDefault": "Use the default template",
+      "leadFormDefaultBadge": "default",
+      "leadFormHint": "Pick a lead form template to override the questions shown to customers on this campaign's landing page. Leave on the default to inherit it."
     }
   },
   "configuration": {

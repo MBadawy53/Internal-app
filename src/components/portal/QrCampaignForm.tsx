@@ -39,6 +39,13 @@ export interface CampaignInitial {
   subtitleAr?: string | null;
   bodyMdEn?: string | null;
   bodyMdAr?: string | null;
+  leadFormTemplateId?: string | null;
+}
+
+export interface LeadFormTemplateOption {
+  id: string;
+  name: string;
+  isDefault: boolean;
 }
 
 export interface TemplateOption {
@@ -57,10 +64,17 @@ interface Props {
   employees: EmployeeOption[];
   products: ProductOption[];
   templates?: TemplateOption[];
+  leadFormTemplates?: LeadFormTemplateOption[];
   initial?: CampaignInitial;
 }
 
-export function QrCampaignForm({ employees, products, templates = [], initial }: Props) {
+export function QrCampaignForm({
+  employees,
+  products,
+  templates = [],
+  leadFormTemplates = [],
+  initial,
+}: Props) {
   const t = useTranslations("qr.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
@@ -280,6 +294,29 @@ export function QrCampaignForm({ employees, products, templates = [], initial }:
           </div>
         </div>
       </fieldset>
+
+      {!isAmbassadorInvite && leadFormTemplates.length > 0 ? (
+        <fieldset className="space-y-2 rounded-md border p-3">
+          <legend className="px-1 text-sm font-medium">{t("leadFormSection")}</legend>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-lead-form">{t("leadFormTemplate")}</Label>
+            <Select
+              id="qr-lead-form"
+              name="leadFormTemplateId"
+              defaultValue={initial?.leadFormTemplateId ?? ""}
+            >
+              <option value="">{t("leadFormUseDefault")}</option>
+              {leadFormTemplates.map((tpl) => (
+                <option key={tpl.id} value={tpl.id}>
+                  {tpl.name}
+                  {tpl.isDefault ? ` (${t("leadFormDefaultBadge")})` : ""}
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("leadFormHint")}</p>
+          </div>
+        </fieldset>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>

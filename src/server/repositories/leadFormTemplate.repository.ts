@@ -38,4 +38,14 @@ export const leadFormTemplateRepository = {
     if (!row) return null;
     return { id: row.id, fields: readFields(row.fields) };
   },
+
+  /** Lightweight list of active templates for admin pickers. */
+  listActive: async (): Promise<{ id: string; name: string; isDefault: boolean }[]> => {
+    const rows = await prisma.leadFormTemplate.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, isDefault: true },
+      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+    });
+    return rows;
+  },
 };

@@ -38,6 +38,7 @@ const CreateCampaignSchema = z.object({
   subtitleAr: z.string().max(240).optional().or(z.literal("")),
   bodyMdEn: z.string().max(5000).optional().or(z.literal("")),
   bodyMdAr: z.string().max(5000).optional().or(z.literal("")),
+  leadFormTemplateId: z.string().optional().or(z.literal("")),
 });
 
 function readLandingFields(fd: FormData) {
@@ -77,6 +78,7 @@ export async function createCampaignAction(
     employeeId: fd.get("employeeId")?.toString() ?? "",
     kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     productId: fd.get("productId")?.toString() ?? "",
+    leadFormTemplateId: fd.get("leadFormTemplateId")?.toString() ?? "",
     ...readLandingFields(fd),
   });
   if (!parsed.success) {
@@ -89,9 +91,12 @@ export async function createCampaignAction(
     return { ok: false, message: "Owner is required" };
   }
 
-  // Ambassador-invite campaigns don't carry a product (they collect new users,
-  // not leads). Strip it out so the form's product field can be ignored.
+  // Ambassador-invite campaigns don't carry a product or a lead form override
+  // (they collect new users, not leads). Strip those out so the form's fields
+  // can be ignored when this kind is selected.
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
+  const leadFormTemplateId =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.leadFormTemplateId;
 
   // Slug must be unique; retry on the (vanishingly rare) collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -103,6 +108,9 @@ export async function createCampaignAction(
         kind: d.kind,
         employee: { connect: { id: employeeId } },
         ...(productId ? { product: { connect: { id: productId } } } : {}),
+        ...(leadFormTemplateId
+          ? { leadFormTemplate: { connect: { id: leadFormTemplateId } } }
+          : {}),
         headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
         titleEn: nullIfEmpty(d.titleEn ?? ""),
         titleAr: nullIfEmpty(d.titleAr ?? ""),
@@ -195,6 +203,7 @@ export async function updateCampaignAction(
     name: fd.get("name")?.toString().trim() ?? "",
     kind: fd.get("kind")?.toString() || QrCampaignKind.LEAD_CAPTURE,
     productId: fd.get("productId")?.toString() ?? "",
+    leadFormTemplateId: fd.get("leadFormTemplateId")?.toString() ?? "",
     ...readLandingFields(fd),
   });
   if (!parsed.success) {
@@ -202,6 +211,8 @@ export async function updateCampaignAction(
   }
   const d = parsed.data;
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
+  const leadFormTemplateId =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.leadFormTemplateId;
   try {
     await prisma.qrCampaign.update({
       where: { id },
@@ -211,6 +222,9 @@ export async function updateCampaignAction(
         ...(productId
           ? { product: { connect: { id: productId } } }
           : { product: { disconnect: true } }),
+        ...(leadFormTemplateId
+          ? { leadFormTemplate: { connect: { id: leadFormTemplateId } } }
+          : { leadFormTemplate: { disconnect: true } }),
         headerImageUrl: nullIfEmpty(d.headerImageUrl ?? ""),
         titleEn: nullIfEmpty(d.titleEn ?? ""),
         titleAr: nullIfEmpty(d.titleAr ?? ""),
@@ -339,12 +353,22 @@ export async function submitPublicLeadAction(
     referrer?.nameEn?.trim() || referrer?.nameAr?.trim() || referrer?.groupId || "";
   const isAmbassadorReferrer = referrer?.role === Role.AMBASSADOR;
 
-  // Validate custom fields against the template (re-read server-side; the
-  // hidden id from the form is only used as the snapshot reference).
-  const submittedTemplateId = fd.get("formTemplateId")?.toString() || null;
-  const template = submittedTemplateId
-    ? await leadFormTemplateRepository.findById(submittedTemplateId)
-    : await leadFormTemplateRepository.findDefault();
+  // Validate custom fields against the campaign's template — campaign
+  // override wins, then global default. The form posts a snapshot id but
+  // we re-derive the template server-side so a malicious payload can't pin
+  // a different schema.
+  const campaignOverrideId = campaign?.leadFormTemplateId ?? null;
+  let template: Awaited<ReturnType<typeof leadFormTemplateRepository.findById>> = null;
+  if (campaignOverrideId) {
+    const picked = await leadFormTemplateRepository.findById(campaignOverrideId);
+    if (picked && picked.isActive) template = picked;
+  }
+  if (!template) {
+    const fallback = await leadFormTemplateRepository.findDefault();
+    if (fallback) {
+      template = await leadFormTemplateRepository.findById(fallback.id);
+    }
+  }
   let customFields: Record<string, string | number | boolean> | null = null;
   let formTemplateId: string | null = null;
   if (template && Array.isArray((template as { fields: unknown }).fields)) {

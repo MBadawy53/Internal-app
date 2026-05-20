@@ -891,7 +891,12 @@
       "subtitleAr": "العنوان الفرعي (عربي)",
       "bodyEn": "النص الأساسي (إنجليزي) — Markdown",
       "bodyAr": "النص الأساسي (عربي) — Markdown",
-      "bodyHint": "Markdown: **عريض**، *مائل*، [رابط](https://…)، - قوائم، ## عنوان. أي HTML يُحذف."
+      "bodyHint": "Markdown: **عريض**، *مائل*، [رابط](https://…)، - قوائم، ## عنوان. أي HTML يُحذف.",
+      "leadFormSection": "حقول نموذج العميل",
+      "leadFormTemplate": "قالب الحقول المخصصة",
+      "leadFormUseDefault": "استخدم القالب الافتراضي",
+      "leadFormDefaultBadge": "افتراضي",
+      "leadFormHint": "اختار قالب للحقول المخصصة عشان تغيّر الأسئلة اللي بتظهر للعملاء في صفحة الحملة دي. سيبها على الافتراضي لو عايز تورث الإعداد العام."
     }
   },
   "configuration": {

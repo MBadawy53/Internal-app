@@ -5,6 +5,7 @@ import { QrCampaignKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
+import type { LeadFormField } from "@/lib/leadForm/types";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { formatBps, formatMoney } from "@/lib/finance/money";
@@ -178,7 +179,10 @@ export default async function PublicReferralPage({ params }: Params) {
             {campaign?.kind === QrCampaignKind.AMBASSADOR_INVITE ? (
               <AmbassadorApplicationForm code={code} />
             ) : (
-              <PublicLeadFormWithCustomFields code={code} />
+              <PublicLeadFormWithCustomFields
+                code={code}
+                overrideTemplateId={campaign?.leadFormTemplateId ?? null}
+              />
             )}
           </div>
         </div>
@@ -187,8 +191,23 @@ export default async function PublicReferralPage({ params }: Params) {
   );
 }
 
-async function PublicLeadFormWithCustomFields({ code }: { code: string }) {
-  const template = await leadFormTemplateRepository.findDefault();
+async function PublicLeadFormWithCustomFields({
+  code,
+  overrideTemplateId,
+}: {
+  code: string;
+  overrideTemplateId: string | null;
+}) {
+  // Campaign override wins; falls back to the global default. If the override
+  // points at an inactive / deleted template, we silently drop back too.
+  let template: { id: string; fields: LeadFormField[] } | null = null;
+  if (overrideTemplateId) {
+    const picked = await leadFormTemplateRepository.findById(overrideTemplateId);
+    if (picked && picked.isActive) {
+      template = { id: picked.id, fields: picked.fields };
+    }
+  }
+  if (!template) template = await leadFormTemplateRepository.findDefault();
   return (
     <PublicLeadForm
       code={code}

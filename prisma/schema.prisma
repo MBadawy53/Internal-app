@@ -489,7 +489,8 @@ model LeadFormTemplate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  leads Lead[]
+  leads     Lead[]
+  campaigns QrCampaign[] @relation("CampaignLeadFormTemplate")
 
   @@index([isDefault])
   @@map("lead_form_templates")
@@ -584,12 +585,16 @@ model QrCampaign {
   subtitleAr     String?
   bodyMdEn       String?
   bodyMdAr       String?
+  // Per-campaign override of the lead form fields. NULL = use the global
+  // default LeadFormTemplate (the row with isDefault=true).
+  leadFormTemplateId String?
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   employee User     @relation(fields: [employeeId], references: [id])
   product  Product? @relation(fields: [productId], references: [id])
+  leadFormTemplate LeadFormTemplate? @relation("CampaignLeadFormTemplate", fields: [leadFormTemplateId], references: [id])
   scans    QrScan[]
   leads    Lead[]
   applications AmbassadorApplication[]

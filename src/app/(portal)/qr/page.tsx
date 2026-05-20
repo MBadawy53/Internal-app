@@ -5,6 +5,7 @@ import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
+import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
@@ -90,8 +91,10 @@ export default async function QrPage({
   let employees: { id: string; name: string; businessLineId?: string }[] = [];
   let products: { id: string; name: string; businessLineId: string }[] = [];
   let templates: Awaited<ReturnType<typeof qrLandingTemplateRepository.list>> = [];
+  let leadFormTemplates: Awaited<ReturnType<typeof leadFormTemplateRepository.listActive>> = [];
   if (isAdmin) {
     templates = await qrLandingTemplateRepository.list();
+    leadFormTemplates = await leadFormTemplateRepository.listActive();
     const emps = await prisma.user.findMany({
       where: { isActive: true, role: { in: [Role.EMPLOYEE, Role.TEAM_MANAGER] } },
       select: { id: true, nameEn: true, nameAr: true, businessLineId: true },
@@ -153,6 +156,7 @@ export default async function QrPage({
           employees={employees}
           products={products}
           templates={templates}
+          leadFormTemplates={leadFormTemplates}
           initial={{ employeeId: actor.id }}
         />
       ) : null}
