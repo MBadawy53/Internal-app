@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
 import { ClaimLeadButton } from "@/components/portal/ClaimLeadButton";
+import { readCustomFields, readFields } from "@/lib/leadForm/types";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -31,6 +32,9 @@ export default async function LeadDetailPage({ params }: Params) {
   const email = decryptOptional(lead.customerEmailEnc);
   const nationalId = decryptOptional(lead.nationalIdEnc);
   const dateFmt = (d: Date) => new Date(d).toLocaleString(locale === "ar" ? "ar-EG" : "en-EG");
+
+  const customAnswers = readCustomFields(lead.customFields);
+  const templateFields = lead.formTemplate ? readFields(lead.formTemplate.fields) : [];
 
   // Self-assign rule: actor isn't already the owner, and the lead is either
   // unassigned or still in NEW.
@@ -114,6 +118,40 @@ export default async function LeadDetailPage({ params }: Params) {
           </CardContent>
         </Card>
       </div>
+
+      {templateFields.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("customFields")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-3 sm:grid-cols-2">
+              {templateFields.map((f) => {
+                const raw = customAnswers[f.id];
+                let display: string;
+                if (raw === undefined || raw === null || raw === "") {
+                  display = "—";
+                } else if (typeof raw === "boolean") {
+                  display = raw ? t("yes") : t("no");
+                } else if (f.type === "SELECT") {
+                  const opt = f.options?.find((o) => o.value === raw);
+                  display = opt ? localized(locale, opt.labelEn, opt.labelAr) : String(raw);
+                } else {
+                  display = String(raw);
+                }
+                return (
+                  <div key={f.id}>
+                    <dt className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {localized(locale, f.labelEn, f.labelAr)}
+                    </dt>
+                    <dd className="mt-1 text-sm">{display}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

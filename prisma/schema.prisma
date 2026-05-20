@@ -447,6 +447,11 @@ model Lead {
   consentGivenAt       DateTime
   consentIp            String?
   consentUserAgent     String?
+  // Admin-defined custom fields. Snapshot of the template id used at submit
+  // time + a flat `{ [fieldKey]: value }` map of answers. Stored as JSON for
+  // schema-less evolution; type / option labels live on the template itself.
+  formTemplateId       String?
+  customFields         Json?
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
@@ -455,6 +460,7 @@ model Lead {
   businessLine BusinessLine?       @relation(fields: [businessLineId], references: [id])
   product      Product?            @relation(fields: [productId], references: [id])
   campaign     QrCampaign?         @relation(fields: [campaignId], references: [id])
+  formTemplate LeadFormTemplate?   @relation(fields: [formTemplateId], references: [id])
   history      LeadStatusHistory[]
   activities   LeadActivity[]
   quotes       Quote[]
@@ -468,6 +474,25 @@ model Lead {
   @@index([createdAt])
   @@index([customerPhone])
   @@map("leads")
+}
+
+// Admin-managed lead form template. Used by both the internal /leads/new
+// form and the public /r/<code> capture form. Field shape lives in JSON
+// (see LeadFormField in src/lib/leadForm/types.ts) so admins can add types
+// without a migration; only one row is marked `isDefault` at a time.
+model LeadFormTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  fields    Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([isDefault])
+  @@map("lead_form_templates")
 }
 
 model LeadStatusHistory {

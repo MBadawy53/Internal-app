@@ -12,6 +12,8 @@ import { prisma } from "@/lib/prisma";
 import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
+import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
+import { buildCustomFieldsFromForm, type LeadFormField } from "@/lib/leadForm/types";
 import { canTransition, needsReason } from "@/lib/leads/state-machine";
 
 const CreateLeadSchema = z.object({
@@ -64,6 +66,26 @@ export async function createLeadAction(
     return { ok: false, message: "Owner is required" };
   }
 
+  // Validate the admin-defined custom fields against the template. We re-read
+  // the template server-side rather than trust the form's hidden id — the
+  // hidden id is only used to snapshot which template the answers were
+  // captured against.
+  const submittedTemplateId = fd.get("formTemplateId")?.toString() || null;
+  const template = submittedTemplateId
+    ? await leadFormTemplateRepository.findById(submittedTemplateId)
+    : await leadFormTemplateRepository.findDefault();
+  let customFields: Record<string, string | number | boolean> | null = null;
+  let formTemplateId: string | null = null;
+  if (template && Array.isArray((template as { fields: unknown }).fields)) {
+    const fields = (template as { fields: LeadFormField[] }).fields;
+    if (fields.length > 0) {
+      const result = buildCustomFieldsFromForm(fields, fd);
+      if (!result.ok) return { ok: false, message: result.message };
+      customFields = result.values;
+      formTemplateId = (template as { id: string }).id;
+    }
+  }
+
   try {
     const lead = await leadRepository.create({
       customerName: d.customerName,
@@ -79,6 +101,8 @@ export async function createLeadAction(
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
       ...(d.productId ? { product: { connect: { id: d.productId } } } : {}),
+      ...(formTemplateId ? { formTemplate: { connect: { id: formTemplateId } } } : {}),
+      ...(customFields ? { customFields } : {}),
     });
 
     // Notify the owner (unless they're the actor — no point pinging yourself).

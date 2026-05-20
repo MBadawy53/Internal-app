@@ -9,12 +9,16 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { submitPublicLeadAction, type PublicLeadState } from "@/server/actions/qr";
+import { LeadCustomFields } from "@/components/portal/LeadCustomFields";
+import type { LeadFormField } from "@/lib/leadForm/types";
 
 interface Props {
   code: string;
+  customFields?: LeadFormField[];
+  formTemplateId?: string | null;
 }
 
-export function PublicLeadForm({ code }: Props) {
+export function PublicLeadForm({ code, customFields = [], formTemplateId = null }: Props) {
   const t = useTranslations("public.leadCapture");
   const tForm = useTranslations("leads.form");
   const [state, formAction, pending] = useActionState<PublicLeadState | null, FormData>(
@@ -65,6 +69,10 @@ export function PublicLeadForm({ code }: Props) {
           <Label htmlFor="pl-note">{tForm("customerNote")}</Label>
           <Textarea id="pl-note" name="customerNote" rows={3} maxLength={1000} />
         </div>
+        {formTemplateId ? (
+          <input type="hidden" name="formTemplateId" value={formTemplateId} />
+        ) : null}
+        <LeadCustomFields fields={customFields} idPrefix="pl" />
       </div>
 
       <label className="flex items-start gap-2 rounded-md border bg-secondary/30 p-3 text-sm">

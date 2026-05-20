@@ -20,6 +20,8 @@ import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { leadRepository } from "@/server/repositories/lead.repository";
+import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
+import { buildCustomFieldsFromForm, type LeadFormField } from "@/lib/leadForm/types";
 import { makeCampaignSlug } from "@/lib/qr/slug";
 
 export type CreateCampaignState = { ok: true; slug: string } | { ok: false; message: string };
@@ -337,6 +339,24 @@ export async function submitPublicLeadAction(
     referrer?.nameEn?.trim() || referrer?.nameAr?.trim() || referrer?.groupId || "";
   const isAmbassadorReferrer = referrer?.role === Role.AMBASSADOR;
 
+  // Validate custom fields against the template (re-read server-side; the
+  // hidden id from the form is only used as the snapshot reference).
+  const submittedTemplateId = fd.get("formTemplateId")?.toString() || null;
+  const template = submittedTemplateId
+    ? await leadFormTemplateRepository.findById(submittedTemplateId)
+    : await leadFormTemplateRepository.findDefault();
+  let customFields: Record<string, string | number | boolean> | null = null;
+  let formTemplateId: string | null = null;
+  if (template && Array.isArray((template as { fields: unknown }).fields)) {
+    const fields = (template as { fields: LeadFormField[] }).fields;
+    if (fields.length > 0) {
+      const result = buildCustomFieldsFromForm(fields, fd);
+      if (!result.ok) return { ok: false, message: result.message };
+      customFields = result.values;
+      formTemplateId = (template as { id: string }).id;
+    }
+  }
+
   try {
     const lead = await leadRepository.create({
       customerName: d.customerName,
@@ -351,6 +371,8 @@ export async function submitPublicLeadAction(
       currentStatus: LeadStatus.NEW,
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),
+      ...(formTemplateId ? { formTemplate: { connect: { id: formTemplateId } } } : {}),
+      ...(customFields ? { customFields } : {}),
     });
 
     // Bump campaign lead count (if this was a campaign hit).

@@ -10,6 +10,8 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createLeadAction, type CreateLeadState } from "@/server/actions/leads";
+import { LeadCustomFields } from "@/components/portal/LeadCustomFields";
+import type { LeadFormField } from "@/lib/leadForm/types";
 
 interface Option {
   id: string;
@@ -22,6 +24,8 @@ interface Props {
   products: Option[];
   owners: Option[];
   showOwnerPicker: boolean;
+  customFields?: LeadFormField[];
+  formTemplateId?: string | null;
   initial?: {
     businessLineId?: string;
     productId?: string;
@@ -29,7 +33,15 @@ interface Props {
   };
 }
 
-export function LeadForm({ businessLines, products, owners, showOwnerPicker, initial }: Props) {
+export function LeadForm({
+  businessLines,
+  products,
+  owners,
+  showOwnerPicker,
+  customFields = [],
+  formTemplateId = null,
+  initial,
+}: Props) {
   const t = useTranslations("leads.form");
   const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState<CreateLeadState | null, FormData>(
@@ -130,6 +142,10 @@ export function LeadForm({ businessLines, products, owners, showOwnerPicker, ini
             defaultValue={initial?.customerNote ?? ""}
           />
         </div>
+        {formTemplateId ? (
+          <input type="hidden" name="formTemplateId" value={formTemplateId} />
+        ) : null}
+        <LeadCustomFields fields={customFields} />
       </div>
 
       <label className="flex items-start gap-2 rounded-md border bg-secondary/30 p-3 text-sm">

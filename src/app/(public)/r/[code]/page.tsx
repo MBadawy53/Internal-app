@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { QrCampaignKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
+import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { formatBps, formatMoney } from "@/lib/finance/money";
@@ -177,11 +178,22 @@ export default async function PublicReferralPage({ params }: Params) {
             {campaign?.kind === QrCampaignKind.AMBASSADOR_INVITE ? (
               <AmbassadorApplicationForm code={code} />
             ) : (
-              <PublicLeadForm code={code} />
+              <PublicLeadFormWithCustomFields code={code} />
             )}
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+async function PublicLeadFormWithCustomFields({ code }: { code: string }) {
+  const template = await leadFormTemplateRepository.findDefault();
+  return (
+    <PublicLeadForm
+      code={code}
+      customFields={template?.fields ?? []}
+      formTemplateId={template?.id ?? null}
+    />
   );
 }
