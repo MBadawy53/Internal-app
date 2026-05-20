@@ -895,7 +895,26 @@
       "subtitleAr": "Subtitle (Arabic)",
       "bodyEn": "Body (English) — Markdown",
       "bodyAr": "Body (Arabic) — Markdown",
-      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped."
+      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped.",
+      "customFields": {
+        "title": "Custom fields shown on the landing form",
+        "subtitle": "These appear under the built-in name / phone / email block on the public landing page.",
+        "addField": "Add field",
+        "empty": "No custom fields yet. Click 'Add field' to start.",
+        "fieldKey": "Field key (snake_case)",
+        "fieldType": "Type",
+        "labelEn": "Label (English)",
+        "labelAr": "Label (Arabic)",
+        "required": "Required",
+        "options": "Options",
+        "addOption": "Add option",
+        "noOptions": "No options yet. Add at least one for a dropdown.",
+        "optionValue": "Value",
+        "optionLabelEn": "Label (English)",
+        "optionLabelAr": "Label (Arabic)",
+        "copyFrom": "Copy fields from",
+        "copyPlaceholder": "— Copy from another campaign —"
+      }
     }
   },
   "configuration": {

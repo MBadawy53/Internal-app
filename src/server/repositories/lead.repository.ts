@@ -84,7 +84,7 @@ export const leadRepository = {
         owner: { select: { id: true, nameEn: true, nameAr: true, email: true } },
         referredBy: { select: { id: true, nameEn: true, nameAr: true, email: true } },
         product: { select: { id: true, nameEn: true, nameAr: true } },
-        formTemplate: { select: { id: true, name: true, fields: true } },
+        campaign: { select: { id: true, name: true, slug: true, customFields: true } },
         history: {
           include: { actor: { select: { id: true, nameEn: true, nameAr: true } } },
           orderBy: { createdAt: "desc" },

@@ -15,10 +15,9 @@ import type { LeadFormField } from "@/lib/leadForm/types";
 interface Props {
   code: string;
   customFields?: LeadFormField[];
-  formTemplateId?: string | null;
 }
 
-export function PublicLeadForm({ code, customFields = [], formTemplateId = null }: Props) {
+export function PublicLeadForm({ code, customFields = [] }: Props) {
   const t = useTranslations("public.leadCapture");
   const tForm = useTranslations("leads.form");
   const [state, formAction, pending] = useActionState<PublicLeadState | null, FormData>(
@@ -69,9 +68,6 @@ export function PublicLeadForm({ code, customFields = [], formTemplateId = null 
           <Label htmlFor="pl-note">{tForm("customerNote")}</Label>
           <Textarea id="pl-note" name="customerNote" rows={3} maxLength={1000} />
         </div>
-        {formTemplateId ? (
-          <input type="hidden" name="formTemplateId" value={formTemplateId} />
-        ) : null}
         <LeadCustomFields fields={customFields} idPrefix="pl" />
       </div>
 

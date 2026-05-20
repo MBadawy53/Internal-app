@@ -20,8 +20,12 @@ import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { leadRepository } from "@/server/repositories/lead.repository";
-import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
-import { buildCustomFieldsFromForm, type LeadFormField } from "@/lib/leadForm/types";
+import {
+  buildCustomFieldsFromForm,
+  leadFormFieldsSchema,
+  readFields,
+  type LeadFormField,
+} from "@/lib/leadForm/types";
 import { makeCampaignSlug } from "@/lib/qr/slug";
 
 export type CreateCampaignState = { ok: true; slug: string } | { ok: false; message: string };
@@ -56,6 +60,29 @@ function nullIfEmpty(v: string): string | null {
 }
 
 /**
+ * Parse the campaign's inline custom-fields builder payload. The form posts
+ * a JSON-encoded `LeadFormField[]` as a hidden input; we validate it through
+ * the schema and silently fall back to [] if anything's malformed (the form
+ * also enforces it client-side, this is the server-side safety net).
+ */
+function parseCustomFieldsField(fd: FormData): LeadFormField[] {
+  const raw = fd.get("customFields")?.toString();
+  if (!raw) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  const result = leadFormFieldsSchema.safeParse(parsed);
+  if (!result.success) {
+    logger.warn({ issues: result.error.errors }, "qrCampaign.customFields.validation_failed");
+    return [];
+  }
+  return result.data;
+}
+
+/**
  * Admin / BL owner action: create a QR campaign on behalf of an employee.
  * Plain employees do not have create rights in the UI; the action also
  * re-checks role server-side.
@@ -87,9 +114,12 @@ export async function createCampaignAction(
   // and then can reassign through Prisma (or a future admin-only action).
   const employeeId = actor.id;
 
-  // Ambassador-invite campaigns don't carry a product (they collect new users,
-  // not leads). Strip it out so the form's product field can be ignored.
+  // Ambassador-invite campaigns don't carry a product or custom fields (they
+  // collect new users, not leads). Strip them out so those form values are
+  // ignored when this kind is selected.
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
+  const customFields =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? [] : parseCustomFieldsField(fd);
 
   // Slug must be unique; retry on the (vanishingly rare) collision.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -108,6 +138,7 @@ export async function createCampaignAction(
         subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
         bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
         bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+        customFields: customFields as unknown as object,
       });
       revalidatePath("/qr");
       return { ok: true, slug: created.slug };
@@ -155,11 +186,6 @@ export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemp
         subtitleAr: tpl.subtitleAr,
         bodyMdEn: tpl.bodyMdEn,
         bodyMdAr: tpl.bodyMdAr,
-        // Snapshot the lead-form choice into the new campaign so changes to
-        // the landing template afterwards only affect future campaigns.
-        ...(tpl.leadFormTemplateId
-          ? { leadFormTemplate: { connect: { id: tpl.leadFormTemplateId } } }
-          : {}),
       });
       revalidatePath("/qr");
       return { ok: true, slug: created.slug };
@@ -205,6 +231,8 @@ export async function updateCampaignAction(
   }
   const d = parsed.data;
   const productId = d.kind === QrCampaignKind.AMBASSADOR_INVITE ? "" : d.productId;
+  const customFields =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? [] : parseCustomFieldsField(fd);
   try {
     await prisma.qrCampaign.update({
       where: { id },
@@ -221,6 +249,7 @@ export async function updateCampaignAction(
         subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
         bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
         bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+        customFields: customFields as unknown as object,
       },
     });
     revalidatePath("/qr");
@@ -342,32 +371,15 @@ export async function submitPublicLeadAction(
     referrer?.nameEn?.trim() || referrer?.nameAr?.trim() || referrer?.groupId || "";
   const isAmbassadorReferrer = referrer?.role === Role.AMBASSADOR;
 
-  // Validate custom fields against the campaign's template — campaign
-  // override wins, then global default. The form posts a snapshot id but
-  // we re-derive the template server-side so a malicious payload can't pin
-  // a different schema.
-  const campaignOverrideId = campaign?.leadFormTemplateId ?? null;
-  let template: Awaited<ReturnType<typeof leadFormTemplateRepository.findById>> = null;
-  if (campaignOverrideId) {
-    const picked = await leadFormTemplateRepository.findById(campaignOverrideId);
-    if (picked && picked.isActive) template = picked;
-  }
-  if (!template) {
-    const fallback = await leadFormTemplateRepository.findDefault();
-    if (fallback) {
-      template = await leadFormTemplateRepository.findById(fallback.id);
-    }
-  }
+  // Validate custom fields against the campaign's own definitions. The form
+  // posts answers as cf_<fieldKey>; we read the field schema from the
+  // campaign row so a tampered client can't change which fields are required.
+  const campaignFields = campaign ? readFields(campaign.customFields) : [];
   let customFields: Record<string, string | number | boolean> | null = null;
-  let formTemplateId: string | null = null;
-  if (template && Array.isArray((template as { fields: unknown }).fields)) {
-    const fields = (template as { fields: LeadFormField[] }).fields;
-    if (fields.length > 0) {
-      const result = buildCustomFieldsFromForm(fields, fd);
-      if (!result.ok) return { ok: false, message: result.message };
-      customFields = result.values;
-      formTemplateId = (template as { id: string }).id;
-    }
+  if (campaignFields.length > 0) {
+    const result = buildCustomFieldsFromForm(campaignFields, fd);
+    if (!result.ok) return { ok: false, message: result.message };
+    customFields = result.values;
   }
 
   try {
@@ -384,7 +396,6 @@ export async function submitPublicLeadAction(
       currentStatus: LeadStatus.NEW,
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),
-      ...(formTemplateId ? { formTemplate: { connect: { id: formTemplateId } } } : {}),
       ...(customFields ? { customFields } : {}),
     });
 

@@ -13,6 +13,8 @@ import {
   type CreateCampaignState,
   type UpdateCampaignState,
 } from "@/server/actions/qr";
+import { LeadFieldsBuilder, type CopySource } from "@/components/portal/LeadFieldsBuilder";
+import type { LeadFormField } from "@/lib/leadForm/types";
 
 interface ProductOption {
   id: string;
@@ -32,6 +34,7 @@ export interface CampaignInitial {
   subtitleAr?: string | null;
   bodyMdEn?: string | null;
   bodyMdAr?: string | null;
+  customFields?: LeadFormField[];
 }
 
 export interface TemplateOption {
@@ -49,10 +52,11 @@ export interface TemplateOption {
 interface Props {
   products: ProductOption[];
   templates?: TemplateOption[];
+  copySources?: CopySource[];
   initial?: CampaignInitial;
 }
 
-export function QrCampaignForm({ products, templates = [], initial }: Props) {
+export function QrCampaignForm({ products, templates = [], copySources = [], initial }: Props) {
   const t = useTranslations("qr.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
@@ -243,6 +247,10 @@ export function QrCampaignForm({ products, templates = [], initial }: Props) {
           </div>
         </div>
       </fieldset>
+
+      {!isAmbassadorInvite ? (
+        <LeadFieldsBuilder initial={initial?.customFields ?? []} copySources={copySources} />
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>

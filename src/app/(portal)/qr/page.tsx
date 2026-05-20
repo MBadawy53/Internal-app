@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCampaignSection } from "@/components/portal/NewCampaignSection";
 import { QrRangeFilter } from "@/components/portal/QrRangeFilter";
+import { readFields } from "@/lib/leadForm/types";
 
 type RangePreset = "7d" | "30d" | "90d" | "all";
 
@@ -89,6 +90,7 @@ export default async function QrPage({
 
   let products: { id: string; name: string; businessLineId: string }[] = [];
   let templates: Awaited<ReturnType<typeof qrLandingTemplateRepository.list>> = [];
+  let copySources: { id: string; name: string; fields: ReturnType<typeof readFields> }[] = [];
   if (isAdmin) {
     templates = await qrLandingTemplateRepository.list();
     const prods = await catalogService.listProducts(actor);
@@ -97,6 +99,14 @@ export default async function QrPage({
       name: localized(locale, p.nameEn, p.nameAr),
       businessLineId: p.businessLineId,
     }));
+    const otherCampaigns = await prisma.qrCampaign.findMany({
+      select: { id: true, name: true, customFields: true },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+    copySources = otherCampaigns
+      .map((c) => ({ id: c.id, name: c.name, fields: readFields(c.customFields) }))
+      .filter((s) => s.fields.length > 0);
   }
 
   // Public base URL for the share link.
@@ -122,7 +132,12 @@ export default async function QrPage({
       </div>
 
       {isAdmin ? (
-        <NewCampaignSection products={products} templates={templates} initial={{}} />
+        <NewCampaignSection
+          products={products}
+          templates={templates}
+          copySources={copySources}
+          initial={{}}
+        />
       ) : null}
 
       {campaigns.length === 0 ? (

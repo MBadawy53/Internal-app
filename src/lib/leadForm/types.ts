@@ -96,7 +96,7 @@ export function readCustomFields(raw: unknown): Record<string, string | number |
   return out;
 }
 
-/** Parse a LeadFormTemplate.fields JSON value into typed fields. */
+/** Parse a campaign.customFields JSON value into typed fields. */
 export function readFields(raw: unknown): LeadFormField[] {
   const parsed = leadFormFieldsSchema.safeParse(raw);
   if (!parsed.success) return [];

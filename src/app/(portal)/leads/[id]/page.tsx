@@ -33,8 +33,11 @@ export default async function LeadDetailPage({ params }: Params) {
   const nationalId = decryptOptional(lead.nationalIdEnc);
   const dateFmt = (d: Date) => new Date(d).toLocaleString(locale === "ar" ? "ar-EG" : "en-EG");
 
+  // Custom field labels live on the originating campaign (if any) so renaming
+  // a campaign's fields later keeps prior answers readable under the labels
+  // currently configured on that campaign.
   const customAnswers = readCustomFields(lead.customFields);
-  const templateFields = lead.formTemplate ? readFields(lead.formTemplate.fields) : [];
+  const templateFields = lead.campaign ? readFields(lead.campaign.customFields) : [];
 
   // Self-assign rule: actor isn't already the owner, and the lead is either
   // unassigned or still in NEW.

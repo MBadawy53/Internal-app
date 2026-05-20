@@ -9,14 +9,16 @@ import {
   type CampaignInitial,
   type TemplateOption,
 } from "@/components/portal/QrCampaignForm";
+import type { CopySource } from "@/components/portal/LeadFieldsBuilder";
 
 interface Props {
   products: { id: string; name: string; businessLineId: string }[];
   templates: TemplateOption[];
+  copySources?: CopySource[];
   initial: CampaignInitial;
 }
 
-export function NewCampaignSection({ products, templates, initial }: Props) {
+export function NewCampaignSection({ products, templates, copySources = [], initial }: Props) {
   const t = useTranslations("qr");
   const [open, setOpen] = useState(false);
 
@@ -41,7 +43,12 @@ export function NewCampaignSection({ products, templates, initial }: Props) {
         </div>
       </CardHeader>
       <CardContent>
-        <QrCampaignForm products={products} templates={templates} initial={initial} />
+        <QrCampaignForm
+          products={products}
+          templates={templates}
+          copySources={copySources}
+          initial={initial}
+        />
       </CardContent>
     </Card>
   );

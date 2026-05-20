@@ -9,6 +9,7 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrCampaignForm } from "@/components/portal/QrCampaignForm";
+import { readFields } from "@/lib/leadForm/types";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -32,6 +33,17 @@ export default async function EditQrCampaignPage({ params }: Params) {
     businessLineId: p.businessLineId,
   }));
 
+  // Other campaigns the admin can copy a field set from.
+  const otherCampaigns = await prisma.qrCampaign.findMany({
+    where: { id: { not: campaign.id } },
+    select: { id: true, name: true, customFields: true },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+  const copySources = otherCampaigns
+    .map((c) => ({ id: c.id, name: c.name, fields: readFields(c.customFields) }))
+    .filter((s) => s.fields.length > 0);
+
   return (
     <div className="space-y-6">
       <header>
@@ -44,6 +56,7 @@ export default async function EditQrCampaignPage({ params }: Params) {
           <QrCampaignForm
             products={products}
             templates={await qrLandingTemplateRepository.list()}
+            copySources={copySources}
             initial={{
               id: campaign.id,
               name: campaign.name,
@@ -56,6 +69,7 @@ export default async function EditQrCampaignPage({ params }: Params) {
               subtitleAr: campaign.subtitleAr,
               bodyMdEn: campaign.bodyMdEn,
               bodyMdAr: campaign.bodyMdAr,
+              customFields: readFields(campaign.customFields),
             }}
           />
         </CardContent>

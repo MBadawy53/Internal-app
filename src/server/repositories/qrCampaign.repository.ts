@@ -55,7 +55,6 @@ export const qrCampaignRepository = {
           },
         },
         product: true,
-        leadFormTemplate: { select: { id: true, fields: true, isActive: true } },
       },
     }),
 

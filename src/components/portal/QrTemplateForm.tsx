@@ -24,28 +24,19 @@ export interface TemplateInitial {
   subtitleAr?: string | null;
   bodyMdEn?: string | null;
   bodyMdAr?: string | null;
-  leadFormTemplateId?: string | null;
-}
-
-export interface LeadFormTemplateOption {
-  id: string;
-  name: string;
-  isDefault: boolean;
 }
 
 interface Props {
   initial?: TemplateInitial;
-  leadFormTemplates?: LeadFormTemplateOption[];
 }
 
-export function QrTemplateForm({ initial, leadFormTemplates = [] }: Props) {
+export function QrTemplateForm({ initial }: Props) {
   const t = useTranslations("qrTemplates.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
   const [kind, setKind] = useState<"LEAD_CAPTURE" | "AMBASSADOR_INVITE">(
     initial?.kind ?? "LEAD_CAPTURE",
   );
-  const isAmbassadorInvite = kind === "AMBASSADOR_INVITE";
   const action = isEdit ? updateTemplateAction.bind(null, initial!.id!) : createTemplateAction;
   const [state, formAction, pending] = useActionState<TemplateActionState | null, FormData>(
     action,
@@ -81,25 +72,6 @@ export function QrTemplateForm({ initial, leadFormTemplates = [] }: Props) {
         </div>
       </div>
 
-      {!isAmbassadorInvite && leadFormTemplates.length > 0 ? (
-        <div className="space-y-1.5">
-          <Label htmlFor="t-lead-form">{t("leadFormTemplate")}</Label>
-          <Select
-            id="t-lead-form"
-            name="leadFormTemplateId"
-            defaultValue={initial?.leadFormTemplateId ?? ""}
-          >
-            <option value="">{t("leadFormUseDefault")}</option>
-            {leadFormTemplates.map((tpl) => (
-              <option key={tpl.id} value={tpl.id}>
-                {tpl.name}
-                {tpl.isDefault ? ` (${t("leadFormDefaultBadge")})` : ""}
-              </option>
-            ))}
-          </Select>
-          <p className="text-xs text-muted-foreground">{t("leadFormHint")}</p>
-        </div>
-      ) : null}
       <div className="space-y-1.5">
         <Label htmlFor="t-header">{t("headerImageUrl")}</Label>
         <Input

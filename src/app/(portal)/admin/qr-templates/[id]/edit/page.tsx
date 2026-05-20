@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
-import { leadFormTemplateRepository } from "@/server/repositories/leadFormTemplate.repository";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrTemplateForm } from "@/components/portal/QrTemplateForm";
 
@@ -28,7 +27,6 @@ export default async function EditQrTemplatePage({ params }: Params) {
       <Card>
         <CardContent className="pt-6">
           <QrTemplateForm
-            leadFormTemplates={await leadFormTemplateRepository.listActive()}
             initial={{
               id: tpl.id,
               name: tpl.name,
@@ -40,7 +38,6 @@ export default async function EditQrTemplatePage({ params }: Params) {
               subtitleAr: tpl.subtitleAr,
               bodyMdEn: tpl.bodyMdEn,
               bodyMdAr: tpl.bodyMdAr,
-              leadFormTemplateId: tpl.leadFormTemplateId,
             }}
           />
         </CardContent>
