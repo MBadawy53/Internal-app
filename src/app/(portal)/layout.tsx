@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/portal/Sidebar";
+import { MobileBottomNav } from "@/components/portal/MobileBottomNav";
 import { TopBar } from "@/components/portal/TopBar";
 import { notificationRepository } from "@/server/repositories/notification.repository";
 import { ensureEffectiveMatrix, visibleFeaturesFor } from "@/lib/auth/rbac";
@@ -35,8 +36,9 @@ export default async function PortalLayout({ children }: { children: React.React
           referralCode={referralCode}
           unreadNotificationsCount={unread}
         />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 pb-20 md:pb-6">{children}</main>
       </div>
+      <MobileBottomNav role={session.user.role} visibleFeatures={visibleFeatures} />
     </div>
   );
 }

@@ -123,7 +123,8 @@
     "admin": "Administration",
     "adminCategories": "Categories",
     "adminProducts": "Products",
-    "profile": "My profile"
+    "profile": "My profile",
+    "more": "More"
   },
   "notifications": {
     "title": "Notifications",
@@ -178,7 +179,6 @@
   },
   "dashboard": {
     "title": "Welcome, {name}",
-    "phaseOne": "Phase 1 foundation is in place. Catalog and calculator are now live; leads, QR, notifications, and reports arrive in subsequent phases.",
     "yourReferralCode": "Your referral code",
     "role": "Role"
   },

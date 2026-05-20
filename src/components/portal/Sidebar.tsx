@@ -9,7 +9,6 @@ import {
   Bell,
   Calculator,
   LayoutDashboard,
-  Menu,
   Package,
   Percent,
   Plug,
@@ -89,6 +88,13 @@ export function Sidebar({
     };
   }, [mobileOpen]);
 
+  // Open the drawer when the bottom-nav "More" tab dispatches the event.
+  useEffect(() => {
+    const handler = () => setMobileOpen(true);
+    window.addEventListener("mobile-nav:open", handler);
+    return () => window.removeEventListener("mobile-nav:open", handler);
+  }, []);
+
   const items = NAV.filter(
     (n) => (!n.roles || n.roles.includes(role)) && (!n.feature || visible.has(n.feature)),
   );
@@ -116,18 +122,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Floating hamburger — mobile only. */}
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        aria-label="Open menu"
-        aria-expanded={mobileOpen}
-        aria-controls="mobile-sidebar"
-        className="fixed start-3 top-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-md border bg-background text-foreground shadow-soft md:hidden"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
       {/* Desktop sidebar. */}
       <aside className="hidden w-60 shrink-0 border-e bg-background md:flex md:flex-col">
         <div className="flex h-16 items-center border-b px-5">

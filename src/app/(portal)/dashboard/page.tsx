@@ -76,8 +76,6 @@ export default async function DashboardPage() {
           <p className="mt-2 text-xl font-semibold">{tRoles(session!.user.role)}</p>
         </div>
       </div>
-
-      <p className="max-w-2xl text-sm text-muted-foreground">{t("phaseOne")}</p>
     </div>
   );
 }
