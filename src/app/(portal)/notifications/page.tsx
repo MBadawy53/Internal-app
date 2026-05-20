@@ -8,6 +8,7 @@ import { markNotificationReadAction } from "@/server/actions/notifications";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MarkAllReadButton } from "@/components/portal/MarkAllReadButton";
+import { readPayload, type NotificationPayload } from "@/lib/notifications/payload";
 
 function relTime(d: Date, locale: AppLocale): string {
   const intl = new Intl.RelativeTimeFormat(locale === "ar" ? "ar-EG" : "en-EG", {
@@ -24,30 +25,27 @@ function relTime(d: Date, locale: AppLocale): string {
 }
 
 function summary(
-  type: string,
-  payload: Record<string, unknown>,
+  payload: NotificationPayload | null,
   t: (key: string, values?: Record<string, string | number>) => string,
 ): string {
-  const name = String(payload.customerName ?? "");
-  switch (type) {
+  if (!payload) return "";
+  switch (payload.type) {
     case "NEW_LEAD_FROM_QR":
-      return t("summaries.newLeadFromQr", { name });
+      return t("summaries.newLeadFromQr", { name: payload.customerName });
     case "NEW_LEAD_MANUAL":
-      return t("summaries.newLeadManual", { name });
+      return t("summaries.newLeadManual", { name: payload.customerName });
     case "LEAD_STATUS_CHANGED":
       return t("summaries.statusChanged", {
-        name,
-        from: String(payload.fromStatus ?? ""),
-        to: String(payload.toStatus ?? ""),
+        name: payload.customerName,
+        from: payload.fromStatus,
+        to: payload.toStatus,
       });
     case "LEAD_REFERRED":
-      return t("summaries.referred", { name });
+      return t("summaries.referred", { name: payload.customerName });
     case "LEAD_ASSIGNED":
-      return t("summaries.assigned", { name });
+      return t("summaries.assigned", { name: payload.customerName });
     case "SYSTEM":
-      return String(payload.message ?? "");
-    default:
-      return type;
+      return typeof payload.message === "string" ? payload.message : payload.kind;
   }
 }
 
@@ -85,9 +83,12 @@ export default async function NotificationsPage() {
           <CardContent className="p-0">
             <ul className="divide-y">
               {items.map((n) => {
-                const payload = (n.payloadJson as Record<string, unknown>) ?? {};
-                const text = summary(n.type, payload, (k, v) => t(k, v as never));
-                const leadId = typeof payload.leadId === "string" ? payload.leadId : undefined;
+                const payload = readPayload(n.payloadJson);
+                const text = summary(payload, (k, v) => t(k, v as never));
+                const leadId =
+                  payload && "leadId" in payload && typeof payload.leadId === "string"
+                    ? payload.leadId
+                    : undefined;
                 const isUnread = !n.readAt;
                 return (
                   <li

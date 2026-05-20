@@ -20,6 +20,7 @@ import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { leadRepository } from "@/server/repositories/lead.repository";
+import { notify } from "@/server/services/notify.service";
 import {
   buildCustomFieldsFromForm,
   leadFormFieldsSchema,
@@ -440,20 +441,16 @@ export async function submitPublicLeadAction(
 
     // Notify the referrer (the person whose link / QR brought this lead in).
     if (referrerId) {
-      await prisma.notification
-        .create({
-          data: {
-            userId: referrerId,
-            type: NotificationType.NEW_LEAD_FROM_QR,
-            payloadJson: {
-              leadId: lead.id,
-              customerName: d.customerName,
-              customerPhone: d.customerPhone,
-              campaignSlug: campaign?.slug ?? null,
-            },
-          },
-        })
-        .catch(() => undefined);
+      await notify({
+        userId: referrerId,
+        payload: {
+          type: NotificationType.NEW_LEAD_FROM_QR,
+          leadId: lead.id,
+          customerName: d.customerName,
+          customerPhone: d.customerPhone,
+          campaignSlug: campaign?.slug ?? null,
+        },
+      });
     }
 
     revalidatePath("/leads");
@@ -607,21 +604,17 @@ export async function ambassadorSignupAction(
   }
 
   // Notify the inviting employee in-app.
-  await prisma.notification
-    .create({
-      data: {
-        userId: campaign.employee.id,
-        type: NotificationType.SYSTEM,
-        payloadJson: {
-          kind: "AMBASSADOR_JOINED",
-          ambassadorGroupId: createdGroupId,
-          ambassadorNameEn: d.nameEn.trim(),
-          ambassadorNameAr: d.nameAr.trim(),
-          campaignSlug: campaign.slug,
-        },
-      },
-    })
-    .catch(() => undefined);
+  await notify({
+    userId: campaign.employee.id,
+    payload: {
+      type: NotificationType.SYSTEM,
+      kind: "AMBASSADOR_JOINED",
+      ambassadorGroupId: createdGroupId,
+      ambassadorNameEn: d.nameEn.trim(),
+      ambassadorNameAr: d.nameAr.trim(),
+      campaignSlug: campaign.slug,
+    },
+  });
 
   // Auto sign-in the new ambassador, mirroring the onboard flow.
   try {

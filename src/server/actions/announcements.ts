@@ -65,7 +65,13 @@ async function pushNotificationsToTargets(args: {
       data: users.map((u) => ({
         userId: u.id,
         type: NotificationType.SYSTEM,
+        // payloadJson mirrors the NotificationPayload shape from
+        // src/lib/notifications/payload.ts so readPayload() can validate
+        // it on the dashboard read path. createMany is used here (rather
+        // than notify() per row) because announcements fan out to all
+        // matched users in one shot.
         payloadJson: {
+          type: NotificationType.SYSTEM,
           kind: "ANNOUNCEMENT",
           announcementId: args.announcementId,
           titleEn: args.titleEn,

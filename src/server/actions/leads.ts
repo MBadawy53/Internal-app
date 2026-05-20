@@ -86,8 +86,8 @@ export async function createLeadAction(
     if (ownerId !== actor.id) {
       await notify({
         userId: ownerId,
-        type: NotificationType.NEW_LEAD_MANUAL,
         payload: {
+          type: NotificationType.NEW_LEAD_MANUAL,
           leadId: lead.id,
           customerName: d.customerName,
           customerPhone: d.customerPhone,
@@ -157,13 +157,14 @@ export async function transitionLeadStatusAction(
     // Notify the lead's owner (and referrer if different) — but never the
     // actor who just made the change.
     const payload = {
+      type: NotificationType.LEAD_STATUS_CHANGED,
       leadId: lead.id,
       customerName: lead.customerName,
       fromStatus: lead.currentStatus,
       toStatus: d.toStatus,
       reason: d.reason ?? null,
       actorId: actor.id,
-    };
+    } as const;
     const recipients = new Set<string>();
     if (lead.ownerEmployeeId && lead.ownerEmployeeId !== actor.id) {
       recipients.add(lead.ownerEmployeeId);
@@ -172,7 +173,7 @@ export async function transitionLeadStatusAction(
       recipients.add(lead.referredByEmployeeId);
     }
     for (const userId of recipients) {
-      await notify({ userId, type: NotificationType.LEAD_STATUS_CHANGED, payload });
+      await notify({ userId, payload });
     }
 
     revalidatePath(`/leads/${lead.id}`);
@@ -286,8 +287,8 @@ export async function claimLeadAction(
     if (previousOwnerId && previousOwnerId !== actor.id) {
       await notify({
         userId: previousOwnerId,
-        type: NotificationType.LEAD_ASSIGNED,
         payload: {
+          type: NotificationType.LEAD_ASSIGNED,
           leadId: lead.id,
           customerName: lead.customerName,
           newOwnerId: actor.id,

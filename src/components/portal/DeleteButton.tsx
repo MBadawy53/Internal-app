@@ -6,11 +6,11 @@ import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export interface DeleteResult {
-  ok: boolean;
-  mode?: "hard" | "soft";
-  message?: string;
-}
+/**
+ * Mirror of the server's SmartDeleteResult so callers can't accidentally
+ * read `message` on success or `mode` on failure.
+ */
+export type DeleteResult = { ok: true; mode: "hard" | "soft" } | { ok: false; message: string };
 
 interface Props {
   /**
