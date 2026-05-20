@@ -23,6 +23,20 @@ function isGroupId(value: string): boolean {
   return GROUP_ID_REGEX.test(value);
 }
 
+/**
+ * Normalize a login identifier to its canonical form before lookup.
+ *
+ * - Group IDs (C0001C / R0001R) are matched case-insensitively; we
+ *   uppercase them so `c0001c` and `C0001C` both find the same row.
+ * - Anything else is treated as an email and lowercased (emails are
+ *   stored lowercase in the DB).
+ */
+export function normalizeIdentifier(raw: string): string {
+  const trimmed = raw.trim();
+  const upper = trimmed.toUpperCase();
+  return GROUP_ID_REGEX.test(upper) ? upper : trimmed.toLowerCase();
+}
+
 // Auth.js v5 — Credentials provider now, structured so SSO/AD providers can be
 // added later by appending to the `providers` array without changing call sites.
 // The `identifier` field accepts EITHER a group ID (C0001C–C9999C) or an email.
@@ -44,11 +58,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorize: async (raw) => {
         const parsed = CredentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
-        const { identifier, password } = parsed.data;
+        const { password } = parsed.data;
+        const identifier = normalizeIdentifier(parsed.data.identifier);
 
         const user = isGroupId(identifier)
           ? await prisma.user.findUnique({ where: { groupId: identifier } })
-          : await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
+          : await prisma.user.findUnique({ where: { email: identifier } });
 
         if (!user || !user.isActive || !user.passwordHash) {
           // No user, deactivated, or first-login pending → reject here.

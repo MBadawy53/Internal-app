@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { GROUP_ID_REGEX, signIn, signOut } from "@/lib/auth/config";
+import { GROUP_ID_REGEX, normalizeIdentifier, signIn, signOut } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -40,8 +40,10 @@ export async function loginAction(
     return { ok: false, error: "invalidCredentials" };
   }
 
-  const { identifier, password } = parsed.data;
-  const normalizedIdentifier = isGroupId(identifier) ? identifier : identifier.toLowerCase();
+  const { password } = parsed.data;
+  // normalizeIdentifier uppercases group IDs (so c0001c == C0001C) and
+  // lowercases emails so the DB lookup hits the canonical form.
+  const normalizedIdentifier = normalizeIdentifier(parsed.data.identifier);
 
   // Pre-flight check: if the user exists but has no password yet, redirect to /onboard
   // instead of trying to authenticate. We do this before signIn so we can route the user
