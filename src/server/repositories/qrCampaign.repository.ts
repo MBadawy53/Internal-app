@@ -1,5 +1,7 @@
 import type { Prisma } from "@prisma/client";
+import { QrCampaignKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { readFields, type LeadFormField } from "@/lib/leadForm/types";
 
 export const qrCampaignRepository = {
   /**
@@ -100,4 +102,28 @@ export const qrCampaignRepository = {
       where: { id },
       data: { leadCount: { increment: 1 } },
     }),
+
+  /**
+   * For the internal /leads/new flow: pick the oldest active LEAD_CAPTURE
+   * campaign whose customFields array is non-empty. The first match wins —
+   * this is the implicit source-of-truth for "what fields should the
+   * internal lead form ask?" without introducing a separate settings table.
+   * Returns { id, fields } or null if no campaign has any custom fields.
+   */
+  findFirstWithCustomFields: async (): Promise<{
+    id: string;
+    fields: LeadFormField[];
+  } | null> => {
+    const candidates = await prisma.qrCampaign.findMany({
+      where: { isActive: true, kind: QrCampaignKind.LEAD_CAPTURE },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, customFields: true },
+      take: 50,
+    });
+    for (const c of candidates) {
+      const fields = readFields(c.customFields);
+      if (fields.length > 0) return { id: c.id, fields };
+    }
+    return null;
+  },
 };

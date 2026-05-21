@@ -14,6 +14,7 @@ import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
 import { canTransition, needsReason } from "@/lib/leads/state-machine";
 import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
+import { buildCustomFieldsFromForm, readFields } from "@/lib/leadForm/types";
 
 const CreateLeadSchema = z.object({
   customerName: z.string().min(1).max(160),
@@ -65,6 +66,26 @@ export async function createLeadAction(
     return { ok: false, message: "Owner is required" };
   }
 
+  // Resolve custom fields. The form posts the originating campaign id as a
+  // hint; we re-fetch the campaign server-side and validate answers against
+  // its schema so a tampered client can't swap the field definitions.
+  const cfCampaignId = fd.get("customFieldsCampaignId")?.toString() || null;
+  let customFields: Record<string, string | number | boolean> | null = null;
+  let snapshotCampaignId: string | null = null;
+  if (cfCampaignId) {
+    const campaign = await prisma.qrCampaign.findUnique({
+      where: { id: cfCampaignId },
+      select: { id: true, isActive: true, customFields: true },
+    });
+    const fields = campaign && campaign.isActive ? readFields(campaign.customFields) : [];
+    if (campaign && fields.length > 0) {
+      const result = buildCustomFieldsFromForm(fields, fd);
+      if (!result.ok) return { ok: false, message: result.message };
+      customFields = result.values;
+      snapshotCampaignId = campaign.id;
+    }
+  }
+
   try {
     const lead = await leadRepository.create({
       customerName: d.customerName,
@@ -80,6 +101,11 @@ export async function createLeadAction(
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
       ...(d.productId ? { product: { connect: { id: d.productId } } } : {}),
+      // Snapshot the campaign so the lead detail page can render answers
+      // with their (current) labels — not because the lead "came from" a
+      // QR campaign (source stays MANUAL_ENTRY).
+      ...(snapshotCampaignId ? { campaign: { connect: { id: snapshotCampaignId } } } : {}),
+      ...(customFields ? { customFields } : {}),
     });
 
     // Notify the owner (unless they're the actor — no point pinging yourself).

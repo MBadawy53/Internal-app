@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { catalogService } from "@/server/services/catalog.service";
+import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { LeadForm } from "@/components/portal/LeadForm";
@@ -29,9 +30,10 @@ export default async function NewLeadPage({
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads");
 
-  const [businessLines, products] = await Promise.all([
+  const [businessLines, products, customFieldsSource] = await Promise.all([
     catalogService.listBusinessLines(actor),
     catalogService.listProducts(actor),
+    qrCampaignRepository.findFirstWithCustomFields(),
   ]);
 
   // Owners list: only shown to admins / BL owners / managers. Employees
@@ -92,6 +94,8 @@ export default async function NewLeadPage({
         }))}
         owners={owners}
         showOwnerPicker={showOwnerPicker}
+        customFields={customFieldsSource?.fields ?? []}
+        customFieldsCampaignId={customFieldsSource?.id ?? null}
         initial={(() => {
           // Validate URL params against loaded data so a bogus product
           // can't pre-fill the form. Product implies its own BL.
