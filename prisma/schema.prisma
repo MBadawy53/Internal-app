@@ -643,6 +643,10 @@ model QrLandingTemplate {
   subtitleAr     String?
   bodyMdEn       String?
   bodyMdAr       String?
+  // Inline custom field definitions copied onto every campaign minted
+  // from this template at apply time. JSON array of LeadFormField
+  // (see src/lib/leadForm/types.ts). LEAD_CAPTURE only.
+  customFields   Json           @default("[]")
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt

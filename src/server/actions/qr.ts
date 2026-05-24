@@ -188,6 +188,10 @@ export async function applyCampaignTemplateAction(fd: FormData): Promise<UseTemp
         subtitleAr: tpl.subtitleAr,
         bodyMdEn: tpl.bodyMdEn,
         bodyMdAr: tpl.bodyMdAr,
+        // Snapshot the template's custom field schema onto the new
+        // campaign. Editing the template later only affects future
+        // campaigns minted from it.
+        customFields: tpl.customFields as unknown as object,
       });
       revalidatePath("/qr");
       return { ok: true, slug: created.slug };

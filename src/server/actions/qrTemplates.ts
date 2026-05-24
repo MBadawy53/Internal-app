@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { qrLandingTemplateRepository } from "@/server/repositories/qrLandingTemplate.repository";
 import { prisma } from "@/lib/prisma";
 import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
+import { leadFormFieldsSchema, type LeadFormField } from "@/lib/leadForm/types";
 
 export type TemplateActionState = { ok: true; id: string } | { ok: false; message: string };
 
@@ -42,6 +43,33 @@ function nullIfEmpty(v: string): string | null {
   return v.trim() === "" ? null : v;
 }
 
+/**
+ * Parse the landing template's inline custom-fields builder payload.
+ * The form posts a JSON-encoded LeadFormField[] as a hidden input;
+ * we validate via leadFormFieldsSchema and silently fall back to []
+ * if anything's malformed (the form enforces it client-side, this
+ * is the server-side safety net).
+ */
+function parseCustomFieldsField(fd: FormData): LeadFormField[] {
+  const raw = fd.get("customFields")?.toString();
+  if (!raw) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  const result = leadFormFieldsSchema.safeParse(parsed);
+  if (!result.success) {
+    logger.warn(
+      { issues: result.error.errors },
+      "qrLandingTemplate.customFields.validation_failed",
+    );
+    return [];
+  }
+  return result.data;
+}
+
 async function adminOnly(): Promise<void> {
   const actor = await requireActor();
   if (actor.role !== Role.ADMIN) {
@@ -59,6 +87,8 @@ export async function createTemplateAction(
     return { ok: false, message: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
   const d = parsed.data;
+  const customFields =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? [] : parseCustomFieldsField(fd);
   try {
     await qrLandingTemplateRepository.create({
       name: d.name,
@@ -70,6 +100,7 @@ export async function createTemplateAction(
       subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
       bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+      customFields: customFields as unknown as object,
     });
   } catch (err) {
     logger.error({ err }, "qrTemplate.create_failed");
@@ -90,6 +121,8 @@ export async function updateTemplateAction(
     return { ok: false, message: parsed.error.errors[0]?.message ?? "Invalid input" };
   }
   const d = parsed.data;
+  const customFields =
+    d.kind === QrCampaignKind.AMBASSADOR_INVITE ? [] : parseCustomFieldsField(fd);
   try {
     await qrLandingTemplateRepository.update(id, {
       name: d.name,
@@ -101,6 +134,7 @@ export async function updateTemplateAction(
       subtitleAr: nullIfEmpty(d.subtitleAr ?? ""),
       bodyMdEn: nullIfEmpty(d.bodyMdEn ?? ""),
       bodyMdAr: nullIfEmpty(d.bodyMdAr ?? ""),
+      customFields: customFields as unknown as object,
     });
     revalidatePath("/admin/qr-templates");
     revalidatePath(`/admin/qr-templates/${id}/edit`);

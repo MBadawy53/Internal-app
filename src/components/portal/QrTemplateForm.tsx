@@ -12,6 +12,8 @@ import {
   updateTemplateAction,
   type TemplateActionState,
 } from "@/server/actions/qrTemplates";
+import { LeadFieldsBuilder, type CopySource } from "@/components/portal/LeadFieldsBuilder";
+import type { LeadFormField } from "@/lib/leadForm/types";
 
 export interface TemplateInitial {
   id?: string;
@@ -24,13 +26,15 @@ export interface TemplateInitial {
   subtitleAr?: string | null;
   bodyMdEn?: string | null;
   bodyMdAr?: string | null;
+  customFields?: LeadFormField[];
 }
 
 interface Props {
   initial?: TemplateInitial;
+  copySources?: CopySource[];
 }
 
-export function QrTemplateForm({ initial }: Props) {
+export function QrTemplateForm({ initial, copySources = [] }: Props) {
   const t = useTranslations("qrTemplates.form");
   const tCommon = useTranslations("common");
   const isEdit = !!initial?.id;
@@ -143,6 +147,11 @@ export function QrTemplateForm({ initial }: Props) {
           />
         </div>
       </div>
+
+      {kind === "LEAD_CAPTURE" ? (
+        <LeadFieldsBuilder initial={initial?.customFields ?? []} copySources={copySources} />
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>
           {pending ? tCommon("saving") : isEdit ? tCommon("save") : tCommon("create")}
