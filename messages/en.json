@@ -453,18 +453,6 @@
       "customerNote": "Customer note",
       "consent": "The customer has consented to be contacted about this enquiry."
     },
-    "statuses": {
-      "NEW": "New",
-      "ASSIGNED": "Assigned",
-      "CONTACTED": "Contacted",
-      "NO_ANSWER": "No answer",
-      "APPLICATION_CREATED": "Application created",
-      "CREDIT_APPROVED": "Credit approved",
-      "CONTRACTED": "Contracted",
-      "LICENSING": "Licensing",
-      "CREDIT_REJECTED_FT": "Rejected (financial)",
-      "CREDIT_REJECTED_NT": "Rejected (non-financial)"
-    },
     "appStatuses": {
       "CREDIT_RISK": "Credit risk",
       "INCOMPLETE": "Incomplete",

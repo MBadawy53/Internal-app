@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import {
   LeadAppStatus,
   LeadProductStatus,
-  LeadStatus,
   LeadSource,
   LeadActivityType,
   LeadTrack,
@@ -105,9 +104,6 @@ export async function createLeadAction(
       preferredContactTime: d.preferredContactTime || null,
       customerNote: d.customerNote || null,
       consentGivenAt: new Date(),
-      // appStatus/productStatus default to INCOMPLETE/P_INITIATE at the
-      // column level; currentStatus is left at its DB default for the
-      // (deprecated) legacy column.
       businessLine: { connect: { id: d.businessLineId } },
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
@@ -346,7 +342,6 @@ export async function transitionLeadStateAction(
           appStatus: d.toAppStatus,
           productStatus: d.toProductStatus,
           track: nextTrack,
-          currentStatusReason: d.reason || null,
         },
       }),
       prisma.leadStatusHistory.create({
@@ -400,108 +395,4 @@ export async function transitionLeadStateAction(
     logger.error({ err, leadId: lead.id }, "lead.state_transition_failed");
     return { ok: false, message: "Status update failed" };
   }
-}
-
-// ── One-shot admin backfill ────────────────────────────────────────────────
-
-const LEGACY_TO_STATE: Record<
-  LeadStatus,
-  { appStatus: LeadAppStatus; productStatus: LeadProductStatus; track: LeadTrack | null }
-> = {
-  [LeadStatus.NEW]: {
-    appStatus: LeadAppStatus.INCOMPLETE,
-    productStatus: LeadProductStatus.P_INITIATE,
-    track: null,
-  },
-  [LeadStatus.ASSIGNED]: {
-    appStatus: LeadAppStatus.INCOMPLETE,
-    productStatus: LeadProductStatus.P_INITIATE,
-    track: null,
-  },
-  [LeadStatus.CONTACTED]: {
-    appStatus: LeadAppStatus.INCOMPLETE,
-    productStatus: LeadProductStatus.P_INITIATE,
-    track: null,
-  },
-  [LeadStatus.NO_ANSWER]: {
-    appStatus: LeadAppStatus.INCOMPLETE,
-    productStatus: LeadProductStatus.P_INITIATE,
-    track: null,
-  },
-  [LeadStatus.APPLICATION_CREATED]: {
-    appStatus: LeadAppStatus.INVESTIGATION,
-    productStatus: LeadProductStatus.P_INITIATE,
-    track: LeadTrack.NORMAL_TRACK,
-  },
-  [LeadStatus.CREDIT_APPROVED]: {
-    appStatus: LeadAppStatus.APPROVED_CLIENT,
-    productStatus: LeadProductStatus.PRE_EXECUTION,
-    track: null,
-  },
-  [LeadStatus.CONTRACTED]: {
-    appStatus: LeadAppStatus.APPROVED_CLIENT,
-    productStatus: LeadProductStatus.EXECUTION,
-    track: null,
-  },
-  [LeadStatus.LICENSING]: {
-    appStatus: LeadAppStatus.APPROVED_CLIENT,
-    productStatus: LeadProductStatus.P_REGISTER,
-    track: null,
-  },
-  [LeadStatus.CREDIT_REJECTED_FT]: {
-    appStatus: LeadAppStatus.DENIED,
-    productStatus: LeadProductStatus.HOLD,
-    track: LeadTrack.FAST_TRACK,
-  },
-  [LeadStatus.CREDIT_REJECTED_NT]: {
-    appStatus: LeadAppStatus.DENIED,
-    productStatus: LeadProductStatus.HOLD,
-    track: LeadTrack.NORMAL_TRACK,
-  },
-};
-
-export type BackfillResult = { ok: true; updated: number } | { ok: false; message: string };
-
-/**
- * One-shot admin action that maps every lead's legacy `currentStatus` to
- * the new (appStatus, productStatus, track) triple using LEGACY_TO_STATE.
- * Safe to run multiple times — it only touches leads whose new fields
- * still look like the column defaults (INCOMPLETE / P_INITIATE / null).
- */
-export async function backfillLeadStatusesAction(): Promise<BackfillResult> {
-  const actor = await requireActor();
-  if (actor.role !== Role.ADMIN) return { ok: false, message: "Admin only" };
-
-  const candidates = await prisma.lead.findMany({
-    where: {
-      appStatus: LeadAppStatus.INCOMPLETE,
-      productStatus: LeadProductStatus.P_INITIATE,
-      track: null,
-    },
-    select: { id: true, currentStatus: true },
-  });
-
-  let updated = 0;
-  for (const c of candidates) {
-    const m = LEGACY_TO_STATE[c.currentStatus];
-    // Skip if the legacy maps to the same default — saves a redundant write.
-    if (
-      m.appStatus === LeadAppStatus.INCOMPLETE &&
-      m.productStatus === LeadProductStatus.P_INITIATE &&
-      m.track === null
-    ) {
-      continue;
-    }
-    try {
-      await prisma.lead.update({
-        where: { id: c.id },
-        data: { appStatus: m.appStatus, productStatus: m.productStatus, track: m.track },
-      });
-      updated++;
-    } catch (err) {
-      logger.error({ err, leadId: c.id }, "lead.backfill_failed");
-    }
-  }
-  revalidatePath("/leads");
-  return { ok: true, updated };
 }

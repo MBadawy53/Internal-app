@@ -453,18 +453,6 @@
       "customerNote": "ملاحظة العميل",
       "consent": "وافق العميل على التواصل بشأن هذا الطلب."
     },
-    "statuses": {
-      "NEW": "جديد",
-      "ASSIGNED": "مُعيَّن",
-      "CONTACTED": "تم التواصل",
-      "NO_ANSWER": "لا يوجد رد",
-      "APPLICATION_CREATED": "تم إنشاء الطلب",
-      "CREDIT_APPROVED": "تمت الموافقة الائتمانية",
-      "CONTRACTED": "تم التعاقد",
-      "LICENSING": "ترخيص",
-      "CREDIT_REJECTED_FT": "مرفوض (مالي)",
-      "CREDIT_REJECTED_NT": "مرفوض (غير مالي)"
-    },
     "appStatuses": {
       "CREDIT_RISK": "تقييم ائتماني أولي",
       "INCOMPLETE": "بيانات ناقصة",

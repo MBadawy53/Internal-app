@@ -46,19 +46,6 @@ enum LeadSource {
   IMPORT
 }
 
-enum LeadStatus {
-  NEW
-  ASSIGNED
-  CONTACTED
-  NO_ANSWER
-  APPLICATION_CREATED
-  CREDIT_APPROVED
-  CONTRACTED
-  LICENSING
-  CREDIT_REJECTED_FT
-  CREDIT_REJECTED_NT
-}
-
 /// Application Status (55) — credit assessment dimension. Mirrors the Auto
 /// Loans status reference. Concurrent with `LeadProductStatus`.
 enum LeadAppStatus {
@@ -545,13 +532,9 @@ model Lead {
   businessLineId       String?
   productId            String?
   campaignId           String?
-  currentStatus        LeadStatus @default(NEW)
-  currentStatusReason  String?
-  // New two-dimensional status model. Each lead carries both an
-  // application status (credit dimension) and a product status
-  // (fulfilment dimension). `currentStatus` is kept temporarily for
-  // backward compatibility with the leads list / CSV export until
-  // Phase 2 of the migration.
+  // Two-dimensional status model from the Auto Loans reference: each lead
+  // carries both an application status (credit dimension) and a product
+  // status (fulfilment dimension), with an optional fast/normal track.
   appStatus            LeadAppStatus     @default(INCOMPLETE)
   productStatus        LeadProductStatus @default(P_INITIATE)
   track                LeadTrack?
@@ -584,30 +567,26 @@ model Lead {
   @@index([businessLineId])
   @@index([productId])
   @@index([campaignId])
-  @@index([currentStatus])
+  @@index([appStatus])
+  @@index([productStatus])
   @@index([createdAt])
   @@index([customerPhone])
   @@map("leads")
 }
 
 model LeadStatusHistory {
-  id         String      @id @default(cuid())
-  leadId     String
-  // Legacy single-dimension status fields. New rows leave these null and
-  // populate the *AppStatus / *ProductStatus pair below. Both kept until
-  // Phase 2 of the loan-status migration.
-  fromStatus LeadStatus?
-  toStatus   LeadStatus?
+  id                String             @id @default(cuid())
+  leadId            String
   fromAppStatus     LeadAppStatus?
   toAppStatus       LeadAppStatus?
   fromProductStatus LeadProductStatus?
   toProductStatus   LeadProductStatus?
   fromTrack         LeadTrack?
   toTrack           LeadTrack?
-  reason     String?
-  note       String?
-  actorId    String
-  createdAt  DateTime    @default(now())
+  reason            String?
+  note              String?
+  actorId           String
+  createdAt         DateTime           @default(now())
 
   lead  Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
   actor User @relation(fields: [actorId], references: [id])

@@ -1,4 +1,11 @@
-import { PrismaClient, Role, ProductType, LeadSource, LeadStatus } from "@prisma/client";
+import {
+  PrismaClient,
+  Role,
+  ProductType,
+  LeadSource,
+  LeadAppStatus,
+  LeadProductStatus,
+} from "@prisma/client";
 import * as argon2 from "argon2";
 import { randomBytes } from "node:crypto";
 
@@ -438,11 +445,36 @@ async function main() {
     where: { email: "emp1.consumer-financing@contact.local" },
   });
   if (leadsBL && emp) {
-    const sampleLeads: Array<{ name: string; phone: string; status: LeadStatus }> = [
-      { name: "Ahmed Hassan", phone: "+201001234567", status: LeadStatus.NEW },
-      { name: "Mona Saleh", phone: "+201112345678", status: LeadStatus.CONTACTED },
-      { name: "Karim Adel", phone: "+201223456789", status: LeadStatus.APPLICATION_CREATED },
-      { name: "Salma Ibrahim", phone: "+201556789012", status: LeadStatus.CONTRACTED },
+    const sampleLeads: Array<{
+      name: string;
+      phone: string;
+      appStatus: LeadAppStatus;
+      productStatus: LeadProductStatus;
+    }> = [
+      {
+        name: "Ahmed Hassan",
+        phone: "+201001234567",
+        appStatus: LeadAppStatus.INCOMPLETE,
+        productStatus: LeadProductStatus.P_INITIATE,
+      },
+      {
+        name: "Mona Saleh",
+        phone: "+201112345678",
+        appStatus: LeadAppStatus.SALES,
+        productStatus: LeadProductStatus.P_INITIATE,
+      },
+      {
+        name: "Karim Adel",
+        phone: "+201223456789",
+        appStatus: LeadAppStatus.INVESTIGATION,
+        productStatus: LeadProductStatus.P_INITIATE,
+      },
+      {
+        name: "Salma Ibrahim",
+        phone: "+201556789012",
+        appStatus: LeadAppStatus.APPROVED_CLIENT,
+        productStatus: LeadProductStatus.EXECUTION,
+      },
     ];
     for (const l of sampleLeads) {
       const exists = await prisma.lead.findFirst({
@@ -457,15 +489,16 @@ async function main() {
           businessLineId: leadsBL.id,
           ownerEmployeeId: emp.id,
           referredByEmployeeId: emp.id,
-          currentStatus: l.status,
+          appStatus: l.appStatus,
+          productStatus: l.productStatus,
           consentGivenAt: new Date(),
         },
       });
       await prisma.leadStatusHistory.create({
         data: {
           leadId: lead.id,
-          fromStatus: null,
-          toStatus: l.status,
+          toAppStatus: l.appStatus,
+          toProductStatus: l.productStatus,
           actorId: admin.id,
           note: "Seed",
         },

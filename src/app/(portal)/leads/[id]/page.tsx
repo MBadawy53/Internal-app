@@ -26,7 +26,6 @@ export default async function LeadDetailPage({ params }: Params) {
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads.detail");
-  const tStatus = await getTranslations("leads.statuses");
   const tAppStatus = await getTranslations("leads.appStatuses");
   const tProductStatus = await getTranslations("leads.productStatuses");
   const tTrack = await getTranslations("leads.tracks");
@@ -280,9 +279,6 @@ export default async function LeadDetailPage({ params }: Params) {
           ) : (
             <ul className="space-y-2">
               {lead.history.map((h) => {
-                // New rows populate the *AppStatus / *ProductStatus columns;
-                // legacy rows populate the single-dimension fromStatus / toStatus
-                // pair. Render whichever set is present.
                 const label = h.toAppStatus
                   ? `${
                       h.fromAppStatus ? `${tAppStatus(h.fromAppStatus)}/` : ""
@@ -290,9 +286,7 @@ export default async function LeadDetailPage({ params }: Params) {
                     `${tAppStatus(h.toAppStatus)}/${
                       h.toProductStatus ? tProductStatus(h.toProductStatus) : ""
                     }`
-                  : `${h.fromStatus ? `${tStatus(h.fromStatus)} → ` : ""}${
-                      h.toStatus ? tStatus(h.toStatus) : ""
-                    }`;
+                  : "";
                 return (
                   <li key={h.id} className="rounded-md border p-3 text-sm">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
