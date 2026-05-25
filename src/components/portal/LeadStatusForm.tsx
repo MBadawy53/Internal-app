@@ -2,58 +2,89 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { LeadStatus } from "@prisma/client";
+import { LeadTrack, type LeadAppStatus, type LeadProductStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { transitionLeadStatusAction, type TransitionState } from "@/server/actions/leads";
-import { allowedTransitions, needsReason } from "@/lib/leads/state-machine";
+import { transitionLeadStateAction, type TransitionStateState } from "@/server/actions/leads";
+import { allowedStates, needsReasonForState } from "@/lib/leads/state-machine";
 
 interface Props {
   leadId: string;
-  currentStatus: LeadStatus;
+  appStatus: LeadAppStatus;
+  productStatus: LeadProductStatus;
+  track: LeadTrack | null;
 }
 
-export function LeadStatusForm({ leadId, currentStatus }: Props) {
+export function LeadStatusForm({ leadId, appStatus, productStatus, track }: Props) {
   const t = useTranslations("leads.status");
-  const tStatus = useTranslations("leads.statuses");
-  const allowed = useMemo(() => allowedTransitions(currentStatus), [currentStatus]);
-  const [toStatus, setToStatus] = useState<string>("");
-  const [state, formAction, pending] = useActionState<TransitionState | null, FormData>(
-    transitionLeadStatusAction,
+  const tApp = useTranslations("leads.appStatuses");
+  const tProd = useTranslations("leads.productStatuses");
+  const tTrack = useTranslations("leads.tracks");
+
+  const next = useMemo(
+    () => allowedStates({ appStatus, productStatus }),
+    [appStatus, productStatus],
+  );
+
+  // Each option is the pair "appStatus|productStatus".
+  const [pair, setPair] = useState<string>("");
+  const [state, formAction, pending] = useActionState<TransitionStateState | null, FormData>(
+    transitionLeadStateAction,
     null,
   );
 
-  if (allowed.length === 0) {
+  if (next.length === 0) {
     return <p className="text-xs text-muted-foreground">{t("terminal")}</p>;
   }
 
-  const reasonRequired = toStatus ? needsReason(toStatus as LeadStatus) : false;
+  const [toAppStatus, toProductStatus] = pair
+    ? (pair.split("|") as [LeadAppStatus, LeadProductStatus])
+    : [undefined, undefined];
+  const reasonRequired =
+    toAppStatus && toProductStatus
+      ? needsReasonForState({ appStatus: toAppStatus, productStatus: toProductStatus })
+      : false;
 
   return (
     <form action={formAction} className="space-y-3">
       <input type="hidden" name="leadId" value={leadId} />
+      {toAppStatus ? <input type="hidden" name="toAppStatus" value={toAppStatus} /> : null}
+      {toProductStatus ? (
+        <input type="hidden" name="toProductStatus" value={toProductStatus} />
+      ) : null}
+
       <div className="space-y-1.5">
-        <Label htmlFor="toStatus">{t("changeTo")}</Label>
-        <Select
-          id="toStatus"
-          name="toStatus"
-          value={toStatus}
-          onChange={(e) => setToStatus(e.target.value)}
-          required
-        >
+        <Label htmlFor="toPair">{t("changeTo")}</Label>
+        <Select id="toPair" value={pair} onChange={(e) => setPair(e.target.value)} required>
           <option value="" disabled>
             —
           </option>
-          {allowed.map((s) => (
-            <option key={s} value={s}>
-              {tStatus(s)}
+          {next.map((s) => (
+            <option
+              key={`${s.appStatus}|${s.productStatus}`}
+              value={`${s.appStatus}|${s.productStatus}`}
+            >
+              55 {tApp(s.appStatus)} · 99 {tProd(s.productStatus)}
             </option>
           ))}
         </Select>
       </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="toTrack">{t("track")}</Label>
+        <Select id="toTrack" name="toTrack" defaultValue={track ?? ""}>
+          <option value="">{t("trackUnset")}</option>
+          {Object.values(LeadTrack).map((tr) => (
+            <option key={tr} value={tr}>
+              {tTrack(tr)}
+            </option>
+          ))}
+        </Select>
+      </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="reason">
           {t("reason")}
@@ -65,7 +96,8 @@ export function LeadStatusForm({ leadId, currentStatus }: Props) {
         <Label htmlFor="note">{t("note")}</Label>
         <Textarea id="note" name="note" rows={2} />
       </div>
-      <Button type="submit" disabled={pending || !toStatus}>
+
+      <Button type="submit" disabled={pending || !pair}>
         {pending ? t("updating") : t("update")}
       </Button>
       {state && state.ok === false ? (

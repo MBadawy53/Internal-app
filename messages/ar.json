@@ -421,6 +421,8 @@
     },
     "status": {
       "changeTo": "تغيير الحالة إلى",
+      "track": "المسار",
+      "trackUnset": "— (غير محدد)",
       "reason": "السبب",
       "note": "ملاحظة",
       "update": "تحديث الحالة",
@@ -462,6 +464,29 @@
       "LICENSING": "ترخيص",
       "CREDIT_REJECTED_FT": "مرفوض (مالي)",
       "CREDIT_REJECTED_NT": "مرفوض (غير مالي)"
+    },
+    "appStatuses": {
+      "CREDIT_RISK": "تقييم ائتماني أولي",
+      "INCOMPLETE": "بيانات ناقصة",
+      "INVESTIGATION": "تحت الدراسة",
+      "SALES": "مستندات إضافية",
+      "APPROVAL": "قرار نهائي",
+      "APPROVED_CLIENT": "عميل تمت الموافقة",
+      "DENIED": "مرفوض",
+      "HOLD": "موقوف"
+    },
+    "productStatuses": {
+      "P_INITIATE": "بدء الطلب",
+      "PRE_EXECUTION": "قبل التنفيذ",
+      "EXECUTION": "قيد التنفيذ",
+      "P_REGISTER": "بانتظار التسجيل",
+      "CONTRACT": "تم التعاقد",
+      "HOLD": "موقوف",
+      "SALES": "بانتظار العميل"
+    },
+    "tracks": {
+      "FAST_TRACK": "مسار سريع",
+      "NORMAL_TRACK": "مسار عادي"
     },
     "sources": {
       "QR_CODE": "رمز QR",

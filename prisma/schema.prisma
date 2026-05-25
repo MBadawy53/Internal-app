@@ -59,6 +59,38 @@ enum LeadStatus {
   CREDIT_REJECTED_NT
 }
 
+/// Application Status (55) — credit assessment dimension. Mirrors the Auto
+/// Loans status reference. Concurrent with `LeadProductStatus`.
+enum LeadAppStatus {
+  CREDIT_RISK
+  INCOMPLETE
+  INVESTIGATION
+  SALES
+  APPROVAL
+  APPROVED_CLIENT
+  DENIED
+  HOLD
+}
+
+/// Product Request Status (99) — fulfilment dimension. Concurrent with
+/// `LeadAppStatus`. After APPROVAL the app status stays APPROVED_CLIENT
+/// while this dimension advances PRE_EXECUTION → EXECUTION → P_REGISTER
+/// → CONTRACT.
+enum LeadProductStatus {
+  P_INITIATE
+  PRE_EXECUTION
+  EXECUTION
+  P_REGISTER
+  CONTRACT
+  HOLD
+  SALES
+}
+
+enum LeadTrack {
+  FAST_TRACK
+  NORMAL_TRACK
+}
+
 enum LeadActivityType {
   CALL
   NOTE
@@ -515,6 +547,14 @@ model Lead {
   campaignId           String?
   currentStatus        LeadStatus @default(NEW)
   currentStatusReason  String?
+  // New two-dimensional status model. Each lead carries both an
+  // application status (credit dimension) and a product status
+  // (fulfilment dimension). `currentStatus` is kept temporarily for
+  // backward compatibility with the leads list / CSV export until
+  // Phase 2 of the migration.
+  appStatus            LeadAppStatus     @default(INCOMPLETE)
+  productStatus        LeadProductStatus @default(P_INITIATE)
+  track                LeadTrack?
   preferredContactTime String?
   customerNote         String?
   externalCrmId        String?    @unique
@@ -553,8 +593,17 @@ model Lead {
 model LeadStatusHistory {
   id         String      @id @default(cuid())
   leadId     String
+  // Legacy single-dimension status fields. New rows leave these null and
+  // populate the *AppStatus / *ProductStatus pair below. Both kept until
+  // Phase 2 of the loan-status migration.
   fromStatus LeadStatus?
-  toStatus   LeadStatus
+  toStatus   LeadStatus?
+  fromAppStatus     LeadAppStatus?
+  toAppStatus       LeadAppStatus?
+  fromProductStatus LeadProductStatus?
+  toProductStatus   LeadProductStatus?
+  fromTrack         LeadTrack?
+  toTrack           LeadTrack?
   reason     String?
   note       String?
   actorId    String

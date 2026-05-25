@@ -6,7 +6,7 @@ import { leadService } from "@/server/services/lead.service";
 import { decryptOptional } from "@/lib/crypto/aes-gcm";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
-import { LeadStatus } from "@prisma/client";
+import { LeadAppStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
@@ -27,6 +27,9 @@ export default async function LeadDetailPage({ params }: Params) {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads.detail");
   const tStatus = await getTranslations("leads.statuses");
+  const tAppStatus = await getTranslations("leads.appStatuses");
+  const tProductStatus = await getTranslations("leads.productStatuses");
+  const tTrack = await getTranslations("leads.tracks");
   const tSource = await getTranslations("leads.sources");
   const tType = await getTranslations("leads.activityTypes");
 
@@ -41,10 +44,13 @@ export default async function LeadDetailPage({ params }: Params) {
   const templateFields = lead.campaign ? readFields(lead.campaign.customFields) : [];
 
   // Self-assign rule: actor isn't already the owner, and the lead is either
-  // unassigned or still in NEW.
+  // unassigned or still in the early credit-assessment phase (so an in-progress
+  // lead can't be silently stolen).
   const claimable =
     lead.ownerEmployeeId !== actor.id &&
-    (lead.ownerEmployeeId === null || lead.currentStatus === LeadStatus.NEW);
+    (lead.ownerEmployeeId === null ||
+      lead.appStatus === LeadAppStatus.INCOMPLETE ||
+      lead.appStatus === LeadAppStatus.CREDIT_RISK);
 
   return (
     <div className="space-y-6">
@@ -56,9 +62,20 @@ export default async function LeadDetailPage({ params }: Params) {
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{lead.customerName}</h1>
         <div className="brand-underline mt-2 w-16" />
-        <p className="mt-1 text-sm text-muted-foreground">
-          {tSource(lead.source)} · {tStatus(lead.currentStatus)}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{tSource(lead.source)}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full bg-brand-50 px-2 py-0.5 font-medium uppercase tracking-wider text-brand-700">
+            55 {tAppStatus(lead.appStatus)}
+          </span>
+          <span className="rounded-full bg-secondary px-2 py-0.5 font-medium uppercase tracking-wider">
+            99 {tProductStatus(lead.productStatus)}
+          </span>
+          {lead.track ? (
+            <span className="rounded-full border px-2 py-0.5 uppercase tracking-wider text-muted-foreground">
+              {tTrack(lead.track)}
+            </span>
+          ) : null}
+        </div>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -118,7 +135,12 @@ export default async function LeadDetailPage({ params }: Params) {
                 <ClaimLeadButton leadId={lead.id} />
               </div>
             ) : null}
-            <LeadStatusForm leadId={lead.id} currentStatus={lead.currentStatus} />
+            <LeadStatusForm
+              leadId={lead.id}
+              appStatus={lead.appStatus}
+              productStatus={lead.productStatus}
+              track={lead.track}
+            />
           </CardContent>
         </Card>
       </div>
@@ -257,22 +279,34 @@ export default async function LeadDetailPage({ params }: Params) {
             <p className="text-sm text-muted-foreground">{t("noHistory")}</p>
           ) : (
             <ul className="space-y-2">
-              {lead.history.map((h) => (
-                <li key={h.id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>
-                      {h.fromStatus ? `${tStatus(h.fromStatus)} → ` : ""}
-                      <strong className="text-foreground">{tStatus(h.toStatus)}</strong>
-                    </span>
-                    <span>
-                      {dateFmt(h.createdAt)} ·{" "}
-                      {h.actor ? localized(locale, h.actor.nameEn, h.actor.nameAr) : ""}
-                    </span>
-                  </div>
-                  {h.reason ? <p className="mt-1 text-sm">{h.reason}</p> : null}
-                  {h.note ? <p className="mt-1 text-xs text-muted-foreground">{h.note}</p> : null}
-                </li>
-              ))}
+              {lead.history.map((h) => {
+                // New rows populate the *AppStatus / *ProductStatus columns;
+                // legacy rows populate the single-dimension fromStatus / toStatus
+                // pair. Render whichever set is present.
+                const label = h.toAppStatus
+                  ? `${
+                      h.fromAppStatus ? `${tAppStatus(h.fromAppStatus)}/` : ""
+                    }${h.fromProductStatus ? `${tProductStatus(h.fromProductStatus)} → ` : ""}` +
+                    `${tAppStatus(h.toAppStatus)}/${
+                      h.toProductStatus ? tProductStatus(h.toProductStatus) : ""
+                    }`
+                  : `${h.fromStatus ? `${tStatus(h.fromStatus)} → ` : ""}${
+                      h.toStatus ? tStatus(h.toStatus) : ""
+                    }`;
+                return (
+                  <li key={h.id} className="rounded-md border p-3 text-sm">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <strong className="text-foreground">{label}</strong>
+                      <span>
+                        {dateFmt(h.createdAt)} ·{" "}
+                        {h.actor ? localized(locale, h.actor.nameEn, h.actor.nameAr) : ""}
+                      </span>
+                    </div>
+                    {h.reason ? <p className="mt-1 text-sm">{h.reason}</p> : null}
+                    {h.note ? <p className="mt-1 text-xs text-muted-foreground">{h.note}</p> : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

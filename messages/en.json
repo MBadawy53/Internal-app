@@ -421,6 +421,8 @@
     },
     "status": {
       "changeTo": "Change status to",
+      "track": "Track",
+      "trackUnset": "— (unset)",
       "reason": "Reason",
       "note": "Note",
       "update": "Update status",
@@ -462,6 +464,29 @@
       "LICENSING": "Licensing",
       "CREDIT_REJECTED_FT": "Rejected (financial)",
       "CREDIT_REJECTED_NT": "Rejected (non-financial)"
+    },
+    "appStatuses": {
+      "CREDIT_RISK": "Credit risk",
+      "INCOMPLETE": "Incomplete",
+      "INVESTIGATION": "Investigation",
+      "SALES": "Sales (docs)",
+      "APPROVAL": "Approval",
+      "APPROVED_CLIENT": "Approved client",
+      "DENIED": "Denied",
+      "HOLD": "Hold"
+    },
+    "productStatuses": {
+      "P_INITIATE": "P.Initiate",
+      "PRE_EXECUTION": "Pre-execution",
+      "EXECUTION": "Execution",
+      "P_REGISTER": "P.Register",
+      "CONTRACT": "Contract",
+      "HOLD": "Hold",
+      "SALES": "Sales (pending)"
+    },
+    "tracks": {
+      "FAST_TRACK": "Fast track",
+      "NORMAL_TRACK": "Normal track"
     },
     "sources": {
       "QR_CODE": "QR code",
