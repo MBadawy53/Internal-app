@@ -5,7 +5,7 @@ import { edgeAuthConfig } from "@/lib/auth/edge-config";
 const { auth } = NextAuth(edgeAuthConfig);
 
 const PUBLIC_PATHS = ["/login", "/onboard", "/forgot", "/api/auth", "/api/health"];
-const PUBLIC_PREFIXES = ["/r/", "/invite/", "/reset/"]; // public lead capture, invite accept, password reset
+const PUBLIC_PREFIXES = ["/r/", "/invite/", "/reset/", "/lead-id/"]; // public lead capture, invite accept, password reset, national-ID upload
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;

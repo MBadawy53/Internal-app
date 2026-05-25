@@ -75,6 +75,7 @@ enum NotificationType {
   LEAD_ASSIGNED
   LEAD_STATUS_CHANGED
   LEAD_REFERRED
+  LEAD_ID_UPLOADED
   SUGGESTION_UPDATED
   SYSTEM
 }
@@ -208,6 +209,7 @@ model User {
   passwordResetsIssued PasswordResetToken[] @relation("PasswordResetIssuedBy")
   suggestions    Suggestion[]             @relation("SuggestionSubmitter")
   suggestionsReplied Suggestion[]         @relation("SuggestionResponder")
+  leadIdUploadTokensIssued LeadIdUploadToken[] @relation("LeadIdUploadIssuedBy")
 
   @@index([businessLineId])
   @@index([managerId])
@@ -238,6 +240,28 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("password_reset_tokens")
+}
+
+// Single-use, SHA-256-hashed link the lead's owner sends the customer
+// to upload front + back of their national ID. The raw token leaves
+// the server once (shown in the owner's Copy / WhatsApp panel); only
+// the hash is stored, so a leaked DB row can't be replayed.
+model LeadIdUploadToken {
+  id         String    @id @default(cuid())
+  leadId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  // owner who issued the link, for audit + future "reminders" feature.
+  issuedById String
+  createdAt  DateTime  @default(now())
+
+  lead     Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  issuedBy User @relation("LeadIdUploadIssuedBy", fields: [issuedById], references: [id])
+
+  @@index([leadId])
+  @@index([expiresAt])
+  @@map("lead_id_upload_tokens")
 }
 
 enum SuggestionCategory {
@@ -479,6 +503,10 @@ model Lead {
   customerPhone        String
   customerEmailEnc     String?
   nationalIdEnc        String?
+  // Front + back images of the customer's national ID, uploaded by the
+  // customer via a short-lived single-use link the lead's owner sends.
+  nationalIdFrontUrl   String?
+  nationalIdBackUrl    String?
   source               LeadSource
   referredByEmployeeId String?
   ownerEmployeeId      String?
@@ -509,6 +537,7 @@ model Lead {
   activities   LeadActivity[]
   quotes       Quote[]
   syncJobs     LeadSyncJob[]
+  idUploadTokens LeadIdUploadToken[]
 
   @@index([ownerEmployeeId])
   @@index([referredByEmployeeId])

@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
 import { ClaimLeadButton } from "@/components/portal/ClaimLeadButton";
+import { LeadIdLinkPanel } from "@/components/portal/LeadIdLinkPanel";
 import { readCustomFields, readFields } from "@/lib/leadForm/types";
 
 interface Params {
@@ -121,6 +122,60 @@ export default async function LeadDetailPage({ params }: Params) {
           </CardContent>
         </Card>
       </div>
+
+      {lead.ownerEmployeeId === actor.id ? (
+        <LeadIdLinkPanel leadId={lead.id} customerPhone={lead.customerPhone} />
+      ) : null}
+
+      {lead.nationalIdFrontUrl || lead.nationalIdBackUrl ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("nationalIdImages")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {lead.nationalIdFrontUrl ? (
+                <a
+                  href={lead.nationalIdFrontUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">
+                    {t("nationalIdFront")}
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={lead.nationalIdFrontUrl}
+                    alt=""
+                    className="max-h-48 w-full rounded-md border object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </a>
+              ) : null}
+              {lead.nationalIdBackUrl ? (
+                <a
+                  href={lead.nationalIdBackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">
+                    {t("nationalIdBack")}
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={lead.nationalIdBackUrl}
+                    alt=""
+                    className="max-h-48 w-full rounded-md border object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </a>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {templateFields.length > 0 ? (
         <Card>

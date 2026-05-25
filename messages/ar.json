@@ -140,6 +140,7 @@
       "LEAD_ASSIGNED": "تم تعيين عميل",
       "LEAD_STATUS_CHANGED": "تغيّرت الحالة",
       "LEAD_REFERRED": "وصل عميل بدعوة",
+      "LEAD_ID_UPLOADED": "تم رفع الرقم القومي",
       "SUGGESTION_UPDATED": "تحديث اقتراح",
       "SYSTEM": "النظام"
     },
@@ -149,6 +150,7 @@
       "statusChanged": "{name}: {from} → {to}",
       "referred": "وصلك عميل بدعوة: {name}",
       "assigned": "تم تعيين عميل لك: {name}",
+      "leadIdUploaded": "{name} رفع صور الرقم القومي.",
       "suggestionUpdated": "اقتراحك '{title}' بقى {status}"
     }
   },
@@ -377,6 +379,19 @@
       "claim": "إسناده إليّ",
       "claiming": "جارٍ الإسناد…"
     },
+    "idUpload": {
+      "title": "ابعت لينك رفع الرقم القومي",
+      "subtitle": "اللينك ده بيقدر يبعته بس المسؤول عن العميل. العميل بيفتحه ويرفع صورة الوش والضهر. اللينك بيتستخدم مرة واحدة وبيخلص بعد 24 ساعة.",
+      "generate": "أنشئ لينك",
+      "generating": "جارٍ الإنشاء…",
+      "regenerate": "أنشئ لينك جديد",
+      "issuedTitle": "اللينك جاهز.",
+      "issuedBody": "بيخلص {expires}. شاركه على واتساب أو انسخ اللينك.",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "whatsapp": "واتساب",
+      "whatsappMessage": "من فضلك ارفع صورة الوش والضهر من الرقم القومي عبر اللينك ده:"
+    },
     "detail": {
       "claimUnassigned": "هذا العميل بدون مسؤول. خذه.",
       "claimNewStage": "ما زال هذا العميل في حالة \"جديد\". يمكنك توليه.",
@@ -399,6 +414,9 @@
       "customFields": "بيانات إضافية",
       "yes": "نعم",
       "no": "لا",
+      "nationalIdImages": "صور الرقم القومي",
+      "nationalIdFront": "الوش",
+      "nationalIdBack": "الضهر",
       "backToList": "العودة إلى القائمة"
     },
     "status": {
@@ -827,6 +845,17 @@
       "doneTitle": "تم تحديث كلمة المرور.",
       "doneBody": "كلمة المرور الجديدة شغّالة. سجّل دخول وكمّل.",
       "toLogin": "روح صفحة الدخول"
+    },
+    "leadIdUpload": {
+      "title": "ارفع الرقم القومي",
+      "subtitle": "من فضلك ارفع صور واضحة لوجه وضهر الرقم القومي. اللينك بيخلص بعد 24 ساعة وبيتستخدم مرة واحدة بس.",
+      "front": "الوش",
+      "back": "الضهر",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF، حتى 5 ميجا لكل صورة.",
+      "submit": "إرسال",
+      "submitting": "جارٍ الإرسال…",
+      "doneTitle": "تم استلام الصور — شكراً.",
+      "doneBody": "هيتواصل معاك ممثل كونتكت المالية قريباً."
     }
   },
   "qrTemplates": {

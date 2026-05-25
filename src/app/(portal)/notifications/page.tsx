@@ -44,6 +44,8 @@ function summary(
       return t("summaries.referred", { name: payload.customerName });
     case "LEAD_ASSIGNED":
       return t("summaries.assigned", { name: payload.customerName });
+    case "LEAD_ID_UPLOADED":
+      return t("summaries.leadIdUploaded", { name: payload.customerName });
     case "SUGGESTION_UPDATED":
       return t("summaries.suggestionUpdated", {
         title: payload.title,

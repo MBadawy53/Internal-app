@@ -140,6 +140,7 @@
       "LEAD_ASSIGNED": "Lead assigned",
       "LEAD_STATUS_CHANGED": "Status changed",
       "LEAD_REFERRED": "Lead referred",
+      "LEAD_ID_UPLOADED": "National ID uploaded",
       "SUGGESTION_UPDATED": "Suggestion updated",
       "SYSTEM": "System"
     },
@@ -149,6 +150,7 @@
       "statusChanged": "{name}: {from} → {to}",
       "referred": "Lead referred to you: {name}",
       "assigned": "Lead assigned to you: {name}",
+      "leadIdUploaded": "{name} uploaded their national ID.",
       "suggestionUpdated": "Your suggestion '{title}' is now {status}"
     }
   },
@@ -377,6 +379,19 @@
       "claim": "Assign to me",
       "claiming": "Claiming…"
     },
+    "idUpload": {
+      "title": "Send national ID upload link",
+      "subtitle": "Only you (as the assigned owner) can issue this link. The customer opens it and uploads front + back. Link is single-use and expires in 24 hours.",
+      "generate": "Generate link",
+      "generating": "Generating…",
+      "regenerate": "Generate a new link",
+      "issuedTitle": "Link ready.",
+      "issuedBody": "Expires {expires}. Share it via WhatsApp or copy the URL.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "whatsapp": "WhatsApp",
+      "whatsappMessage": "Please upload front + back of your national ID using this link:"
+    },
     "detail": {
       "claimUnassigned": "This lead has no owner. Take it.",
       "claimNewStage": "This lead is still in NEW. You can take it over.",
@@ -399,6 +414,9 @@
       "customFields": "Additional information",
       "yes": "Yes",
       "no": "No",
+      "nationalIdImages": "National ID images",
+      "nationalIdFront": "Front",
+      "nationalIdBack": "Back",
       "backToList": "Back to leads"
     },
     "status": {
@@ -827,6 +845,17 @@
       "doneTitle": "Password updated.",
       "doneBody": "Your new password is active. Sign in to continue.",
       "toLogin": "Go to sign in"
+    },
+    "leadIdUpload": {
+      "title": "Upload your national ID",
+      "subtitle": "Please upload clear photos of the front and back of your national ID. The link expires in 24 hours and can only be used once.",
+      "front": "Front side",
+      "back": "Back side",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF, up to 5 MB each.",
+      "submit": "Submit",
+      "submitting": "Submitting…",
+      "doneTitle": "Thanks — we've received your ID.",
+      "doneBody": "Your Contact Financial representative will follow up shortly."
     }
   },
   "qrTemplates": {
