@@ -28,7 +28,8 @@ export default async function AmbassadorLeadsPage({
   const sp = await searchParams;
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("ambassadors.leads");
-  const tStatus = await getTranslations("leads.status");
+  const tAppStatus = await getTranslations("leads.appStatuses");
+  const tProductStatus = await getTranslations("leads.productStatuses");
 
   // Admin can preview any employee's ambassador-pool; everyone else is
   // scoped to themselves.
@@ -105,7 +106,9 @@ export default async function AmbassadorLeadsPage({
                             ? localized(locale, l.businessLine.nameEn, l.businessLine.nameAr)
                             : "—"}
                         </td>
-                        <td className="px-3 py-2">{tStatus(l.currentStatus)}</td>
+                        <td className="px-3 py-2 text-xs">
+                          {tAppStatus(l.appStatus)} · {tProductStatus(l.productStatus)}
+                        </td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">
                           {new Date(l.createdAt).toLocaleDateString()}
                         </td>

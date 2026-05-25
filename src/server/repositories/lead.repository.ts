@@ -1,10 +1,9 @@
-import type { Prisma, LeadStatus, LeadSource } from "@prisma/client";
-import { LeadActivityType } from "@prisma/client";
+import type { Prisma, LeadActivityType, LeadAppStatus, LeadSource } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { Scope } from "@/lib/auth/rbac";
 
 export interface ListLeadFilters {
-  status?: LeadStatus;
+  appStatus?: LeadAppStatus;
   source?: LeadSource;
   businessLineId?: string;
   ownerEmployeeId?: string;
@@ -46,7 +45,7 @@ export const leadRepository = {
     filters: ListLeadFilters = {},
   ) => {
     const where: Prisma.LeadWhereInput = { ...scopeFilter(scope, actor) };
-    if (filters.status) where.currentStatus = filters.status;
+    if (filters.appStatus) where.appStatus = filters.appStatus;
     if (filters.source) where.source = filters.source;
     if (filters.businessLineId) where.businessLineId = filters.businessLineId;
     if (filters.ownerEmployeeId) where.ownerEmployeeId = filters.ownerEmployeeId;
@@ -99,44 +98,6 @@ export const leadRepository = {
 
   create: (data: Prisma.LeadCreateInput) =>
     prisma.lead.create({ data, include: { businessLine: true } }),
-
-  /**
-   * Apply a status transition atomically: update the lead's currentStatus,
-   * append a LeadStatusHistory row, and auto-log a STATUS_CHANGE activity so
-   * the timeline reflects it.
-   */
-  transition: (params: {
-    leadId: string;
-    fromStatus: LeadStatus;
-    toStatus: LeadStatus;
-    reason: string | null;
-    note: string | null;
-    actorId: string;
-  }) =>
-    prisma.$transaction([
-      prisma.lead.update({
-        where: { id: params.leadId },
-        data: { currentStatus: params.toStatus, currentStatusReason: params.reason ?? null },
-      }),
-      prisma.leadStatusHistory.create({
-        data: {
-          leadId: params.leadId,
-          fromStatus: params.fromStatus,
-          toStatus: params.toStatus,
-          reason: params.reason,
-          note: params.note,
-          actorId: params.actorId,
-        },
-      }),
-      prisma.leadActivity.create({
-        data: {
-          leadId: params.leadId,
-          type: LeadActivityType.STATUS_CHANGE,
-          content: `${params.fromStatus} → ${params.toStatus}${params.reason ? `: ${params.reason}` : ""}`,
-          actorId: params.actorId,
-        },
-      }),
-    ]),
 
   addActivity: (params: {
     leadId: string;

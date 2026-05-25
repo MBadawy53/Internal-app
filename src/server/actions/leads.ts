@@ -21,13 +21,7 @@ import { prisma } from "@/lib/prisma";
 import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
-import {
-  canTransition,
-  canTransitionState,
-  needsReason,
-  needsReasonForState,
-  type LeadState,
-} from "@/lib/leads/state-machine";
+import { canTransitionState, needsReasonForState, type LeadState } from "@/lib/leads/state-machine";
 import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 import { buildCustomFieldsFromForm, readFields } from "@/lib/leadForm/types";
 
@@ -111,7 +105,9 @@ export async function createLeadAction(
       preferredContactTime: d.preferredContactTime || null,
       customerNote: d.customerNote || null,
       consentGivenAt: new Date(),
-      currentStatus: LeadStatus.NEW,
+      // appStatus/productStatus default to INCOMPLETE/P_INITIATE at the
+      // column level; currentStatus is left at its DB default for the
+      // (deprecated) legacy column.
       businessLine: { connect: { id: d.businessLineId } },
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
@@ -143,86 +139,6 @@ export async function createLeadAction(
   } catch (err) {
     logger.error({ err }, "lead.create_failed");
     throw err;
-  }
-}
-
-const TransitionSchema = z.object({
-  leadId: z.string().min(1),
-  toStatus: z.nativeEnum(LeadStatus),
-  reason: z.string().max(500).optional().or(z.literal("")),
-  note: z.string().max(1000).optional().or(z.literal("")),
-});
-
-export type TransitionState = { ok: true } | { ok: false; message: string };
-
-export async function transitionLeadStatusAction(
-  _prev: TransitionState | null,
-  fd: FormData,
-): Promise<TransitionState> {
-  const actor = await requireActor();
-  requirePermission(actor, "update", "lead");
-
-  const parsed = TransitionSchema.safeParse({
-    leadId: fd.get("leadId")?.toString(),
-    toStatus: fd.get("toStatus")?.toString(),
-    reason: fd.get("reason")?.toString() ?? "",
-    note: fd.get("note")?.toString() ?? "",
-  });
-  if (!parsed.success) return { ok: false, message: "Invalid input" };
-  const d = parsed.data;
-
-  // Re-load lead through the service so scope is enforced.
-  const lead = await leadService.get(actor, d.leadId);
-  if (!lead) return { ok: false, message: "Lead not found" };
-
-  if (!canTransition(lead.currentStatus, d.toStatus)) {
-    return {
-      ok: false,
-      message: `Illegal transition: ${lead.currentStatus} → ${d.toStatus}`,
-    };
-  }
-  if (needsReason(d.toStatus) && !d.reason?.trim()) {
-    return { ok: false, message: "A reason is required for this status." };
-  }
-
-  try {
-    await leadRepository.transition({
-      leadId: lead.id,
-      fromStatus: lead.currentStatus,
-      toStatus: d.toStatus,
-      reason: d.reason || null,
-      note: d.note || null,
-      actorId: actor.id,
-    });
-
-    // Notify the lead's owner (and referrer if different) — but never the
-    // actor who just made the change.
-    const payload = {
-      type: NotificationType.LEAD_STATUS_CHANGED,
-      leadId: lead.id,
-      customerName: lead.customerName,
-      fromStatus: lead.currentStatus,
-      toStatus: d.toStatus,
-      reason: d.reason ?? null,
-      actorId: actor.id,
-    } as const;
-    const recipients = new Set<string>();
-    if (lead.ownerEmployeeId && lead.ownerEmployeeId !== actor.id) {
-      recipients.add(lead.ownerEmployeeId);
-    }
-    if (lead.referredByEmployeeId && lead.referredByEmployeeId !== actor.id) {
-      recipients.add(lead.referredByEmployeeId);
-    }
-    for (const userId of recipients) {
-      await notify({ userId, payload });
-    }
-
-    revalidatePath(`/leads/${lead.id}`);
-    revalidatePath("/leads");
-    return { ok: true };
-  } catch (err) {
-    logger.error({ err, leadId: lead.id }, "lead.transition_failed");
-    return { ok: false, message: "Status update failed" };
   }
 }
 
@@ -298,7 +214,11 @@ export async function claimLeadAction(
   if (lead.ownerEmployeeId === actor.id) {
     return { ok: true }; // already owned by actor, no-op
   }
-  const claimable = lead.ownerEmployeeId === null || lead.currentStatus === LeadStatus.NEW;
+  // Claimable if unassigned, or still in early credit-assessment phase.
+  const claimable =
+    lead.ownerEmployeeId === null ||
+    lead.appStatus === LeadAppStatus.INCOMPLETE ||
+    lead.appStatus === LeadAppStatus.CREDIT_RISK;
   if (!claimable) {
     return {
       ok: false,

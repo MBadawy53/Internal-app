@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { LeadSource, LeadStatus } from "@prisma/client";
+import { LeadAppStatus, LeadSource } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { leadService } from "@/server/services/lead.service";
 import { decryptOptional } from "@/lib/crypto/aes-gcm";
 
 export const runtime = "nodejs";
 
-const LEAD_STATUSES = new Set<string>(Object.values(LeadStatus));
+const LEAD_STATUSES = new Set<string>(Object.values(LeadAppStatus));
 const LEAD_SOURCES = new Set<string>(Object.values(LeadSource));
 
 /** RFC 4180 CSV field escaping. */
@@ -26,7 +26,7 @@ export async function GET(req: Request): Promise<Response> {
   const to = url.searchParams.get("to");
 
   const leads = await leadService.list(actor, {
-    status: status && LEAD_STATUSES.has(status) ? (status as LeadStatus) : undefined,
+    appStatus: status && LEAD_STATUSES.has(status) ? (status as LeadAppStatus) : undefined,
     source: source && LEAD_SOURCES.has(source) ? (source as LeadSource) : undefined,
     query: q ?? undefined,
     fromDate: from ? new Date(from) : undefined,
@@ -41,7 +41,9 @@ export async function GET(req: Request): Promise<Response> {
     "customerEmail",
     "businessLine",
     "product",
-    "status",
+    "appStatus",
+    "productStatus",
+    "track",
     "source",
     "owner",
     "referredBy",
@@ -55,7 +57,9 @@ export async function GET(req: Request): Promise<Response> {
       decryptOptional(l.customerEmailEnc) ?? "",
       l.businessLine?.nameEn ?? "",
       l.product?.nameEn ?? "",
-      l.currentStatus,
+      l.appStatus,
+      l.productStatus,
+      l.track ?? "",
       l.source,
       l.owner?.nameEn ?? "",
       l.referredBy?.nameEn ?? "",

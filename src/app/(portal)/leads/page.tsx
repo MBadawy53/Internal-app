@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { LeadSource, LeadStatus } from "@prisma/client";
+import { LeadAppStatus, LeadSource } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { leadService } from "@/server/services/lead.service";
@@ -18,7 +18,7 @@ interface SearchParams {
   to?: string;
 }
 
-const LEAD_STATUSES = new Set<string>(Object.values(LeadStatus));
+const LEAD_STATUSES = new Set<string>(Object.values(LeadAppStatus));
 const LEAD_SOURCES = new Set<string>(Object.values(LeadSource));
 
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -27,14 +27,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads");
-  const tStatus = await getTranslations("leads.statuses");
+  const tAppStatus = await getTranslations("leads.appStatuses");
+  const tProductStatus = await getTranslations("leads.productStatuses");
   const tSource = await getTranslations("leads.sources");
 
-  const status = sp.status && LEAD_STATUSES.has(sp.status) ? (sp.status as LeadStatus) : undefined;
+  const appStatus =
+    sp.status && LEAD_STATUSES.has(sp.status) ? (sp.status as LeadAppStatus) : undefined;
   const source = sp.source && LEAD_SOURCES.has(sp.source) ? (sp.source as LeadSource) : undefined;
 
   const leads = await leadService.list(actor, {
-    status,
+    appStatus,
     source,
     query: sp.q || undefined,
     fromDate: sp.from ? new Date(sp.from) : undefined,
@@ -42,7 +44,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   });
 
   const exportQs = new URLSearchParams();
-  if (status) exportQs.set("status", status);
+  if (appStatus) exportQs.set("status", appStatus);
   if (source) exportQs.set("source", source);
   if (sp.q) exportQs.set("q", sp.q);
   if (sp.from) exportQs.set("from", sp.from);
@@ -74,7 +76,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
           from: sp.from ?? "",
           to: sp.to ?? "",
         }}
-        statuses={Object.values(LeadStatus).map((s) => ({ value: s, label: tStatus(s) }))}
+        statuses={Object.values(LeadAppStatus).map((s) => ({ value: s, label: tAppStatus(s) }))}
         sources={Object.values(LeadSource).map((s) => ({ value: s, label: tSource(s) }))}
       />
 
@@ -118,9 +120,14 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         : "—"}
                     </td>
                     <td className="px-3 py-2">
-                      <span className="inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider">
-                        {tStatus(l.currentStatus)}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-brand-700">
+                          {tAppStatus(l.appStatus)}
+                        </span>
+                        <span className="inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider">
+                          {tProductStatus(l.productStatus)}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-3 py-2 text-xs">{tSource(l.source)}</td>
                     <td className="px-3 py-2 text-xs">

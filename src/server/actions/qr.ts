@@ -7,7 +7,6 @@ import { headers } from "next/headers";
 import {
   LeadActivityType,
   LeadSource,
-  LeadStatus,
   NotificationType,
   QrCampaignKind,
   Role,
@@ -416,7 +415,7 @@ export async function submitPublicLeadAction(
       consentGivenAt: new Date(),
       consentIp: ip === "unknown" ? null : ip,
       consentUserAgent: userAgent ?? null,
-      currentStatus: LeadStatus.NEW,
+      // appStatus / productStatus default at the column level.
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),
       ...(customFields ? { customFields } : {}),
