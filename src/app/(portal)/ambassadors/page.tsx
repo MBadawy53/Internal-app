@@ -8,6 +8,8 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PendingApplicationCard } from "@/components/portal/PendingApplicationCard";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteUserSafeAction } from "@/server/actions/users";
 
 type Tab = "active" | "pending";
 
@@ -141,6 +143,11 @@ export default async function AmbassadorsPage({
                       {t("viewLeads")}
                     </Link>
                   </p>
+                  {actor.role === Role.ADMIN ? (
+                    <div className="flex justify-end pt-2">
+                      <DeleteButton action={deleteUserSafeAction.bind(null, a.id)} />
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             ))}
