@@ -437,11 +437,17 @@
       "loanAmount": "Loan amount",
       "tier": "Tier",
       "commission": "Commission",
-      "noTier": "No matching commission tier is configured for this loan amount.",
       "disclaimer": "Computed from the product's current tier schedule. Final figure depends on the loan system reconciliation.",
       "persona": {
         "EMPLOYEE": "Employee",
         "AMBASSADOR": "Ambassador"
+      },
+      "reason": {
+        "NO_AMOUNT": "Final loan amount is missing.",
+        "NO_PRODUCT": "This lead has no product attached. Set a product to compute commission.",
+        "NO_RECIPIENT": "No employee or ambassador is linked to this lead, so there's no recipient to pay.",
+        "NO_SCHEDULE": "No commission schedule is configured for this product yet. Ask the admin to set it under Commission settings.",
+        "NO_TIER": "No commission tier covers this loan amount. Ask the admin to add a tier for it."
       }
     },
     "activity": {

@@ -106,7 +106,7 @@ interface EarnedRow {
   customerName: string;
   productName: string;
   recipientName: string;
-  persona: CommissionPersona;
+  persona: CommissionPersona | null;
   amountPiastres: bigint;
   commissionPiastres: bigint;
   tierMatched: boolean;
@@ -155,18 +155,19 @@ async function loadEarnedCommissions(
       referredBy: l.referredBy ? { id: l.referredBy.id, role: l.referredBy.role } : null,
     });
     if (!computed) continue;
-    const recipient =
-      l.owner && computed.recipient.userId === l.owner.id
+    const recipient = computed.recipient
+      ? l.owner && computed.recipient.userId === l.owner.id
         ? l.owner
         : l.referredBy && computed.recipient.userId === l.referredBy.id
           ? l.referredBy
-          : null;
+          : null
+      : null;
     out.push({
       leadId: l.id,
       customerName: l.customerName,
       productName: l.product ? localized(locale, l.product.nameEn, l.product.nameAr) : "—",
       recipientName: recipient ? localized(locale, recipient.nameEn, recipient.nameAr) : "—",
-      persona: computed.recipient.persona,
+      persona: computed.recipient?.persona ?? null,
       amountPiastres: computed.amountPiastres,
       commissionPiastres: computed.commissionPiastres,
       tierMatched: computed.tier !== null,
@@ -232,9 +233,13 @@ function EarnedCommissionsTable({
                 <td className="px-3 py-2">{r.productName}</td>
                 <td className="px-3 py-2">{r.recipientName}</td>
                 <td className="px-3 py-2 text-xs">
-                  <span className="rounded-full bg-secondary px-2 py-0.5 uppercase tracking-wider">
-                    {personaLabels[r.persona]}
-                  </span>
+                  {r.persona ? (
+                    <span className="rounded-full bg-secondary px-2 py-0.5 uppercase tracking-wider">
+                      {personaLabels[r.persona]}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="px-3 py-2 text-end">{formatMoney(r.amountPiastres, locale)}</td>
                 <td className="px-3 py-2 text-end font-medium">

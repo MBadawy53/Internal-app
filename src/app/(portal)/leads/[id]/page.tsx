@@ -49,9 +49,11 @@ export default async function LeadDetailPage({ params }: Params) {
         })
       : null;
   const commissionRecipientName =
-    computedCommission && lead.owner && computedCommission.recipient.userId === lead.owner.id
+    computedCommission?.recipient &&
+    lead.owner &&
+    computedCommission.recipient.userId === lead.owner.id
       ? localized(locale, lead.owner.nameEn, lead.owner.nameAr)
-      : computedCommission &&
+      : computedCommission?.recipient &&
           lead.referredBy &&
           computedCommission.recipient.userId === lead.referredBy.id
         ? localized(locale, lead.referredBy.nameEn, lead.referredBy.nameAr)
@@ -177,14 +179,18 @@ export default async function LeadDetailPage({ params }: Params) {
           <CardContent>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <Stat
-                label={tCommission("recipient")}
-                value={`${commissionRecipientName} · ${tCommission(
-                  `persona.${computedCommission.recipient.persona}`,
-                )}`}
-              />
-              <Stat
                 label={tCommission("loanAmount")}
                 value={formatMoney(computedCommission.amountPiastres, locale)}
+              />
+              <Stat
+                label={tCommission("recipient")}
+                value={
+                  computedCommission.recipient
+                    ? `${commissionRecipientName} · ${tCommission(
+                        `persona.${computedCommission.recipient.persona}`,
+                      )}`
+                    : "—"
+                }
               />
               {computedCommission.tier ? (
                 <>
@@ -204,12 +210,13 @@ export default async function LeadDetailPage({ params }: Params) {
                     value={formatMoney(computedCommission.commissionPiastres, locale)}
                   />
                 </>
-              ) : (
-                <div className="sm:col-span-2">
-                  <p className="text-xs text-muted-foreground">{tCommission("noTier")}</p>
-                </div>
-              )}
+              ) : null}
             </dl>
+            {computedCommission.reason ? (
+              <p className="mt-3 rounded-md border border-dashed bg-secondary/40 p-3 text-xs text-muted-foreground">
+                {tCommission(`reason.${computedCommission.reason}`)}
+              </p>
+            ) : null}
             <p className="mt-3 text-xs text-muted-foreground">{tCommission("disclaimer")}</p>
           </CardContent>
         </Card>
