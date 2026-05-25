@@ -427,7 +427,22 @@
       "note": "Note",
       "update": "Update status",
       "updating": "Updating…",
-      "terminal": "This lead has reached a terminal status."
+      "terminal": "This lead has reached a terminal status.",
+      "finalLoanAmount": "Final approved loan amount (EGP)",
+      "finalLoanAmountHint": "Required to close the contract. Used to compute commission. Will be verified against the loan system."
+    },
+    "commissionCard": {
+      "title": "Commission",
+      "recipient": "Earned by",
+      "loanAmount": "Loan amount",
+      "tier": "Tier",
+      "commission": "Commission",
+      "noTier": "No matching commission tier is configured for this loan amount.",
+      "disclaimer": "Computed from the product's current tier schedule. Final figure depends on the loan system reconciliation.",
+      "persona": {
+        "EMPLOYEE": "Employee",
+        "AMBASSADOR": "Ambassador"
+      }
     },
     "activity": {
       "type": "Type",
@@ -1012,6 +1027,19 @@
     },
     "sectionEmployee": "Employee commissions",
     "sectionAmbassador": "Ambassador commissions",
+    "sectionEarned": "Earned commissions",
+    "earnedSubtitle": "Contracted leads and the commission they generated.",
+    "earnedEmpty": "No commissions earned yet. Commission appears here once a lead reaches CONTRACT with a final loan amount.",
+    "earnedColumns": {
+      "lead": "Lead",
+      "product": "Product",
+      "recipient": "Recipient",
+      "amount": "Loan amount",
+      "commission": "Commission",
+      "closedAt": "Closed",
+      "persona": "Type"
+    },
+    "noMatchingTier": "No matching tier",
     "empty": "No commission rates published yet.",
     "noTiers": "No tiers configured.",
     "columns": {

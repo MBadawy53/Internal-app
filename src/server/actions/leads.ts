@@ -21,6 +21,7 @@ import { leadRepository } from "@/server/repositories/lead.repository";
 import { leadService } from "@/server/services/lead.service";
 import { notify } from "@/server/services/notify.service";
 import { canTransitionState, needsReasonForState, type LeadState } from "@/lib/leads/state-machine";
+import { egpToPiastres } from "@/lib/finance/money";
 import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 import { buildCustomFieldsFromForm, readFields } from "@/lib/leadForm/types";
 
@@ -295,6 +296,9 @@ const TransitionStateSchema = z.object({
   toTrack: z.nativeEnum(LeadTrack).optional().or(z.literal("")),
   reason: z.string().max(500).optional().or(z.literal("")),
   note: z.string().max(1000).optional().or(z.literal("")),
+  // Required only when transitioning into CONTRACT. The form sends the EGP
+  // value (decimal string); we convert to piastres here.
+  finalLoanAmountEgp: z.string().optional().or(z.literal("")),
 });
 
 export type TransitionStateState = { ok: true } | { ok: false; message: string };
@@ -313,6 +317,7 @@ export async function transitionLeadStateAction(
     toTrack: fd.get("toTrack")?.toString() ?? "",
     reason: fd.get("reason")?.toString() ?? "",
     note: fd.get("note")?.toString() ?? "",
+    finalLoanAmountEgp: fd.get("finalLoanAmountEgp")?.toString() ?? "",
   });
   if (!parsed.success) return { ok: false, message: "Invalid input" };
   const d = parsed.data;
@@ -332,6 +337,24 @@ export async function transitionLeadStateAction(
     return { ok: false, message: "A reason is required for this status." };
   }
 
+  // CONTRACT is the terminal closed state — the lead's final loan amount must
+  // be captured here so commission can be computed. We accept either a fresh
+  // input (preferred) or fall back to the value already on the lead (e.g. an
+  // admin correction without restating the figure).
+  let finalLoanAmountPiastres: bigint | null = lead.finalLoanAmountPiastres ?? null;
+  if (d.toProductStatus === LeadProductStatus.CONTRACT) {
+    if (d.finalLoanAmountEgp && d.finalLoanAmountEgp.trim()) {
+      try {
+        finalLoanAmountPiastres = egpToPiastres(d.finalLoanAmountEgp.trim());
+      } catch {
+        return { ok: false, message: "Invalid final loan amount." };
+      }
+    }
+    if (!finalLoanAmountPiastres || finalLoanAmountPiastres <= 0n) {
+      return { ok: false, message: "Final loan amount is required to close the contract." };
+    }
+  }
+
   const nextTrack: LeadTrack | null = d.toTrack ? (d.toTrack as LeadTrack) : (lead.track ?? null);
 
   try {
@@ -342,6 +365,7 @@ export async function transitionLeadStateAction(
           appStatus: d.toAppStatus,
           productStatus: d.toProductStatus,
           track: nextTrack,
+          finalLoanAmountPiastres,
         },
       }),
       prisma.leadStatusHistory.create({

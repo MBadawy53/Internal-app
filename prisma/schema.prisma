@@ -538,6 +538,10 @@ model Lead {
   appStatus            LeadAppStatus     @default(INCOMPLETE)
   productStatus        LeadProductStatus @default(P_INITIATE)
   track                LeadTrack?
+  // Final approved loan amount in piastres. Set when the lead is moved to
+  // CONTRACT and used to compute the employee/ambassador commission.
+  // Eventually verified against the loan-system API on settlement.
+  finalLoanAmountPiastres BigInt?
   preferredContactTime String?
   customerNote         String?
   externalCrmId        String?    @unique

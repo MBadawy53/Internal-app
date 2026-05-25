@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { LeadTrack, type LeadAppStatus, type LeadProductStatus } from "@prisma/client";
+import { LeadProductStatus, LeadTrack, type LeadAppStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,7 @@ export function LeadStatusForm({ leadId, appStatus, productStatus, track }: Prop
     toAppStatus && toProductStatus
       ? needsReasonForState({ appStatus: toAppStatus, productStatus: toProductStatus })
       : false;
+  const contractClosing = toProductStatus === LeadProductStatus.CONTRACT;
 
   return (
     <form action={formAction} className="space-y-3">
@@ -84,6 +85,25 @@ export function LeadStatusForm({ leadId, appStatus, productStatus, track }: Prop
           ))}
         </Select>
       </div>
+
+      {contractClosing ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="finalLoanAmountEgp">
+            {t("finalLoanAmount")}
+            <span className="ms-1 text-destructive">*</span>
+          </Label>
+          <Input
+            id="finalLoanAmountEgp"
+            name="finalLoanAmountEgp"
+            type="number"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            required
+          />
+          <p className="text-xs text-muted-foreground">{t("finalLoanAmountHint")}</p>
+        </div>
+      ) : null}
 
       <div className="space-y-1.5">
         <Label htmlFor="reason">

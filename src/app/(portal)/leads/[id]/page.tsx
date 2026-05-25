@@ -6,8 +6,10 @@ import { leadService } from "@/server/services/lead.service";
 import { decryptOptional } from "@/lib/crypto/aes-gcm";
 import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
-import { LeadAppStatus } from "@prisma/client";
+import { LeadAppStatus, LeadProductStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { computeLeadCommission } from "@/server/services/commission.service";
+import { formatMoney } from "@/lib/finance/money";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
 import { ClaimLeadButton } from "@/components/portal/ClaimLeadButton";
@@ -31,6 +33,29 @@ export default async function LeadDetailPage({ params }: Params) {
   const tTrack = await getTranslations("leads.tracks");
   const tSource = await getTranslations("leads.sources");
   const tType = await getTranslations("leads.activityTypes");
+  const tCommission = await getTranslations("leads.commissionCard");
+
+  const computedCommission =
+    lead.productStatus === LeadProductStatus.CONTRACT
+      ? await computeLeadCommission({
+          productId: lead.productId,
+          finalLoanAmountPiastres: lead.finalLoanAmountPiastres,
+          ownerEmployeeId: lead.ownerEmployeeId,
+          referredByEmployeeId: lead.referredByEmployeeId,
+          owner: lead.owner ? { id: lead.owner.id, role: lead.owner.role } : null,
+          referredBy: lead.referredBy
+            ? { id: lead.referredBy.id, role: lead.referredBy.role }
+            : null,
+        })
+      : null;
+  const commissionRecipientName =
+    computedCommission && lead.owner && computedCommission.recipient.userId === lead.owner.id
+      ? localized(locale, lead.owner.nameEn, lead.owner.nameAr)
+      : computedCommission &&
+          lead.referredBy &&
+          computedCommission.recipient.userId === lead.referredBy.id
+        ? localized(locale, lead.referredBy.nameEn, lead.referredBy.nameAr)
+        : "—";
 
   const email = decryptOptional(lead.customerEmailEnc);
   const nationalId = decryptOptional(lead.nationalIdEnc);
@@ -143,6 +168,52 @@ export default async function LeadDetailPage({ params }: Params) {
           </CardContent>
         </Card>
       </div>
+
+      {computedCommission ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tCommission("title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <Stat
+                label={tCommission("recipient")}
+                value={`${commissionRecipientName} · ${tCommission(
+                  `persona.${computedCommission.recipient.persona}`,
+                )}`}
+              />
+              <Stat
+                label={tCommission("loanAmount")}
+                value={formatMoney(computedCommission.amountPiastres, locale)}
+              />
+              {computedCommission.tier ? (
+                <>
+                  <Stat
+                    label={tCommission("tier")}
+                    value={
+                      computedCommission.tier.label ??
+                      `${formatMoney(computedCommission.tier.fromAmountPiastres, locale)} — ${
+                        computedCommission.tier.toAmountPiastres
+                          ? formatMoney(computedCommission.tier.toAmountPiastres, locale)
+                          : "∞"
+                      }`
+                    }
+                  />
+                  <Stat
+                    label={tCommission("commission")}
+                    value={formatMoney(computedCommission.commissionPiastres, locale)}
+                  />
+                </>
+              ) : (
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-muted-foreground">{tCommission("noTier")}</p>
+                </div>
+              )}
+            </dl>
+            <p className="mt-3 text-xs text-muted-foreground">{tCommission("disclaimer")}</p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {lead.ownerEmployeeId === actor.id ? (
         <LeadIdLinkPanel leadId={lead.id} customerPhone={lead.customerPhone} />

@@ -66,8 +66,10 @@ export const leadRepository = {
       where,
       include: {
         businessLine: true,
-        owner: { select: { id: true, nameEn: true, nameAr: true, email: true } },
-        referredBy: { select: { id: true, nameEn: true, nameAr: true, email: true } },
+        owner: { select: { id: true, nameEn: true, nameAr: true, email: true, role: true } },
+        referredBy: {
+          select: { id: true, nameEn: true, nameAr: true, email: true, role: true },
+        },
         product: { select: { id: true, nameEn: true, nameAr: true } },
       },
       orderBy: [{ createdAt: "desc" }],
@@ -80,8 +82,10 @@ export const leadRepository = {
       where: { id },
       include: {
         businessLine: true,
-        owner: { select: { id: true, nameEn: true, nameAr: true, email: true } },
-        referredBy: { select: { id: true, nameEn: true, nameAr: true, email: true } },
+        owner: { select: { id: true, nameEn: true, nameAr: true, email: true, role: true } },
+        referredBy: {
+          select: { id: true, nameEn: true, nameAr: true, email: true, role: true },
+        },
         product: { select: { id: true, nameEn: true, nameAr: true } },
         campaign: { select: { id: true, name: true, slug: true, customFields: true } },
         history: {
