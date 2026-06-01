@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { LeadProductStatus, LeadTrack, type LeadAppStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,15 +93,7 @@ export function LeadStatusForm({ leadId, appStatus, productStatus, track }: Prop
             {t("finalLoanAmount")}
             <span className="ms-1 text-destructive">*</span>
           </Label>
-          <Input
-            id="finalLoanAmountEgp"
-            name="finalLoanAmountEgp"
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            required
-          />
+          <MoneyInput id="finalLoanAmountEgp" name="finalLoanAmountEgp" required />
           <p className="text-xs text-muted-foreground">{t("finalLoanAmountHint")}</p>
         </div>
       ) : null}

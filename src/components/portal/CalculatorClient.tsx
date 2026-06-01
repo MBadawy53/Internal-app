@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { saveQuoteAction } from "@/server/actions/quotes";
@@ -359,15 +360,7 @@ export function CalculatorClient({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="aff-income">{t("affordability.income")}</Label>
-                <Input
-                  id="aff-income"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
-                  value={monthlyIncome}
-                  onChange={(e) => setMonthlyIncome(e.target.value)}
-                />
+                <MoneyInput id="aff-income" value={monthlyIncome} onChange={setMonthlyIncome} />
                 <p className="text-xs text-muted-foreground">
                   {t("affordability.dbrHint", { pct: (DBR_CAP_BPS / 100).toFixed(0) })}
                 </p>
@@ -386,14 +379,10 @@ export function CalculatorClient({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="aff-cc-limit">{t("affordability.creditCardLimit")}</Label>
-                <Input
+                <MoneyInput
                   id="aff-cc-limit"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
                   value={creditCardLimit}
-                  onChange={(e) => setCreditCardLimit(e.target.value)}
+                  onChange={setCreditCardLimit}
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("affordability.creditCardHint", {
@@ -403,14 +392,10 @@ export function CalculatorClient({
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="aff-existing">{t("affordability.existingInstallments")}</Label>
-                <Input
+                <MoneyInput
                   id="aff-existing"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
                   value={existingInstallments}
-                  onChange={(e) => setExistingInstallments(e.target.value)}
+                  onChange={setExistingInstallments}
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("affordability.existingInstallmentsHint")}
@@ -545,15 +530,7 @@ export function CalculatorClient({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="calc-invoice">{t("invoiceValue")}</Label>
-                  <Input
-                    id="calc-invoice"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
-                    value={invoice}
-                    onChange={(e) => setInvoice(e.target.value)}
-                  />
+                  <MoneyInput id="calc-invoice" value={invoice} onChange={setInvoice} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="calc-dp">{t("downPaymentPercent")}</Label>
@@ -579,16 +556,7 @@ export function CalculatorClient({
 
               <div className="space-y-1.5">
                 <Label htmlFor="calc-principal">{t("principal")}</Label>
-                <Input
-                  id="calc-principal"
-                  type="number"
-                  inputMode="decimal"
-                  min={product ? Number(product.amountMinPiastres) / 100 : 0}
-                  max={product ? Number(product.amountMaxPiastres) / 100 : undefined}
-                  step="0.01"
-                  value={principal}
-                  onChange={(e) => setPrincipal(e.target.value)}
-                />
+                <MoneyInput id="calc-principal" value={principal} onChange={setPrincipal} />
                 {product ? (
                   <p className="text-xs text-muted-foreground">
                     {formatMoney(BigInt(product.amountMinPiastres), locale)} —{" "}

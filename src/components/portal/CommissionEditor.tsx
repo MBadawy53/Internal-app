@@ -6,6 +6,7 @@ import type { CommissionPersona } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,34 +97,18 @@ export function CommissionEditor({
             {tiers.map((row, i) => (
               <tr key={i} className="border-b last:border-b-0">
                 <td className="px-3 py-2">
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
+                  <MoneyInput
                     name="tier.from"
-                    value={row.fromEgp}
-                    onChange={(e) =>
-                      updateRow(i, {
-                        fromEgp: e.target.value === "" ? "" : Number(e.target.value),
-                      })
-                    }
+                    value={row.fromEgp === "" ? "" : String(row.fromEgp)}
+                    onChange={(v) => updateRow(i, { fromEgp: v === "" ? "" : Number(v) })}
                   />
                 </td>
                 <td className="px-3 py-2">
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
+                  <MoneyInput
                     name="tier.to"
                     placeholder={t("openEnded")}
-                    value={row.toEgp ?? ""}
-                    onChange={(e) =>
-                      updateRow(i, {
-                        toEgp: e.target.value === "" ? "" : Number(e.target.value),
-                      })
-                    }
+                    value={row.toEgp === null || row.toEgp === "" ? "" : String(row.toEgp)}
+                    onChange={(v) => updateRow(i, { toEgp: v === "" ? "" : Number(v) })}
                   />
                 </td>
                 <td className="px-3 py-2">
@@ -139,18 +124,10 @@ export function CommissionEditor({
                   </Select>
                 </td>
                 <td className="px-3 py-2">
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
+                  <MoneyInput
                     name="tier.valueAmount"
-                    value={row.valueAmount}
-                    onChange={(e) =>
-                      updateRow(i, {
-                        valueAmount: e.target.value === "" ? "" : Number(e.target.value),
-                      })
-                    }
+                    value={row.valueAmount === "" ? "" : String(row.valueAmount)}
+                    onChange={(v) => updateRow(i, { valueAmount: v === "" ? "" : Number(v) })}
                   />
                 </td>
                 <td className="px-3 py-2">

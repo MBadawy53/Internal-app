@@ -9,6 +9,7 @@ import { AttributeType } from "@prisma/client";
 import type { AttributeSelectOption } from "@/lib/catalog/attribute-values";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -586,11 +587,10 @@ export function ProductForm({
                         />
                       ) : null}
                       {attr.type === AttributeType.NUMBER ? (
-                        <Input
-                          type="number"
+                        <MoneyInput
                           name="attributeValue"
                           value={value}
-                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                          onChange={(v) => setAttrValue(attr.id, v)}
                         />
                       ) : null}
                       {attr.type === AttributeType.BOOLEAN ? (
@@ -711,12 +711,11 @@ function NumField({
         {label}
         {required ? <span className="ms-1 text-destructive">*</span> : null}
       </Label>
-      <Input
+      <MoneyInput
         id={name}
         name={name}
-        type="number"
         defaultValue={defaultValue}
-        step={step ?? "0.01"}
+        allowDecimals={step !== 1}
         required={required}
       />
       {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
