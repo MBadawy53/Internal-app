@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
@@ -72,8 +71,6 @@ export default async function NewLeadPage({
         },
       ];
     }
-  } else if (!actor.businessLineId) {
-    redirect("/dashboard");
   }
 
   return (
