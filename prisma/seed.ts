@@ -404,37 +404,41 @@ async function main() {
   });
   console.log(`  ✓ Demo first-login employee: ${unactivatedGid} (no password yet)`);
 
-  // ── Bulk: unactivated test employees C5000C–C5500C for onboarding QA ────────
-  // 501 IDs, distributed round-robin across business lines, no password yet so
-  // each one can be used to walk through the /onboard flow once.
-  const TEST_RANGE_START = 5000;
-  const TEST_RANGE_END = 5500;
-  const testUsers: Array<{
+  // ── Bulk: pre-create the entire C0001C–C9999C employee code range ──────────
+  // Every code in the valid format is provisioned as an unactivated employee
+  // so any newly-hired employee can walk through /onboard the moment HR hands
+  // them a code, without admin intervention. Business line is intentionally
+  // left null — admin assigns it from /admin/users after the employee
+  // activates and submits their profile.
+  // `skipDuplicates` makes this re-runnable: rows already created (incl. the
+  // seeded users above) are left untouched.
+  const BULK_RANGE_START = 1;
+  const BULK_RANGE_END = 9999;
+  const bulkUsers: Array<{
     groupId: string;
     role: Role;
-    businessLineId: string;
     referralCode: string;
     mustCompleteProfile: boolean;
     isActive: boolean;
   }> = [];
-  for (let i = TEST_RANGE_START; i <= TEST_RANGE_END; i++) {
+  for (let i = BULK_RANGE_START; i <= BULK_RANGE_END; i++) {
     const gid = `C${i.toString().padStart(4, "0")}C`;
-    const bl = allBLs[(i - TEST_RANGE_START) % allBLs.length]!;
-    testUsers.push({
+    bulkUsers.push({
       groupId: gid,
       role: Role.EMPLOYEE,
-      businessLineId: bl.id,
       referralCode: gid,
       mustCompleteProfile: true,
       isActive: true,
     });
   }
   const bulkResult = await prisma.user.createMany({
-    data: testUsers,
+    data: bulkUsers,
     skipDuplicates: true,
   });
   console.log(
-    `  ✓ Bulk test employees C5000C–C5500C: ${bulkResult.count} created (${testUsers.length - bulkResult.count} already existed)`,
+    `  ✓ Bulk employee codes C0001C–C9999C: ${bulkResult.count} created (${
+      bulkUsers.length - bulkResult.count
+    } already existed)`,
   );
 
   console.log("  ✓ Sample products seeded for each business line");
