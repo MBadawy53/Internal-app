@@ -252,21 +252,36 @@ export function QrCampaignForm({ products, templates = [], copySources = [], ini
         <LeadFieldsBuilder initial={initial?.customFields ?? []} copySources={copySources} />
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending}>
-          {pending ? tCommon("saving") : isEdit ? tCommon("save") : t("create")}
-        </Button>
+      <div className="space-y-3">
         {state && state.ok === false ? (
-          <p role="alert" className="text-sm text-destructive">
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
             {state.message}
-          </p>
+          </div>
         ) : null}
         {state && state.ok && "slug" in state ? (
-          <p className="text-sm text-emerald-600">{t("created", { slug: state.slug })}</p>
+          <div
+            role="status"
+            className="rounded-md border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            ✓ {t("created", { slug: state.slug })}
+          </div>
         ) : null}
         {state && state.ok && !("slug" in state) ? (
-          <p className="text-sm text-emerald-600">{tCommon("save")} ✓</p>
+          <div
+            role="status"
+            className="rounded-md border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            ✓ {tCommon("savedSuccess")}
+          </div>
         ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={pending}>
+            {pending ? tCommon("saving") : isEdit ? tCommon("save") : t("create")}
+          </Button>
+        </div>
       </div>
     </form>
   );

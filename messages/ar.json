@@ -29,6 +29,7 @@
     "lightMode": "الوضع النهاري",
     "saving": "جارٍ الحفظ…",
     "deleting": "جارٍ الحذف…",
+    "savedSuccess": "تم حفظ التعديلات",
     "confirm": "تأكيد",
     "print": "طباعة",
     "delete": {
