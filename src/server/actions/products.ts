@@ -9,9 +9,7 @@ import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import type { Prisma } from "@prisma/client";
 import { productRepository } from "@/server/repositories/product.repository";
-import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
 import { attributeRepository } from "@/server/repositories/attribute.repository";
-import { makeAttributeConfig, type ProductAttributeKey } from "@/lib/catalog/attributes";
 import { coerceAttributeValue, type AttributeOptionsJson } from "@/lib/catalog/attribute-values";
 import { prisma } from "@/lib/prisma";
 import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
@@ -144,9 +142,6 @@ export async function createProductAction(
   }
   const d = parsed.data;
 
-  const attrErrors = await validateAgainstCategory(d);
-  if (attrErrors) return { ok: false, fieldErrors: attrErrors };
-
   try {
     const created = await productRepository.create({
       type: d.type,
@@ -211,9 +206,6 @@ export async function updateProductAction(
     return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
   }
   const d = parsed.data;
-
-  const attrErrors = await validateAgainstCategory(d);
-  if (attrErrors) return { ok: false, fieldErrors: attrErrors };
 
   try {
     await productRepository.update(id, {
@@ -343,61 +335,4 @@ async function persistProductAttributeValues(
   if (Object.keys(fieldErrors).length > 0) return fieldErrors;
   await productRepository.replaceAttributeValues(productId, values);
   return null;
-}
-
-/**
- * Server-side validation against the chosen category's required attributes.
- * The form already client-side `required={...}`s the inputs, but a tampered
- * payload could omit them — so we recheck here.
- */
-async function validateAgainstCategory(
-  d: z.infer<typeof ProductInputSchema>,
-): Promise<Record<string, string[]> | null> {
-  const cat = await productCategoryRepository.findById(d.categoryId);
-  if (!cat) return { categoryId: ["Category not found"] };
-  const cfg = makeAttributeConfig(cat.enabledAttributes, cat.requiredAttributes);
-  const fieldErrors: Record<string, string[]> = {};
-
-  // Maps each required attribute to the form fields it covers and the rule.
-  const REQUIRES: Record<ProductAttributeKey, () => { ok: boolean; fields: string[] }> = {
-    amountRange: () => ({
-      ok: d.amountMinEgp > 0 || d.amountMaxEgp > 0,
-      fields: ["amountMinEgp", "amountMaxEgp"],
-    }),
-    tenureRange: () => ({
-      ok: d.tenureMinMonths > 0 && d.tenureMaxMonths > 0,
-      fields: ["tenureMinMonths", "tenureMaxMonths"],
-    }),
-    flatRate: () => ({ ok: true, fields: [] }), // form no longer collects this — declining rate is the source of truth
-    decliningRate: () => ({
-      ok: d.decliningInterestRateBps > 0,
-      fields: ["decliningInterestRateBps"],
-    }),
-    adminFee: () => ({ ok: d.adminFeeBps > 0, fields: ["adminFeeBps"] }),
-    insurance: () => ({ ok: true, fields: [] }), // boolean — always satisfiable
-    earlySettlement: () => ({
-      ok: d.earlySettlementFeeBps > 0,
-      fields: ["earlySettlementFeeBps"],
-    }),
-    latePayment: () => ({ ok: d.latePaymentFeeBps > 0, fields: ["latePaymentFeeBps"] }),
-    eligibility: () => ({
-      ok: Boolean(d.eligibilityEn?.trim()) && Boolean(d.eligibilityAr?.trim()),
-      fields: ["eligibilityEn", "eligibilityAr"],
-    }),
-    documents: () => ({
-      ok: d.documentsEn.length > 0 && d.documentsAr.length > 0,
-      fields: ["documentsEn", "documentsAr"],
-    }),
-  };
-
-  for (const key of cfg.required) {
-    const { ok, fields } = REQUIRES[key]();
-    if (!ok) {
-      for (const f of fields) {
-        fieldErrors[f] = [`Required by category "${cat.nameEn}"`];
-      }
-    }
-  }
-
-  return Object.keys(fieldErrors).length > 0 ? fieldErrors : null;
 }
