@@ -2,12 +2,15 @@ import {
   PrismaClient,
   Role,
   ProductType,
+  InstallmentPeriod,
   LeadSource,
   LeadAppStatus,
   LeadProductStatus,
 } from "@prisma/client";
 import * as argon2 from "argon2";
 import { randomBytes } from "node:crypto";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 
 const prisma = new PrismaClient();
 
@@ -512,6 +515,329 @@ async function main() {
   }
 
   console.log("✅ Seed complete.");
+
+  await loadProductsFromCsv();
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Catalog loader — pulls the 200+ product catalog from data/products.csv
+// on every deploy. The CSV is the source of truth: rows are upserted by id
+// (so leads / quotes / campaigns / commissions keep pointing at the right
+// product), and any DB product whose id isn't in the CSV is deactivated.
+// Missing categories referenced by the CSV are auto-created with stub
+// names so the deploy never breaks; an admin can rename them later via
+// /admin/categories.
+// ───────────────────────────────────────────────────────────────────────────
+
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  while (i < text.length) {
+    const c = text[i]!;
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      field += c;
+      i++;
+      continue;
+    }
+    if (c === '"') {
+      inQuotes = true;
+      i++;
+      continue;
+    }
+    if (c === ",") {
+      cur.push(field);
+      field = "";
+      i++;
+      continue;
+    }
+    if (c === "\r") {
+      if (text[i + 1] === "\n") i++;
+      cur.push(field);
+      rows.push(cur);
+      cur = [];
+      field = "";
+      i++;
+      continue;
+    }
+    if (c === "\n") {
+      cur.push(field);
+      rows.push(cur);
+      cur = [];
+      field = "";
+      i++;
+      continue;
+    }
+    field += c;
+    i++;
+  }
+  if (field !== "" || cur.length > 0) {
+    cur.push(field);
+    rows.push(cur);
+  }
+  return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
+}
+
+function csvBigInt(v: string, fallback = 0n): bigint {
+  if (v.trim() === "") return fallback;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) throw new Error(`Invalid amount '${v}'`);
+  return BigInt(Math.round(n * 100));
+}
+
+function csvBps(v: string, fallback = 0): number {
+  if (v.trim() === "") return fallback;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) throw new Error(`Invalid percent '${v}'`);
+  return Math.round(n * 100);
+}
+
+function csvInt(v: string): number {
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) {
+    throw new Error(`Invalid integer '${v}'`);
+  }
+  return n;
+}
+
+function csvBool(v: string, fallback = false): boolean {
+  const t = v.trim().toLowerCase();
+  if (t === "") return fallback;
+  if (["true", "1", "yes", "y"].includes(t)) return true;
+  if (["false", "0", "no", "n"].includes(t)) return false;
+  throw new Error(`Invalid boolean '${v}'`);
+}
+
+function csvEnum<T extends string>(v: string, allowed: readonly T[], label: string): T {
+  const u = v.trim().toUpperCase() as T;
+  if (!allowed.includes(u)) {
+    throw new Error(`${label} '${v}' is not one of ${allowed.join(", ")}`);
+  }
+  return u;
+}
+
+function humanize(slug: string): string {
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+async function loadProductsFromCsv() {
+  const csvPath = path.resolve(process.cwd(), "data/products.csv");
+  let text: string;
+  try {
+    text = await fs.readFile(csvPath, "utf8");
+  } catch {
+    console.log(`\nℹ️  ${csvPath} not found — skipping CSV catalog import.`);
+    return;
+  }
+
+  console.log(`\n📥 Loading catalog from ${csvPath}`);
+  const rows = parseCsv(text);
+  if (rows.length < 2) {
+    console.log("  (CSV has no data rows — nothing to import.)");
+    return;
+  }
+  const header = rows[0]!.map((h) => h.trim());
+  const idx = (name: string) => {
+    const i = header.indexOf(name);
+    if (i < 0) throw new Error(`Missing column: ${name}`);
+    return i;
+  };
+  const col = {
+    id: idx("id"),
+    businessLineSlug: idx("businessLineSlug"),
+    categorySlug: idx("categorySlug"),
+    type: idx("type"),
+    nameEn: idx("nameEn"),
+    nameAr: idx("nameAr"),
+    shortDescEn: idx("shortDescEn"),
+    shortDescAr: idx("shortDescAr"),
+    longDescEn: idx("longDescEn"),
+    longDescAr: idx("longDescAr"),
+    amountMinEgp: idx("amountMinEgp"),
+    amountMaxEgp: idx("amountMaxEgp"),
+    tenureMinMonths: idx("tenureMinMonths"),
+    tenureMaxMonths: idx("tenureMaxMonths"),
+    installmentPeriod: idx("installmentPeriod"),
+    flatInterestRatePct: idx("flatInterestRatePct"),
+    decliningInterestRatePct: idx("decliningInterestRatePct"),
+    adminFeePct: idx("adminFeePct"),
+    adminFeeMinEgp: idx("adminFeeMinEgp"),
+    adminFeeMaxEgp: idx("adminFeeMaxEgp"),
+    insuranceRequired: idx("insuranceRequired"),
+    minDownPaymentPct: idx("minDownPaymentPct"),
+    earlySettlementFeePct: idx("earlySettlementFeePct"),
+    latePaymentFeePct: idx("latePaymentFeePct"),
+    isActive: idx("isActive"),
+  };
+  const dataRows = rows.slice(1);
+
+  const businessLines = await prisma.businessLine.findMany({ select: { id: true, slug: true } });
+  const blBySlug = new Map(businessLines.map((b) => [b.slug, b.id]));
+
+  // Auto-create any (businessLine, category) pairs referenced by the CSV
+  // that don't exist yet. Stub names = humanized slug; admin can rename
+  // later in /admin/categories.
+  const referencedCategorySlugs = new Set<string>();
+  const categoryToBlSlug = new Map<string, string>();
+  for (let r = 0; r < dataRows.length; r++) {
+    const row = dataRows[r]!;
+    const blSlug = (row[col.businessLineSlug] ?? "").trim();
+    const catSlug = (row[col.categorySlug] ?? "").trim();
+    if (catSlug) {
+      referencedCategorySlugs.add(catSlug);
+      if (blSlug) categoryToBlSlug.set(catSlug, blSlug);
+    }
+  }
+
+  const existingCategories = await prisma.productCategory.findMany({
+    select: { id: true, slug: true },
+  });
+  const catBySlug = new Map(existingCategories.map((c) => [c.slug, c.id]));
+  let createdCategories = 0;
+  for (const catSlug of referencedCategorySlugs) {
+    if (catBySlug.has(catSlug)) continue;
+    const blSlug = categoryToBlSlug.get(catSlug);
+    const blId = blSlug ? blBySlug.get(blSlug) : undefined;
+    if (!blId) continue; // will throw later when the row tries to use it
+    const stubName = humanize(catSlug);
+    const created = await prisma.productCategory.create({
+      data: {
+        slug: catSlug,
+        businessLineId: blId,
+        nameEn: stubName,
+        nameAr: stubName,
+      },
+      select: { id: true, slug: true },
+    });
+    catBySlug.set(created.slug, created.id);
+    createdCategories++;
+  }
+  if (createdCategories > 0) {
+    console.log(`  + ${createdCategories} categories auto-created from CSV references`);
+  }
+
+  type Parsed = {
+    rowNum: number;
+    id: string;
+    data: Parameters<typeof prisma.product.create>[0]["data"];
+  };
+  const parsed: Parsed[] = [];
+  const errors: Array<{ rowNum: number; error: string }> = [];
+
+  for (let r = 0; r < dataRows.length; r++) {
+    const row = dataRows[r]!;
+    const rowNum = r + 2;
+    try {
+      const get = (i: number) => (row[i] ?? "").trim();
+      const blSlug = get(col.businessLineSlug);
+      const blId = blBySlug.get(blSlug);
+      if (!blId) throw new Error(`Unknown businessLineSlug '${blSlug}'`);
+      const catSlug = get(col.categorySlug);
+      const catId = catBySlug.get(catSlug);
+      if (!catId) throw new Error(`Unknown categorySlug '${catSlug}'`);
+
+      const data = {
+        businessLineId: blId,
+        categoryId: catId,
+        type: csvEnum<ProductType>(
+          get(col.type),
+          Object.values(ProductType) as ProductType[],
+          "type",
+        ),
+        nameEn: get(col.nameEn),
+        nameAr: get(col.nameAr),
+        shortDescEn: get(col.shortDescEn),
+        shortDescAr: get(col.shortDescAr),
+        longDescEn: get(col.longDescEn),
+        longDescAr: get(col.longDescAr),
+        amountMinPiastres: csvBigInt(get(col.amountMinEgp)),
+        amountMaxPiastres: csvBigInt(get(col.amountMaxEgp)),
+        tenureMinMonths: csvInt(get(col.tenureMinMonths)),
+        tenureMaxMonths: csvInt(get(col.tenureMaxMonths)),
+        installmentPeriod: csvEnum<InstallmentPeriod>(
+          get(col.installmentPeriod),
+          Object.values(InstallmentPeriod) as InstallmentPeriod[],
+          "installmentPeriod",
+        ),
+        flatInterestRateBps: csvBps(get(col.flatInterestRatePct)),
+        decliningInterestRateBps: csvBps(get(col.decliningInterestRatePct)),
+        adminFeeBps: csvBps(get(col.adminFeePct)),
+        adminFeeMinPiastres: csvBigInt(get(col.adminFeeMinEgp)),
+        adminFeeMaxPiastres: csvBigInt(get(col.adminFeeMaxEgp)),
+        insuranceRequired: csvBool(get(col.insuranceRequired)),
+        minDownPaymentBps: csvBps(get(col.minDownPaymentPct)),
+        earlySettlementFeeBps: csvBps(get(col.earlySettlementFeePct)),
+        latePaymentFeeBps: csvBps(get(col.latePaymentFeePct)),
+        isActive: csvBool(get(col.isActive), true),
+      };
+
+      if (!data.nameEn || !data.nameAr) throw new Error("nameEn / nameAr required");
+      if (data.amountMaxPiastres < data.amountMinPiastres) {
+        throw new Error("amountMaxEgp must be ≥ amountMinEgp");
+      }
+      if (data.tenureMaxMonths < data.tenureMinMonths) {
+        throw new Error("tenureMaxMonths must be ≥ tenureMinMonths");
+      }
+      parsed.push({ rowNum, id: get(col.id), data });
+    } catch (err) {
+      errors.push({ rowNum, error: (err as Error).message });
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error(`  ✗ ${errors.length} row(s) failed parsing — skipping CSV import:`);
+    for (const e of errors) console.error(`    row ${e.rowNum}: ${e.error}`);
+    return;
+  }
+
+  let created = 0;
+  let updated = 0;
+  const csvIds = new Set<string>();
+  for (const p of parsed) {
+    if (p.id) {
+      csvIds.add(p.id);
+      const existing = await prisma.product.findUnique({
+        where: { id: p.id },
+        select: { id: true },
+      });
+      if (existing) {
+        await prisma.product.update({ where: { id: p.id }, data: p.data });
+        updated++;
+      } else {
+        await prisma.product.create({ data: { id: p.id, ...p.data } });
+        created++;
+      }
+    } else {
+      const row = await prisma.product.create({ data: p.data, select: { id: true } });
+      csvIds.add(row.id);
+      created++;
+    }
+  }
+
+  const stale = await prisma.product.updateMany({
+    where: { id: { notIn: [...csvIds] }, isActive: true },
+    data: { isActive: false },
+  });
+
+  console.log(
+    `  ✓ catalog loaded — created=${created} updated=${updated} deactivated=${stale.count}`,
+  );
 }
 
 main()
