@@ -142,6 +142,8 @@ export function ProductForm({
   });
   const setAttrValue = (id: string, value: string) =>
     setAttrValues((prev) => ({ ...prev, [id]: value }));
+
+  const [attrSearch, setAttrSearch] = useState("");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [, startTransition] = useTransition();
@@ -534,6 +536,13 @@ export function ProductForm({
             <CardTitle>{tSect("customAttributes")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Input
+              type="search"
+              placeholder={tCommon("search")}
+              value={attrSearch}
+              onChange={(e) => setAttrSearch(e.target.value)}
+              className="max-w-sm"
+            />
             {(() => {
               // Live-substitute the threshold amount X into the labels for the
               // two threshold-dependent insurance rate fields. X itself stays
@@ -568,10 +577,18 @@ export function ProductForm({
               return activeCategory.attributes.map((attr) => {
                 const value = attrValues[attr.id] ?? "";
                 const labels = renderLabel(attr);
+                const q = attrSearch.trim().toLowerCase();
+                const matches =
+                  q === "" ||
+                  labels.en.toLowerCase().includes(q) ||
+                  labels.ar.toLowerCase().includes(q) ||
+                  attr.key.toLowerCase().includes(q);
                 return (
                   <div
                     key={attr.id}
-                    className="grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]"
+                    className={`grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]${
+                      matches ? "" : "hidden"
+                    }`}
                   >
                     <div>
                       <p className="text-sm font-medium">{labels.en}</p>
