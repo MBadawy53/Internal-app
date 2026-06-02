@@ -26,7 +26,9 @@ export default async function AdminCategoriesPage() {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("admin.categories");
 
-  const categories = await catalogService.listCategories(actor, { includeInactive: true });
+  const categories = (await catalogService.listCategories(actor, { includeInactive: true })).sort(
+    (a, b) => b.sortOrder - a.sortOrder || a.nameEn.localeCompare(b.nameEn),
+  );
 
   return (
     <div className="space-y-6">

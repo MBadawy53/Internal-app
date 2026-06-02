@@ -4,13 +4,22 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { bulkImportCategoriesAction, type BulkImportState } from "@/server/actions/categoriesBulk";
+import {
+  bulkImportCategoriesAction,
+  purgeInactiveCategoriesAction,
+  type BulkImportState,
+  type PurgeInactiveState,
+} from "@/server/actions/categoriesBulk";
 
 export function CategoriesBulkPanel() {
   const t = useTranslations("admin.categories.bulk");
   const tCommon = useTranslations("common");
   const [state, formAction, pending] = useActionState<BulkImportState | null, FormData>(
     bulkImportCategoriesAction,
+    null,
+  );
+  const [purgeState, purgeAction, purging] = useActionState<PurgeInactiveState | null, FormData>(
+    purgeInactiveCategoriesAction,
     null,
   );
 
@@ -35,6 +44,16 @@ export function CategoriesBulkPanel() {
           <Input type="file" name="file" accept=".csv,text/csv" required className="max-w-sm" />
           <Button type="submit" size="sm" disabled={pending}>
             {pending ? tCommon("saving") : t("upload")}
+          </Button>
+        </form>
+        <form
+          action={purgeAction}
+          onSubmit={(e) => {
+            if (!window.confirm(t("purgeConfirm"))) e.preventDefault();
+          }}
+        >
+          <Button type="submit" size="sm" variant="destructive" disabled={purging}>
+            {purging ? tCommon("saving") : t("purge")}
           </Button>
         </form>
       </div>
@@ -65,6 +84,26 @@ export function CategoriesBulkPanel() {
             {state.message}
           </p>
         )
+      ) : null}
+
+      {purgeState && purgeState.ok ? (
+        <div className="space-y-2 rounded-md border bg-emerald-50 p-3 text-xs">
+          <p className="font-medium text-emerald-700">
+            {t("purgeSummary", { deleted: purgeState.deleted, skipped: purgeState.skipped.length })}
+          </p>
+          {purgeState.skipped.length > 0 ? (
+            <details className="text-muted-foreground">
+              <summary className="cursor-pointer">{t("purgeSkippedToggle")}</summary>
+              <ul className="ms-4 mt-1 list-disc">
+                {purgeState.skipped.map((s) => (
+                  <li key={s.slug}>
+                    {s.nameEn} ({s.slug}) — {t("purgeSkippedReason", { count: s.productCount })}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

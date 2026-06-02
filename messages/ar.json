@@ -677,7 +677,12 @@
         "upload": "رفع",
         "summary": "{created} اتعمل · {updated} اتعدّل.",
         "errorsToggle": "إظهار أخطاء الصفوف",
-        "rowPrefix": "صف {row}"
+        "rowPrefix": "صف {row}",
+        "purge": "حذف نهائي للفئات غير النشطة",
+        "purgeConfirm": "هل تريد حذف كل فئة غير نشطة لا تحتوي على منتجات بشكل نهائي؟ لا يمكن التراجع.",
+        "purgeSummary": "{deleted} اتمسحت نهائيًا · {skipped} اتجاهلت (لسه فيها منتجات).",
+        "purgeSkippedToggle": "إظهار الفئات اللي اتجاهلت",
+        "purgeSkippedReason": "لسه {count} منتجات مربوطة بالفئة دي"
       }
     },
     "attributes": {

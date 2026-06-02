@@ -677,7 +677,12 @@
         "upload": "Upload",
         "summary": "{created} created · {updated} updated.",
         "errorsToggle": "Show row errors",
-        "rowPrefix": "Row {row}"
+        "rowPrefix": "Row {row}",
+        "purge": "Permanently delete inactive",
+        "purgeConfirm": "Permanently delete every inactive category that has no products attached? This cannot be undone.",
+        "purgeSummary": "{deleted} permanently deleted · {skipped} skipped (still have products).",
+        "purgeSkippedToggle": "Show skipped categories",
+        "purgeSkippedReason": "{count} products still reference this category"
       }
     },
     "attributes": {

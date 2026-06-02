@@ -20,6 +20,59 @@ export type BulkImportState =
     }
   | { ok: false; message: string };
 
+export type PurgeInactiveState =
+  | {
+      ok: true;
+      deleted: number;
+      skipped: Array<{ slug: string; nameEn: string; productCount: number }>;
+    }
+  | { ok: false; message: string };
+
+export async function purgeInactiveCategoriesAction(
+  _prev: PurgeInactiveState | null,
+  _fd: FormData,
+): Promise<PurgeInactiveState> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) throw new ForbiddenError("Admin only");
+
+  const inactive = await prisma.productCategory.findMany({
+    where: { isActive: false },
+    select: {
+      id: true,
+      slug: true,
+      nameEn: true,
+      _count: { select: { products: true } },
+    },
+  });
+
+  const deletable = inactive.filter((c) => c._count.products === 0);
+  const skipped = inactive
+    .filter((c) => c._count.products > 0)
+    .map((c) => ({ slug: c.slug, nameEn: c.nameEn, productCount: c._count.products }));
+
+  let deleted = 0;
+  if (deletable.length > 0) {
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.categoryAttribute.deleteMany({
+        where: { categoryId: { in: deletable.map((c) => c.id) } },
+      });
+      const del = await tx.productCategory.deleteMany({
+        where: { id: { in: deletable.map((c) => c.id) } },
+      });
+      return del.count;
+    });
+    deleted = result;
+  }
+
+  if (deleted > 0) {
+    revalidatePath("/admin/categories");
+    revalidatePath("/catalog");
+    logger.info({ deleted, skipped: skipped.length }, "categories.purge_inactive");
+  }
+
+  return { ok: true, deleted, skipped };
+}
+
 function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let cur: string[] = [];
