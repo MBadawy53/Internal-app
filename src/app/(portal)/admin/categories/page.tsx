@@ -10,6 +10,7 @@ import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeleteButton } from "@/components/portal/DeleteButton";
+import { CategoriesBulkPanel } from "@/components/portal/CategoriesBulkPanel";
 import { deleteCategorySafeAction } from "@/server/actions/categories";
 
 export default async function AdminCategoriesPage() {
@@ -38,6 +39,8 @@ export default async function AdminCategoriesPage() {
           <Link href="/admin/categories/new">{t("new")}</Link>
         </Button>
       </header>
+
+      {isAdmin ? <CategoriesBulkPanel /> : null}
 
       {categories.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">

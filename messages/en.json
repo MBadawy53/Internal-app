@@ -669,7 +669,16 @@
         "notSelected": "Not included in this category."
       },
       "deleteConfirm": "Are you sure you want to deactivate this category?",
-      "empty": "No categories yet. Create one to get started."
+      "empty": "No categories yet. Create one to get started.",
+      "bulk": {
+        "title": "Bulk create / edit via CSV",
+        "subtitle": "Download the current categories, edit in Excel, upload to apply. Rows whose slug already exists are updated; new slugs are created. Attribute mappings are not changed by bulk upload.",
+        "download": "Download CSV",
+        "upload": "Upload",
+        "summary": "{created} created · {updated} updated.",
+        "errorsToggle": "Show row errors",
+        "rowPrefix": "Row {row}"
+      }
     },
     "attributes": {
       "title": "Attributes",
