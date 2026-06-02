@@ -88,12 +88,14 @@ function parseCsv(text: string): string[][] {
 }
 
 function toEgpPiastres(v: string): bigint {
+  if (v.trim() === "") return 0n;
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0) throw new Error(`Invalid amount '${v}'`);
   return BigInt(Math.round(n * 100));
 }
 
 function toPctBps(v: string): number {
+  if (v.trim() === "") return 0;
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0) throw new Error(`Invalid percent '${v}'`);
   return Math.round(n * 100);
@@ -244,13 +246,26 @@ export async function bulkImportProductsAction(
 
       const id = get("id");
       if (id !== "") {
-        const product = await prisma.product.update({
+        const existing = await prisma.product.findUnique({
           where: { id },
-          data: { ...data, updatedById: actor.id },
           select: { id: true },
         });
-        results.push({ row: rowNum, ok: true, action: "updated", productId: product.id });
-        updated++;
+        if (existing) {
+          const product = await prisma.product.update({
+            where: { id },
+            data: { ...data, updatedById: actor.id },
+            select: { id: true },
+          });
+          results.push({ row: rowNum, ok: true, action: "updated", productId: product.id });
+          updated++;
+        } else {
+          const product = await prisma.product.create({
+            data: { id, ...data, createdById: actor.id, updatedById: actor.id },
+            select: { id: true },
+          });
+          results.push({ row: rowNum, ok: true, action: "created", productId: product.id });
+          created++;
+        }
       } else {
         const product = await prisma.product.create({
           data: { ...data, createdById: actor.id, updatedById: actor.id },
