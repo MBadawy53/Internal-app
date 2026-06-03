@@ -299,7 +299,15 @@
       "offerMonthly": "القسط الشهري",
       "range": "نطاق المنتج",
       "openInCalculator": "استخدم هذا المنتج",
-      "applyForLead": "تقديم طلب جديد"
+      "applyForLead": "تقديم طلب جديد",
+      "filtersTitle": "عوامل التصفية",
+      "any": "الكل",
+      "businessLine": "قطاع الأعمال",
+      "category": "الفئة",
+      "company": "الشركة",
+      "maxAdminFeePct": "الحد الأقصى لرسوم الإدارة (٪)",
+      "maxAdminFeePctPlaceholder": "مثال: 2.5",
+      "insuranceRequiredFilter": "المنتجات التي تتطلب تأمينًا فقط"
     },
     "selectProduct": "اختر منتجًا",
     "installmentPeriod": "دورية القسط",

@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import type { Company } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +33,11 @@ import type { AppLocale } from "@/lib/i18n/config";
 interface ClientProduct {
   id: string;
   name: string;
+  businessLineId: string;
   businessLineName: string;
+  categoryId: string;
+  categoryName: string;
+  company: Company | null;
   amountMinPiastres: string;
   amountMaxPiastres: string;
   tenureMinMonths: number;
@@ -78,8 +84,25 @@ function piastresFromEgp(egp: string): bigint {
   return BigInt(Math.round(n * 100));
 }
 
+interface BusinessLineOpt {
+  id: string;
+  name: string;
+}
+interface CategoryOpt {
+  id: string;
+  name: string;
+  businessLineId: string;
+}
+interface CompanyOpt {
+  value: Company;
+  label: string;
+}
+
 interface Props {
   products: ClientProduct[];
+  businessLines: BusinessLineOpt[];
+  categories: CategoryOpt[];
+  companies: CompanyOpt[];
   locale: AppLocale;
   allowProductMode?: boolean;
   allowAffordabilityMode?: boolean;
@@ -94,6 +117,9 @@ interface Props {
 
 export function CalculatorClient({
   products,
+  businessLines,
+  categories,
+  companies,
   locale,
   allowProductMode = true,
   allowAffordabilityMode = true,
@@ -123,6 +149,11 @@ export function CalculatorClient({
   const [monthlyIncome, setMonthlyIncome] = useState("");
   const [creditCardLimit, setCreditCardLimit] = useState("");
   const [existingInstallments, setExistingInstallments] = useState("");
+  const [filterBlId, setFilterBlId] = useState("");
+  const [filterCatId, setFilterCatId] = useState("");
+  const [filterCompany, setFilterCompany] = useState<Company | "">("");
+  const [filterInsuranceRequired, setFilterInsuranceRequired] = useState(false);
+  const [filterMaxAdminFeePct, setFilterMaxAdminFeePct] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CalculatorResult | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -270,10 +301,20 @@ export function CalculatorClient({
     ? netMonthlyIncome(grossPiastres, ccLimitPiastres, existingInstPiastres)
     : 0n;
   const maxMonthlyPiastres = hasAffordabilityInputs ? maxMonthlyFromIncome(netIncomePiastres) : 0n;
+  const maxAdminFeePctNum = Number(filterMaxAdminFeePct);
+  const hasAdminFeeFilter =
+    filterMaxAdminFeePct.trim() !== "" &&
+    Number.isFinite(maxAdminFeePctNum) &&
+    maxAdminFeePctNum >= 0;
   const recommendations = useMemo(() => {
     if (mode !== "affordability" || !hasAffordabilityInputs) return [];
     return products
       .map((p) => {
+        if (filterBlId && p.businessLineId !== filterBlId) return null;
+        if (filterCatId && p.categoryId !== filterCatId) return null;
+        if (filterCompany && p.company !== filterCompany) return null;
+        if (filterInsuranceRequired && !p.insuranceRequired) return null;
+        if (hasAdminFeeFilter && p.adminFeeBps / 100 > maxAdminFeePctNum) return null;
         if (tenureNum < p.tenureMinMonths || tenureNum > p.tenureMaxMonths) return null;
         // Tenor (months) must be a whole number of the product's periods.
         const monthsPerPeriod = MONTHS_PER_PERIOD[p.installmentPeriod ?? "MONTHLY"];
@@ -323,7 +364,30 @@ export function CalculatorClient({
         } => x !== null,
       )
       .sort((a, b) => (b.offerLoanPiastres > a.offerLoanPiastres ? 1 : -1));
-  }, [mode, hasAffordabilityInputs, products, maxMonthlyPiastres, tenureNum]);
+  }, [
+    mode,
+    hasAffordabilityInputs,
+    products,
+    maxMonthlyPiastres,
+    tenureNum,
+    filterBlId,
+    filterCatId,
+    filterCompany,
+    filterInsuranceRequired,
+    hasAdminFeeFilter,
+    maxAdminFeePctNum,
+  ]);
+
+  const visibleCategoriesForFilter = useMemo(
+    () => (filterBlId ? categories.filter((c) => c.businessLineId === filterBlId) : categories),
+    [categories, filterBlId],
+  );
+  // Drop a category pick that no longer belongs to the chosen business line.
+  useEffect(() => {
+    if (filterCatId && !visibleCategoriesForFilter.some((c) => c.id === filterCatId)) {
+      setFilterCatId("");
+    }
+  }, [filterCatId, visibleCategoriesForFilter]);
 
   return (
     <div className="space-y-6">
@@ -400,6 +464,79 @@ export function CalculatorClient({
                 <p className="text-xs text-muted-foreground">
                   {t("affordability.existingInstallmentsHint")}
                 </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 rounded-md border bg-secondary/20 p-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {t("affordability.filtersTitle")}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="aff-bl">{t("affordability.businessLine")}</Label>
+                  <Select
+                    id="aff-bl"
+                    value={filterBlId}
+                    onChange={(e) => setFilterBlId(e.target.value)}
+                  >
+                    <option value="">{t("affordability.any")}</option>
+                    {businessLines.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="aff-cat">{t("affordability.category")}</Label>
+                  <Select
+                    id="aff-cat"
+                    value={filterCatId}
+                    onChange={(e) => setFilterCatId(e.target.value)}
+                  >
+                    <option value="">{t("affordability.any")}</option>
+                    {visibleCategoriesForFilter.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="aff-company">{t("affordability.company")}</Label>
+                  <Select
+                    id="aff-company"
+                    value={filterCompany}
+                    onChange={(e) => setFilterCompany((e.target.value as Company) || "")}
+                  >
+                    <option value="">{t("affordability.any")}</option>
+                    {companies.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="aff-admin-fee">{t("affordability.maxAdminFeePct")}</Label>
+                  <Input
+                    id="aff-admin-fee"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.01"
+                    value={filterMaxAdminFeePct}
+                    onChange={(e) => setFilterMaxAdminFeePct(e.target.value)}
+                    placeholder={t("affordability.maxAdminFeePctPlaceholder")}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                  <Checkbox
+                    checked={filterInsuranceRequired}
+                    onChange={(e) => setFilterInsuranceRequired(e.target.checked)}
+                  />
+                  <span>{t("affordability.insuranceRequiredFilter")}</span>
+                </label>
               </div>
             </div>
 

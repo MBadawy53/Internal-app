@@ -299,7 +299,15 @@
       "offerMonthly": "Monthly installment",
       "range": "Product range",
       "openInCalculator": "Use this product",
-      "applyForLead": "Apply for a lead"
+      "applyForLead": "Apply for a lead",
+      "filtersTitle": "Filters",
+      "any": "Any",
+      "businessLine": "Business line",
+      "category": "Category",
+      "company": "Company",
+      "maxAdminFeePct": "Max admin fee (%)",
+      "maxAdminFeePctPlaceholder": "e.g. 2.5",
+      "insuranceRequiredFilter": "Only products that require insurance"
     },
     "selectProduct": "Select a product",
     "installmentPeriod": "Installment period",
