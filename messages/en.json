@@ -415,6 +415,7 @@
       "createdAt": "Created",
       "note": "Customer note",
       "status": "Status",
+      "editProductTitle": "Business line & product",
       "timeline": "Activity timeline",
       "history": "Status history",
       "addActivity": "Add activity",
@@ -427,6 +428,12 @@
       "nationalIdFront": "Front",
       "nationalIdBack": "Back",
       "backToList": "Back to leads"
+    },
+    "productEdit": {
+      "businessLine": "Business line",
+      "product": "Product",
+      "noProduct": "— (no product)",
+      "saved": "Saved"
     },
     "status": {
       "changeTo": "Change status to",

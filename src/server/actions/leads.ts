@@ -420,3 +420,114 @@ export async function transitionLeadStateAction(
     return { ok: false, message: "Status update failed" };
   }
 }
+
+// ── Update product (and business line) on a submitted lead ─────────────────
+
+const UpdateLeadProductSchema = z.object({
+  leadId: z.string().min(1),
+  businessLineId: z.string().min(1),
+  productId: z.string().optional().or(z.literal("")),
+});
+
+export type UpdateLeadProductState = { ok: true } | { ok: false; message: string };
+
+export async function updateLeadProductAction(
+  _prev: UpdateLeadProductState | null,
+  fd: FormData,
+): Promise<UpdateLeadProductState> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "lead");
+
+  const parsed = UpdateLeadProductSchema.safeParse({
+    leadId: fd.get("leadId")?.toString(),
+    businessLineId: fd.get("businessLineId")?.toString(),
+    productId: fd.get("productId")?.toString() ?? "",
+  });
+  if (!parsed.success) return { ok: false, message: "Invalid input" };
+  const d = parsed.data;
+
+  const lead = await leadService.get(actor, d.leadId);
+  if (!lead) return { ok: false, message: "Lead not found" };
+
+  const newProductId = d.productId || null;
+  if (newProductId) {
+    const product = await prisma.product.findUnique({
+      where: { id: newProductId },
+      select: { id: true, businessLineId: true, isActive: true, nameEn: true, nameAr: true },
+    });
+    if (!product || !product.isActive) {
+      return { ok: false, message: "Product not found" };
+    }
+    if (product.businessLineId !== d.businessLineId) {
+      return { ok: false, message: "Product does not belong to the selected business line." };
+    }
+  }
+
+  const blChanged = lead.businessLineId !== d.businessLineId;
+  const productChanged = (lead.productId ?? null) !== newProductId;
+  if (!blChanged && !productChanged) return { ok: true };
+
+  // Build a human note describing what changed. Names are looked up only when
+  // we actually need them, so a no-op save doesn't run extra queries.
+  const [newBl, oldProduct, newProduct] = await Promise.all([
+    blChanged
+      ? prisma.businessLine.findUnique({
+          where: { id: d.businessLineId },
+          select: { nameEn: true },
+        })
+      : Promise.resolve(null),
+    productChanged && lead.productId
+      ? prisma.product.findUnique({
+          where: { id: lead.productId },
+          select: { nameEn: true },
+        })
+      : Promise.resolve(null),
+    productChanged && newProductId
+      ? prisma.product.findUnique({
+          where: { id: newProductId },
+          select: { nameEn: true },
+        })
+      : Promise.resolve(null),
+  ]);
+  if (blChanged && !newBl) {
+    return { ok: false, message: "Business line not found" };
+  }
+
+  const parts: string[] = [];
+  if (blChanged) {
+    parts.push(
+      `Business line → ${newBl?.nameEn ?? d.businessLineId}` +
+        (lead.businessLine ? ` (was ${lead.businessLine.nameEn})` : ""),
+    );
+  }
+  if (productChanged) {
+    parts.push(
+      `Product → ${newProduct?.nameEn ?? "—"}` +
+        (oldProduct ? ` (was ${oldProduct.nameEn})` : lead.productId ? "" : " (was —)"),
+    );
+  }
+  const note = parts.join("; ");
+
+  try {
+    await prisma.$transaction([
+      prisma.lead.update({
+        where: { id: lead.id },
+        data: { businessLineId: d.businessLineId, productId: newProductId },
+      }),
+      prisma.leadActivity.create({
+        data: {
+          leadId: lead.id,
+          type: LeadActivityType.NOTE,
+          content: note,
+          actorId: actor.id,
+        },
+      }),
+    ]);
+    revalidatePath(`/leads/${lead.id}`);
+    revalidatePath("/leads");
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err, leadId: lead.id }, "lead.update_product_failed");
+    return { ok: false, message: "Could not update product" };
+  }
+}

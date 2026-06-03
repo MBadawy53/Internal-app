@@ -415,6 +415,7 @@
       "createdAt": "تاريخ الإنشاء",
       "note": "ملاحظة العميل",
       "status": "الحالة",
+      "editProductTitle": "قطاع الأعمال والمنتج",
       "timeline": "سجل النشاط",
       "history": "تاريخ الحالات",
       "addActivity": "إضافة نشاط",
@@ -427,6 +428,12 @@
       "nationalIdFront": "الوش",
       "nationalIdBack": "الضهر",
       "backToList": "العودة إلى القائمة"
+    },
+    "productEdit": {
+      "businessLine": "قطاع الأعمال",
+      "product": "المنتج",
+      "noProduct": "— (بدون منتج)",
+      "saved": "تم الحفظ"
     },
     "status": {
       "changeTo": "تغيير الحالة إلى",

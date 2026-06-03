@@ -12,9 +12,11 @@ import { computeLeadCommission } from "@/server/services/commission.service";
 import { formatMoney } from "@/lib/finance/money";
 import { LeadStatusForm } from "@/components/portal/LeadStatusForm";
 import { LeadActivityForm } from "@/components/portal/LeadActivityForm";
+import { LeadProductForm } from "@/components/portal/LeadProductForm";
 import { ClaimLeadButton } from "@/components/portal/ClaimLeadButton";
 import { LeadIdLinkPanel } from "@/components/portal/LeadIdLinkPanel";
 import { readCustomFields, readFields } from "@/lib/leadForm/types";
+import { catalogService } from "@/server/services/catalog.service";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -25,6 +27,11 @@ export default async function LeadDetailPage({ params }: Params) {
   const { id } = await params;
   const lead = await leadService.get(actor, id);
   if (!lead) notFound();
+
+  const [businessLines, products] = await Promise.all([
+    catalogService.listBusinessLines(actor),
+    catalogService.listProducts(actor),
+  ]);
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads.detail");
@@ -166,6 +173,28 @@ export default async function LeadDetailPage({ params }: Params) {
               appStatus={lead.appStatus}
               productStatus={lead.productStatus}
               track={lead.track}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>{t("editProductTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LeadProductForm
+              leadId={lead.id}
+              businessLineId={lead.businessLineId}
+              productId={lead.productId}
+              businessLines={businessLines.map((b) => ({
+                id: b.id,
+                name: localized(locale, b.nameEn, b.nameAr),
+              }))}
+              products={products.map((p) => ({
+                id: p.id,
+                name: localized(locale, p.nameEn, p.nameAr),
+                businessLineId: p.businessLineId,
+              }))}
             />
           </CardContent>
         </Card>
