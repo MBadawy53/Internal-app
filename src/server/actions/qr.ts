@@ -15,6 +15,7 @@ import { signIn } from "@/lib/auth/config";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { encryptOptional } from "@/lib/crypto/aes-gcm";
+import { ImageUploadError, uploadImage } from "@/lib/upload/image";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
@@ -404,6 +405,27 @@ export async function submitPublicLeadAction(
     customFields = result.values;
   }
 
+  // National ID images are mandatory on the public form — customers attach
+  // them inline rather than via a follow-up tokenized link.
+  const frontFile = fd.get("nationalIdFront");
+  const backFile = fd.get("nationalIdBack");
+  if (!(frontFile instanceof File) || frontFile.size === 0) {
+    return { ok: false, message: "Front side of national ID is required." };
+  }
+  if (!(backFile instanceof File) || backFile.size === 0) {
+    return { ok: false, message: "Back side of national ID is required." };
+  }
+  let nationalIdFrontUrl: string;
+  let nationalIdBackUrl: string;
+  try {
+    nationalIdFrontUrl = await uploadImage(frontFile, "lead-id/public");
+    nationalIdBackUrl = await uploadImage(backFile, "lead-id/public");
+  } catch (err) {
+    if (err instanceof ImageUploadError) return { ok: false, message: err.message };
+    logger.error({ err }, "qr.public_lead.id_upload_failed");
+    return { ok: false, message: "Upload failed, please retry." };
+  }
+
   try {
     const lead = await leadRepository.create({
       customerName: d.customerName,
@@ -415,6 +437,8 @@ export async function submitPublicLeadAction(
       consentGivenAt: new Date(),
       consentIp: ip === "unknown" ? null : ip,
       consentUserAgent: userAgent ?? null,
+      nationalIdFrontUrl,
+      nationalIdBackUrl,
       // appStatus / productStatus default at the column level.
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),

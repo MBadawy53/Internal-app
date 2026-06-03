@@ -34,7 +34,7 @@ export function PublicLeadForm({ code, customFields = [] }: Props) {
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-4" encType="multipart/form-data">
       <input type="hidden" name="code" value={code} />
       {/* Honeypot — real users won't see / fill this. Bots usually do. */}
       <label aria-hidden className="absolute -left-[9999px] top-auto h-0 w-0 overflow-hidden">
@@ -67,6 +67,28 @@ export function PublicLeadForm({ code, customFields = [] }: Props) {
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="pl-note">{tForm("customerNote")}</Label>
           <Textarea id="pl-note" name="customerNote" rows={3} maxLength={1000} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pl-id-front">{tForm("nationalIdFront")}</Label>
+          <Input
+            id="pl-id-front"
+            name="nationalIdFront"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            required
+          />
+          <p className="text-xs text-muted-foreground">{tForm("nationalIdImageHint")}</p>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pl-id-back">{tForm("nationalIdBack")}</Label>
+          <Input
+            id="pl-id-back"
+            name="nationalIdBack"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            required
+          />
+          <p className="text-xs text-muted-foreground">{tForm("nationalIdImageHint")}</p>
         </div>
         <LeadCustomFields fields={customFields} idPrefix="pl" />
       </div>
