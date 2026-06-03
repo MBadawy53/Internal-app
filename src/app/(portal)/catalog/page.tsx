@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ProductType } from "@prisma/client";
+import { Company } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { requireFeatureAccess } from "@/lib/auth/permissions";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
 import { formatBps, formatMoney } from "@/lib/finance/money";
 import { formatAttributeValue } from "@/lib/catalog/attribute-values";
+import { COMPANY_LABELS_AR, COMPANY_LABELS_EN } from "@/lib/catalog/company";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { CatalogFilters } from "@/components/portal/CatalogFilters";
 interface SearchParams {
   bl?: string;
   cat?: string;
-  type?: string;
+  company?: string;
   q?: string;
 }
 
@@ -29,7 +30,6 @@ export default async function CatalogPage({
   const sp = await searchParams;
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("catalog");
-  const tTypes = await getTranslations("productTypes");
 
   const [businessLines, categories, products] = await Promise.all([
     catalogService.listBusinessLines(actor),
@@ -37,10 +37,12 @@ export default async function CatalogPage({
     catalogService.listProducts(actor, {
       businessLineId: sp.bl || undefined,
       categoryId: sp.cat || undefined,
-      type: (sp.type as ProductType | undefined) || undefined,
+      company: (sp.company as Company | undefined) || undefined,
       query: sp.q || undefined,
     }),
   ]);
+
+  const companyLabels = locale === "ar" ? COMPANY_LABELS_AR : COMPANY_LABELS_EN;
 
   return (
     <div className="space-y-6">
@@ -60,9 +62,9 @@ export default async function CatalogPage({
           name: localized(locale, c.nameEn, c.nameAr),
           businessLineId: c.businessLineId,
         }))}
-        productTypes={Object.values(ProductType).map((pt) => ({
-          value: pt,
-          label: tTypes(pt),
+        companies={Object.values(Company).map((c) => ({
+          value: c,
+          label: companyLabels[c],
         }))}
         initial={sp}
       />

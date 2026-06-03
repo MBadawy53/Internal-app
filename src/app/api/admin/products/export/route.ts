@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import { COMPANY_LABELS_EN } from "@/lib/catalog/company";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ export const PRODUCT_CSV_COLUMNS = [
   "id",
   "businessLineSlug",
   "categorySlug",
-  "type",
+  "companyName",
   "nameEn",
   "nameAr",
   "shortDescEn",
@@ -59,7 +60,7 @@ export async function GET(): Promise<Response> {
       p.id,
       p.businessLine.slug,
       p.category.slug,
-      p.type,
+      p.company ? COMPANY_LABELS_EN[p.company] : "",
       p.nameEn,
       p.nameAr,
       p.shortDescEn,

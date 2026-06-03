@@ -8,6 +8,7 @@ import { formatBps, formatMoney } from "@/lib/finance/money";
 import type { AppLocale } from "@/lib/i18n/config";
 import { makeAttributeConfig } from "@/lib/catalog/attributes";
 import { formatAttributeValue } from "@/lib/catalog/attribute-values";
+import { COMPANY_LABELS_AR, COMPANY_LABELS_EN } from "@/lib/catalog/company";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +25,9 @@ export default async function ProductDetailPage({ params }: Params) {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("catalog.detail");
   const tCommon = await getTranslations("common");
-  const tTypes = await getTranslations("productTypes");
+  const companyLabel = product.company
+    ? (locale === "ar" ? COMPANY_LABELS_AR : COMPANY_LABELS_EN)[product.company]
+    : null;
 
   const name = localized(locale, product.nameEn, product.nameAr);
   const longDesc = localized(locale, product.longDescEn, product.longDescAr);
@@ -52,7 +55,9 @@ export default async function ProductDetailPage({ params }: Params) {
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{name}</h1>
           <div className="brand-underline mt-2 w-16" />
-          <p className="mt-1 text-sm text-muted-foreground">{tTypes(product.type)}</p>
+          {companyLabel ? (
+            <p className="mt-1 text-sm text-muted-foreground">{companyLabel}</p>
+          ) : null}
         </div>
         <Button asChild>
           <Link href={`/calculator?productId=${product.id}`}>{t("openCalculator")}</Link>

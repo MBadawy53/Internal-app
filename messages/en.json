@@ -237,7 +237,7 @@
     "filters": {
       "businessLine": "Business line",
       "category": "Category",
-      "type": "Product type",
+      "company": "Company",
       "amountRange": "Amount range (EGP)",
       "tenureRange": "Tenor (months)",
       "search": "Search products",
@@ -784,7 +784,7 @@
       "fields": {
         "businessLine": "Business line",
         "category": "Category",
-        "type": "Product type",
+        "company": "Company",
         "nameEn": "Name (English)",
         "nameAr": "Name (Arabic)",
         "shortDescEn": "Short description (English)",

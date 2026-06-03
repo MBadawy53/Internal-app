@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ProductType, Role } from "@prisma/client";
+import { Company, Role } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
@@ -18,7 +18,10 @@ const ProductInputSchema = z
   .object({
     businessLineId: z.string().min(1),
     categoryId: z.string().min(1),
-    type: z.nativeEnum(ProductType),
+    company: z
+      .union([z.nativeEnum(Company), z.literal("")])
+      .optional()
+      .transform((v) => (v === "" || v === undefined ? null : v)),
     nameEn: z.string().min(1).max(160),
     nameAr: z.string().min(1).max(160),
     shortDescEn: z.string().min(1).max(500),
@@ -93,7 +96,7 @@ function fromFormData(fd: FormData) {
     attributeValues,
     businessLineId: fd.get("businessLineId")?.toString() ?? "",
     categoryId: fd.get("categoryId")?.toString() ?? "",
-    type: (fd.get("type")?.toString() ?? "") as ProductType,
+    company: fd.get("company")?.toString() ?? "",
     nameEn: fd.get("nameEn")?.toString() ?? "",
     nameAr: fd.get("nameAr")?.toString() ?? "",
     shortDescEn: fd.get("shortDescEn")?.toString() ?? "",
@@ -144,7 +147,7 @@ export async function createProductAction(
 
   try {
     const created = await productRepository.create({
-      type: d.type,
+      company: d.company,
       nameEn: d.nameEn,
       nameAr: d.nameAr,
       shortDescEn: d.shortDescEn,
@@ -209,7 +212,7 @@ export async function updateProductAction(
 
   try {
     await productRepository.update(id, {
-      type: d.type,
+      company: d.company,
       nameEn: d.nameEn,
       nameAr: d.nameAr,
       shortDescEn: d.shortDescEn,

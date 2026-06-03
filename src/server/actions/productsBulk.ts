@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { InstallmentPeriod, ProductType, Role } from "@prisma/client";
+import { InstallmentPeriod, Role } from "@prisma/client";
+import type { Company } from "@prisma/client";
+import { companyFromName, COMPANY_LABELS_EN } from "@/lib/catalog/company";
 import { requireActor } from "@/lib/auth/session";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
@@ -126,7 +128,7 @@ const REQUIRED_HEADERS = [
   "id",
   "businessLineSlug",
   "categorySlug",
-  "type",
+  "companyName",
   "nameEn",
   "nameAr",
   "shortDescEn",
@@ -204,10 +206,24 @@ export async function bulkImportProductsAction(
       const catId = catBySlug.get(get("categorySlug"));
       if (!catId) throw new Error(`Unknown categorySlug '${get("categorySlug")}'`);
 
+      const rawCompany = get("companyName");
+      let company: Company | null;
+      if (rawCompany === "") {
+        company = null;
+      } else {
+        const matched = companyFromName(rawCompany);
+        if (!matched) {
+          throw new Error(
+            `Unknown companyName '${rawCompany}'. Allowed: ${Object.values(COMPANY_LABELS_EN).join(", ")}`,
+          );
+        }
+        company = matched;
+      }
+
       const data = {
         businessLineId: blId,
         categoryId: catId,
-        type: toEnum<ProductType>(get("type"), Object.values(ProductType) as ProductType[], "type"),
+        company,
         nameEn: get("nameEn"),
         nameAr: get("nameAr"),
         shortDescEn: get("shortDescEn"),

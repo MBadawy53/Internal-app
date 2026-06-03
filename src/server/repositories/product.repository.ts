@@ -1,10 +1,10 @@
-import type { Prisma, ProductType } from "@prisma/client";
+import type { Company, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export interface ListProductFilters {
   businessLineId?: string;
   categoryId?: string;
-  type?: ProductType;
+  company?: Company;
   amountMinPiastres?: bigint;
   amountMaxPiastres?: bigint;
   tenureMinMonths?: number;
@@ -19,7 +19,7 @@ export const productRepository = {
 
     if (filters.businessLineId) where.businessLineId = filters.businessLineId;
     if (filters.categoryId) where.categoryId = filters.categoryId;
-    if (filters.type) where.type = filters.type;
+    if (filters.company) where.company = filters.company;
     if (!filters.includeInactive) where.isActive = true;
 
     if (filters.amountMinPiastres !== undefined) {

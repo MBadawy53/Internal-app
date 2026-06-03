@@ -237,7 +237,7 @@
     "filters": {
       "businessLine": "قطاع الأعمال",
       "category": "الفئة",
-      "type": "نوع المنتج",
+      "company": "الشركة",
       "amountRange": "نطاق المبلغ (ج.م.)",
       "tenureRange": "المدة (شهر)",
       "search": "ابحث في المنتجات",
@@ -784,7 +784,7 @@
       "fields": {
         "businessLine": "قطاع الأعمال",
         "category": "الفئة",
-        "type": "نوع المنتج",
+        "company": "الشركة",
         "nameEn": "الاسم (إنجليزي)",
         "nameAr": "الاسم (عربي)",
         "shortDescEn": "وصف مختصر (إنجليزي)",

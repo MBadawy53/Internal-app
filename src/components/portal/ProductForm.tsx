@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import type { ProductType } from "@prisma/client";
+import type { Company } from "@prisma/client";
 import type { ProductAttributeKey } from "@/lib/catalog/attributes";
 import { AttributeType } from "@prisma/client";
 import type { AttributeSelectOption } from "@/lib/catalog/attribute-values";
@@ -52,7 +52,7 @@ interface InitialProduct {
   id?: string;
   businessLineId?: string;
   categoryId?: string;
-  type?: ProductType;
+  company?: Company | null;
   nameEn?: string;
   nameAr?: string;
   shortDescEn?: string;
@@ -86,7 +86,7 @@ interface InitialProduct {
 interface Props {
   businessLines: BL[];
   categories: Cat[];
-  productTypes: Array<{ value: string; label: string }>;
+  companies: Array<{ value: string; label: string }>;
   initial?: InitialProduct;
   uploadsEnabled?: boolean;
 }
@@ -94,7 +94,7 @@ interface Props {
 export function ProductForm({
   businessLines,
   categories,
-  productTypes,
+  companies,
   initial,
   uploadsEnabled = true,
 }: Props) {
@@ -220,14 +220,12 @@ export function ProductForm({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="type">{tFields("type")}</Label>
-            <Select id="type" name="type" defaultValue={initial?.type ?? ""} required>
-              <option value="" disabled>
-                —
-              </option>
-              {productTypes.map((pt) => (
-                <option key={pt.value} value={pt.value}>
-                  {pt.label}
+            <Label htmlFor="company">{tFields("company")}</Label>
+            <Select id="company" name="company" defaultValue={initial?.company ?? ""}>
+              <option value="">—</option>
+              {companies.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
                 </option>
               ))}
             </Select>

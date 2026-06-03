@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ProductType, Role } from "@prisma/client";
+import { Company, Role } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
 import { requireActor } from "@/lib/auth/session";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
+import { COMPANY_LABELS_AR, COMPANY_LABELS_EN } from "@/lib/catalog/company";
 import type { AppLocale } from "@/lib/i18n/config";
 import { ProductForm } from "@/components/portal/ProductForm";
 
@@ -24,7 +25,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("admin.products");
-  const tTypes = await getTranslations("productTypes");
+  const companyLabels = locale === "ar" ? COMPANY_LABELS_AR : COMPANY_LABELS_EN;
 
   const [businessLines, categories] = await Promise.all([
     catalogService.listBusinessLines(actor),
@@ -62,16 +63,16 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
               )?.options ?? [],
           })),
         }))}
-        productTypes={Object.values(ProductType).map((pt) => ({
-          value: pt,
-          label: tTypes(pt),
+        companies={Object.values(Company).map((c) => ({
+          value: c,
+          label: companyLabels[c],
         }))}
         uploadsEnabled={!process.env.VERCEL}
         initial={{
           id: product.id,
           businessLineId: product.businessLineId,
           categoryId: product.categoryId,
-          type: product.type,
+          company: product.company,
           nameEn: product.nameEn,
           nameAr: product.nameAr,
           shortDescEn: product.shortDescEn,

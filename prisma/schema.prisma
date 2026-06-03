@@ -27,24 +27,19 @@ enum Locale {
   AR
 }
 
-enum ProductType {
-  PERSONAL_LOAN
-  AUTO_LOAN
-  MORTGAGE
-  HOME_FURNITURE
-  HOME_INTERIOR
-  MOTORCYCLE
-  INSURANCE_POLICY
-  LEASING
-  FACTORING
-  JEWELRY
-  TRAFFIC_SERVICE
-  TRUCK_LOAN
-  GOLF_CAR
-  WATERCRAFT
-  EDUCATION
-  GREEN_FINANCE
-  TRAVEL
+enum Company {
+  CONTACT_CREDIT
+  GLOBAL_AUTO
+  SMG
+  ABO_GHALY_FINANCE
+  EZZ_EL_ARAB_FINANCIAL
+  SARWA_LIFE
+  SARWA_INSURANCE
+  CONTACT_INSURANCE_BROKERAGE
+  CONTACT_MORTGAGE
+  CONTACT_FACTORING
+  CONTACT_LEASING
+  CONTACT_CREDITECH
 }
 
 enum LeadSource {
@@ -390,7 +385,7 @@ model Product {
   id             String      @id @default(cuid())
   businessLineId String
   categoryId     String
-  type           ProductType
+  company        Company?
   nameEn         String
   nameAr         String
   shortDescEn    String
@@ -454,7 +449,7 @@ model Product {
 
   @@index([businessLineId])
   @@index([categoryId])
-  @@index([type])
+  @@index([company])
   @@index([isActive])
   @@map("products")
 }

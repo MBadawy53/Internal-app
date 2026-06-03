@@ -1,7 +1,6 @@
 import {
   PrismaClient,
   Role,
-  ProductType,
   InstallmentPeriod,
   LeadSource,
   LeadAppStatus,
@@ -48,12 +47,6 @@ const businessLines = [
   },
   { slug: "insurance", nameEn: "Insurance", nameAr: "التأمين", icon: "shield" },
 ];
-
-const productTypeBySlug: Record<string, ProductType> = {
-  "consumer-financing": ProductType.PERSONAL_LOAN,
-  "business-financing": ProductType.FACTORING,
-  insurance: ProductType.INSURANCE_POLICY,
-};
 
 async function main() {
   console.log("🌱 Seeding Contact Financial portal…");
@@ -206,14 +199,13 @@ async function main() {
 
     // ── Sample product per BL ─────────────────────────────────────────────────
     const productExists = await prisma.product.findFirst({
-      where: { businessLineId: bl.id, type: productTypeBySlug[bl.slug] },
+      where: { businessLineId: bl.id, nameEn: `${bl.nameEn} — Standard` },
     });
     if (!productExists) {
       await prisma.product.create({
         data: {
           businessLineId: bl.id,
           categoryId: category.id,
-          type: productTypeBySlug[bl.slug] ?? ProductType.PERSONAL_LOAN,
           nameEn: `${bl.nameEn} — Standard`,
           nameAr: `${bl.nameAr} — قياسي`,
           shortDescEn: `Standard ${bl.nameEn.toLowerCase()} product.`,
@@ -662,7 +654,6 @@ async function loadProductsFromCsv() {
     id: idx("id"),
     businessLineSlug: idx("businessLineSlug"),
     categorySlug: idx("categorySlug"),
-    type: idx("type"),
     nameEn: idx("nameEn"),
     nameAr: idx("nameAr"),
     shortDescEn: idx("shortDescEn"),
@@ -755,11 +746,7 @@ async function loadProductsFromCsv() {
       const data = {
         businessLineId: blId,
         categoryId: catId,
-        type: csvEnum<ProductType>(
-          get(col.type),
-          Object.values(ProductType) as ProductType[],
-          "type",
-        ),
+        company: null,
         nameEn: get(col.nameEn),
         nameAr: get(col.nameAr),
         shortDescEn: get(col.shortDescEn),
