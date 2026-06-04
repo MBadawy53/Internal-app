@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Role } from "@prisma/client";
+import { EmploymentType, Role } from "@prisma/client";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { catalogService } from "@/server/services/catalog.service";
@@ -28,12 +28,26 @@ export default async function NewLeadPage({
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("leads");
+  const tEmployment = await getTranslations("leads.employmentTypes");
 
-  const [businessLines, products, customFieldsSource] = await Promise.all([
+  const [businessLines, products, customFieldsSource, branchRows] = await Promise.all([
     catalogService.listBusinessLines(actor),
     catalogService.listProducts(actor),
     qrCampaignRepository.findFirstWithCustomFields(),
+    prisma.branch.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
+      select: { id: true, nameEn: true, nameAr: true },
+    }),
   ]);
+  const branches = branchRows.map((b) => ({
+    id: b.id,
+    name: localized(locale, b.nameEn, b.nameAr),
+  }));
+  const employmentTypes = Object.values(EmploymentType).map((v) => ({
+    value: v,
+    label: tEmployment(v),
+  }));
 
   // Owners list: only shown to admins / BL owners / managers. Employees
   // become the owner automatically.
@@ -90,6 +104,8 @@ export default async function NewLeadPage({
           businessLineId: p.businessLineId,
         }))}
         owners={owners}
+        branches={branches}
+        employmentTypes={employmentTypes}
         showOwnerPicker={showOwnerPicker}
         customFields={customFieldsSource?.fields ?? []}
         customFieldsCampaignId={customFieldsSource?.id ?? null}

@@ -492,7 +492,14 @@
         "evening": "6 م – 10 م"
       },
       "customerNote": "ملاحظة العميل",
+      "employmentType": "نوع الوظيفة",
+      "branch": "فرع كونتكت",
       "consent": "وافق العميل على التواصل بشأن هذا الطلب."
+    },
+    "employmentTypes": {
+      "EMPLOYEE": "موظف",
+      "SELF_EMPLOYED": "يعمل لحسابه",
+      "BUSINESS_OWNER": "صاحب عمل"
     },
     "appStatuses": {
       "CREDIT_RISK": "تقييم ائتماني أولي",
@@ -566,6 +573,25 @@
         "remove": "حذف",
         "addRow": "إضافة شريحة",
         "notes": "ملاحظات (اختياري)"
+      }
+    },
+    "branches": {
+      "title": "الفروع",
+      "subtitle": "فروع كونتكت التي يختارها العميل أو الموظف في نموذج العميل المحتمل.",
+      "newTitle": "إضافة فرع",
+      "create": "إنشاء فرع",
+      "empty": "لا توجد فروع بعد — أضف الأول من النموذج أعلاه.",
+      "deleteConfirm": "هل تريد حذف هذا الفرع؟",
+      "fields": {
+        "slug": "المعرّف",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "city": "المدينة",
+        "governorate": "المحافظة",
+        "address": "العنوان",
+        "phone": "الهاتف",
+        "isActive": "نشط",
+        "sortOrder": "ترتيب العرض"
       }
     },
     "announcements": {

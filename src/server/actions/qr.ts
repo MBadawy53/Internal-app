@@ -5,6 +5,7 @@ import * as argon2 from "argon2";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
+  EmploymentType,
   LeadActivityType,
   LeadSource,
   NotificationType,
@@ -319,6 +320,10 @@ const PublicLeadSchema = z.object({
   customerEmail: z.string().email().max(160).optional().or(z.literal("")),
   preferredContactTime: z.string().max(120).optional().or(z.literal("")),
   customerNote: z.string().max(1000).optional().or(z.literal("")),
+  employmentType: z.nativeEnum(EmploymentType, {
+    errorMap: () => ({ message: "Employment type is required" }),
+  }),
+  branchId: z.string().min(1, "Branch is required"),
   company: z.string().optional(), // honeypot
   consentGiven: z.coerce.boolean().refine((v) => v === true, "Consent required"),
 });
@@ -349,6 +354,8 @@ export async function submitPublicLeadAction(
     customerEmail: fd.get("customerEmail")?.toString().trim() ?? "",
     preferredContactTime: fd.get("preferredContactTime")?.toString() ?? "",
     customerNote: fd.get("customerNote")?.toString() ?? "",
+    employmentType: fd.get("employmentType")?.toString() ?? "",
+    branchId: fd.get("branchId")?.toString() ?? "",
     company: fd.get("company")?.toString() ?? "",
     consentGiven: fd.get("consentGiven") === "on" || fd.get("consentGiven") === "true",
   });
@@ -470,6 +477,8 @@ export async function submitPublicLeadAction(
       consentUserAgent: userAgent ?? null,
       nationalIdFrontUrl,
       nationalIdBackUrl,
+      employmentType: d.employmentType,
+      branch: { connect: { id: d.branchId } },
       // appStatus / productStatus default at the column level.
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),

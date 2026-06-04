@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  EmploymentType,
   LeadAppStatus,
   LeadProductStatus,
   LeadSource,
@@ -35,6 +36,10 @@ const CreateLeadSchema = z.object({
   ownerEmployeeId: z.string().optional().or(z.literal("")),
   preferredContactTime: z.string().max(120).optional().or(z.literal("")),
   customerNote: z.string().max(2000).optional().or(z.literal("")),
+  employmentType: z.nativeEnum(EmploymentType, {
+    errorMap: () => ({ message: "Employment type is required" }),
+  }),
+  branchId: z.string().min(1, "Branch is required"),
   consentGiven: z.coerce.boolean().refine((v) => v === true, "Consent is required"),
 });
 
@@ -51,6 +56,8 @@ function fromCreateFormData(fd: FormData) {
     ownerEmployeeId: fd.get("ownerEmployeeId")?.toString() ?? "",
     preferredContactTime: fd.get("preferredContactTime")?.toString() ?? "",
     customerNote: fd.get("customerNote")?.toString() ?? "",
+    employmentType: fd.get("employmentType")?.toString() ?? "",
+    branchId: fd.get("branchId")?.toString() ?? "",
     consentGiven: fd.get("consentGiven") === "on" || fd.get("consentGiven") === "true",
   };
 }
@@ -105,9 +112,11 @@ export async function createLeadAction(
       preferredContactTime: d.preferredContactTime || null,
       customerNote: d.customerNote || null,
       consentGivenAt: new Date(),
+      employmentType: d.employmentType,
       businessLine: { connect: { id: d.businessLineId } },
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
+      branch: { connect: { id: d.branchId } },
       ...(d.productId ? { product: { connect: { id: d.productId } } } : {}),
       // Snapshot the campaign so the lead detail page can render answers
       // with their (current) labels — not because the lead "came from" a

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
-import { QrCampaignKind } from "@prisma/client";
+import { EmploymentType, QrCampaignKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { qrCampaignRepository } from "@/server/repositories/qrCampaign.repository";
 import { readFields } from "@/lib/leadForm/types";
@@ -23,6 +23,20 @@ export default async function PublicReferralPage({ params }: Params) {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("public.leadCapture");
   const tCatalog = await getTranslations("catalog.detail");
+  const tEmployment = await getTranslations("leads.employmentTypes");
+  const branchRows = await prisma.branch.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
+    select: { id: true, nameEn: true, nameAr: true },
+  });
+  const branches = branchRows.map((b) => ({
+    id: b.id,
+    name: localized(locale, b.nameEn, b.nameAr),
+  }));
+  const employmentTypes = Object.values(EmploymentType).map((v) => ({
+    value: v,
+    label: tEmployment(v),
+  }));
 
   // Resolve code: campaign slug first, then user referral code.
   const campaign = await qrCampaignRepository.findActiveBySlug(code);
@@ -178,7 +192,12 @@ export default async function PublicReferralPage({ params }: Params) {
             {campaign?.kind === QrCampaignKind.AMBASSADOR_INVITE ? (
               <AmbassadorApplicationForm code={code} />
             ) : (
-              <PublicLeadForm code={code} customFields={readFields(campaign?.customFields)} />
+              <PublicLeadForm
+                code={code}
+                customFields={readFields(campaign?.customFields)}
+                branches={branches}
+                employmentTypes={employmentTypes}
+              />
             )}
           </div>
         </div>

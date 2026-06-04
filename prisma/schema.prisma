@@ -146,6 +146,12 @@ enum AttributeType {
   SELECT
 }
 
+enum EmploymentType {
+  EMPLOYEE
+  SELF_EMPLOYED
+  BUSINESS_OWNER
+}
+
 enum InstallmentPeriod {
   MONTHLY
   QUARTERLY
@@ -536,6 +542,8 @@ model Lead {
   businessLineId       String?
   productId            String?
   campaignId           String?
+  branchId             String?
+  employmentType       EmploymentType?
   // Two-dimensional status model from the Auto Loans reference: each lead
   // carries both an application status (credit dimension) and a product
   // status (fulfilment dimension), with an optional fast/normal track.
@@ -564,6 +572,7 @@ model Lead {
   businessLine BusinessLine?       @relation(fields: [businessLineId], references: [id])
   product      Product?            @relation(fields: [productId], references: [id])
   campaign     QrCampaign?         @relation(fields: [campaignId], references: [id])
+  branch       Branch?             @relation(fields: [branchId], references: [id])
   history      LeadStatusHistory[]
   activities   LeadActivity[]
   quotes       Quote[]
@@ -575,11 +584,35 @@ model Lead {
   @@index([businessLineId])
   @@index([productId])
   @@index([campaignId])
+  @@index([branchId])
   @@index([appStatus])
   @@index([productStatus])
   @@index([createdAt])
   @@index([customerPhone])
   @@map("leads")
+}
+
+// Physical Contact branches. Customers / employees pick one on the lead form
+// so the back office knows where to route documents. Sourced from
+// contact.eg/our-branches; managed by admin via /admin/branches.
+model Branch {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  nameEn        String
+  nameAr        String
+  city          String?
+  governorate   String?
+  address       String?
+  phone         String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([isActive, sortOrder])
+  @@map("branches")
 }
 
 model LeadStatusHistory {

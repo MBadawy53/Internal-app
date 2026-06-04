@@ -19,10 +19,22 @@ interface Option {
   businessLineId?: string;
 }
 
+interface BranchOption {
+  id: string;
+  name: string;
+}
+
+interface EmploymentOption {
+  value: string;
+  label: string;
+}
+
 interface Props {
   businessLines: Option[];
   products: Option[];
   owners: Option[];
+  branches: BranchOption[];
+  employmentTypes: EmploymentOption[];
   showOwnerPicker: boolean;
   customFields?: LeadFormField[];
   /** Snapshot id of the campaign whose customFields drove this form. */
@@ -38,6 +50,8 @@ export function LeadForm({
   businessLines,
   products,
   owners,
+  branches,
+  employmentTypes,
   showOwnerPicker,
   customFields = [],
   customFieldsCampaignId = null,
@@ -131,6 +145,32 @@ export function LeadForm({
             <option value="10:00–14:00">{t("preferredContactTimeSlots.morning")}</option>
             <option value="14:00–18:00">{t("preferredContactTimeSlots.afternoon")}</option>
             <option value="18:00–22:00">{t("preferredContactTimeSlots.evening")}</option>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="employmentType">{t("employmentType")}</Label>
+          <Select id="employmentType" name="employmentType" defaultValue="" required>
+            <option value="" disabled>
+              —
+            </option>
+            {employmentTypes.map((e) => (
+              <option key={e.value} value={e.value}>
+                {e.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="branchId">{t("branch")}</Label>
+          <Select id="branchId" name="branchId" defaultValue="" required>
+            <option value="" disabled>
+              —
+            </option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
           </Select>
         </div>
         <div className="space-y-1.5 md:col-span-2">

@@ -12,12 +12,24 @@ import { submitPublicLeadAction, type PublicLeadState } from "@/server/actions/q
 import { LeadCustomFields } from "@/components/portal/LeadCustomFields";
 import type { LeadFormField } from "@/lib/leadForm/types";
 
+interface BranchOption {
+  id: string;
+  name: string;
+}
+
+interface EmploymentOption {
+  value: string;
+  label: string;
+}
+
 interface Props {
   code: string;
   customFields?: LeadFormField[];
+  branches: BranchOption[];
+  employmentTypes: EmploymentOption[];
 }
 
-export function PublicLeadForm({ code, customFields = [] }: Props) {
+export function PublicLeadForm({ code, customFields = [], branches, employmentTypes }: Props) {
   const t = useTranslations("public.leadCapture");
   const tForm = useTranslations("leads.form");
   const [state, formAction, pending] = useActionState<PublicLeadState | null, FormData>(
@@ -67,6 +79,32 @@ export function PublicLeadForm({ code, customFields = [] }: Props) {
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="pl-note">{tForm("customerNote")}</Label>
           <Textarea id="pl-note" name="customerNote" rows={3} maxLength={1000} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pl-employment">{tForm("employmentType")}</Label>
+          <Select id="pl-employment" name="employmentType" defaultValue="" required>
+            <option value="" disabled>
+              —
+            </option>
+            {employmentTypes.map((e) => (
+              <option key={e.value} value={e.value}>
+                {e.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pl-branch">{tForm("branch")}</Label>
+          <Select id="pl-branch" name="branchId" defaultValue="" required>
+            <option value="" disabled>
+              —
+            </option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="pl-id-front">{tForm("nationalIdFront")}</Label>

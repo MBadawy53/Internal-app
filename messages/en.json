@@ -492,7 +492,14 @@
         "evening": "6 PM – 10 PM"
       },
       "customerNote": "Customer note",
+      "employmentType": "Employment type",
+      "branch": "Contact branch",
       "consent": "The customer has consented to be contacted about this enquiry."
+    },
+    "employmentTypes": {
+      "EMPLOYEE": "Employee",
+      "SELF_EMPLOYED": "Self-employed",
+      "BUSINESS_OWNER": "Business owner"
     },
     "appStatuses": {
       "CREDIT_RISK": "Credit risk",
@@ -566,6 +573,25 @@
         "remove": "Remove",
         "addRow": "Add tier",
         "notes": "Notes (optional)"
+      }
+    },
+    "branches": {
+      "title": "Branches",
+      "subtitle": "Contact branches that customers / employees pick on the lead form.",
+      "newTitle": "Add a branch",
+      "create": "Create branch",
+      "empty": "No branches yet — add the first one above.",
+      "deleteConfirm": "Delete this branch?",
+      "fields": {
+        "slug": "Slug",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "city": "City",
+        "governorate": "Governorate",
+        "address": "Address",
+        "phone": "Phone",
+        "isActive": "Active",
+        "sortOrder": "Sort order"
       }
     },
     "announcements": {
