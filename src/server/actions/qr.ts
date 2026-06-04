@@ -388,11 +388,42 @@ export async function submitPublicLeadAction(
   // ambassador's link surface that name on the timeline.
   const referrer = await prisma.user.findUnique({
     where: { id: referrerId },
-    select: { role: true, nameEn: true, nameAr: true, groupId: true },
+    select: { role: true, nameEn: true, nameAr: true, groupId: true, businessLineId: true },
   });
   const referrerName =
     referrer?.nameEn?.trim() || referrer?.nameAr?.trim() || referrer?.groupId || "";
   const isAmbassadorReferrer = referrer?.role === Role.AMBASSADOR;
+
+  // Route ambassador-referred leads to an AMBASSADOR_MANAGER in the ambassador's
+  // business line. Load-balance by picking the manager with the fewest currently
+  // open ambassador-referred leads (anything not in a terminal product status).
+  // Lead also inherits the ambassador's BL so the manager's BL scope matches.
+  let ambassadorOwnerId: string | null = null;
+  let ambassadorBlId: string | null = null;
+  if (isAmbassadorReferrer && referrer?.businessLineId) {
+    ambassadorBlId = referrer.businessLineId;
+    const managers = await prisma.user.findMany({
+      where: {
+        role: Role.AMBASSADOR_MANAGER,
+        isActive: true,
+        businessLineId: ambassadorBlId,
+      },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            ownedLeads: {
+              where: { referredBy: { role: Role.AMBASSADOR } },
+            },
+          },
+        },
+      },
+    });
+    if (managers.length > 0) {
+      managers.sort((a, b) => a._count.ownedLeads - b._count.ownedLeads);
+      ambassadorOwnerId = managers[0]!.id;
+    }
+  }
 
   // Validate custom fields against the campaign's own definitions. The form
   // posts answers as cf_<fieldKey>; we read the field schema from the
@@ -443,6 +474,8 @@ export async function submitPublicLeadAction(
       ...(referrerId ? { referredBy: { connect: { id: referrerId } } } : {}),
       ...(campaignId ? { campaign: { connect: { id: campaignId } } } : {}),
       ...(customFields ? { customFields } : {}),
+      ...(ambassadorBlId ? { businessLine: { connect: { id: ambassadorBlId } } } : {}),
+      ...(ambassadorOwnerId ? { owner: { connect: { id: ambassadorOwnerId } } } : {}),
     });
 
     // Bump campaign lead count (if this was a campaign hit).
@@ -466,10 +499,15 @@ export async function submitPublicLeadAction(
       })
       .catch(() => undefined);
 
-    // Notify the referrer (the person whose link / QR brought this lead in).
-    if (referrerId) {
+    // Notify the referrer (the person whose link / QR brought this lead in)
+    // and, for ambassador-referred leads, the ambassador-manager who just
+    // received ownership.
+    const notifyTargets = new Set<string>();
+    if (referrerId) notifyTargets.add(referrerId);
+    if (ambassadorOwnerId) notifyTargets.add(ambassadorOwnerId);
+    for (const userId of notifyTargets) {
       await notify({
-        userId: referrerId,
+        userId,
         payload: {
           type: NotificationType.NEW_LEAD_FROM_QR,
           leadId: lead.id,
@@ -613,6 +651,9 @@ export async function ambassadorSignupAction(
           phone,
           passwordHash,
           invitedById: campaign.employee.id,
+          // Inherit the inviting employee's business line so any lead this
+          // ambassador refers can route to the AMBASSADOR_MANAGER for that BL.
+          businessLineId: campaign.employee.businessLineId,
           mustCompleteProfile: false,
           isActive: true,
         },

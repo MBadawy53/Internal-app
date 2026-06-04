@@ -222,6 +222,38 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:messageTemplate": "all",
   },
 
+  AMBASSADOR_MANAGER: {
+    "read:catalog": "all",
+    "list:product": "all",
+    "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
+
+    "read:calculator": "all",
+    "create:quote": "own",
+    "read:quote": "own",
+    "list:quote": "own",
+
+    // Same as EMPLOYEE; the row-level scope is narrowed by the repository to
+    // "ambassador-referred leads in my business line only".
+    "create:lead": "own",
+    "read:lead": "own",
+    "list:lead": "own",
+    "update:lead": "own",
+    "export:lead": "own",
+    "assign:lead": "own",
+
+    "read:notification": "own",
+    "list:notification": "own",
+    "update:notification": "own",
+
+    "read:report": "own",
+  },
+
   AMBASSADOR: {
     "read:catalog": "all",
     "list:product": "all",

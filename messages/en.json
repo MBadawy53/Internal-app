@@ -229,7 +229,8 @@
     "TEAM_MANAGER": "Team Manager",
     "BUSINESS_LINE_OWNER": "Business Line Owner",
     "ADMIN": "Administrator",
-    "AMBASSADOR": "Ambassador"
+    "AMBASSADOR": "Ambassador",
+    "AMBASSADOR_MANAGER": "Ambassador Manager"
   },
   "catalog": {
     "title": "Product Catalog",

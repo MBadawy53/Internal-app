@@ -20,6 +20,7 @@ enum Role {
   BUSINESS_LINE_OWNER
   ADMIN
   AMBASSADOR
+  AMBASSADOR_MANAGER
 }
 
 enum Locale {

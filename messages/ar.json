@@ -229,7 +229,8 @@
     "TEAM_MANAGER": "مدير فريق",
     "BUSINESS_LINE_OWNER": "مسؤول قطاع",
     "ADMIN": "مسؤول النظام",
-    "AMBASSADOR": "سفير"
+    "AMBASSADOR": "سفير",
+    "AMBASSADOR_MANAGER": "مسؤول السفراء"
   },
   "catalog": {
     "title": "كتالوج المنتجات",

@@ -1,6 +1,8 @@
-import type { Prisma, LeadActivityType, LeadAppStatus, LeadSource } from "@prisma/client";
+import type { Prisma, LeadActivityType, LeadAppStatus, LeadSource, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { Scope } from "@/lib/auth/rbac";
+
+type ScopeActor = { id: string; role: Role; businessLineId: string | null };
 
 export interface ListLeadFilters {
   appStatus?: LeadAppStatus;
@@ -23,27 +25,38 @@ export interface ListLeadFilters {
  *                     by an ambassador I invited. Team/BL/own all collapse to
  *                     this rule.
  */
-function scopeFilter(
-  scope: Scope,
-  actor: { id: string; businessLineId: string | null },
-): Prisma.LeadWhereInput {
+function scopeFilter(scope: Scope, actor: ScopeActor): Prisma.LeadWhereInput {
   if (scope === "all") return {};
   if (scope === "none") return { id: "__none__" };
+  // Ambassador-managers see leads that came in via an ambassador, in their own
+  // business line. Nothing else.
+  if (actor.role === "AMBASSADOR_MANAGER") {
+    return {
+      referredBy: { role: "AMBASSADOR" },
+      ...(actor.businessLineId ? { businessLineId: actor.businessLineId } : {}),
+    };
+  }
+  // Everyone else (employees, team managers, BL owners, ambassadors) sees
+  // their own leads but is excluded from anything an ambassador referred —
+  // those belong to the ambassador-manager queue now.
   return {
-    OR: [
-      { ownerEmployeeId: actor.id },
-      { referredByEmployeeId: actor.id },
-      { owner: { invitedById: actor.id } },
+    AND: [
+      {
+        OR: [
+          { ownerEmployeeId: actor.id },
+          { referredByEmployeeId: actor.id },
+          { owner: { invitedById: actor.id } },
+        ],
+      },
+      {
+        OR: [{ referredByEmployeeId: null }, { referredBy: { role: { not: "AMBASSADOR" } } }],
+      },
     ],
   };
 }
 
 export const leadRepository = {
-  list: (
-    scope: Scope,
-    actor: { id: string; businessLineId: string | null },
-    filters: ListLeadFilters = {},
-  ) => {
+  list: (scope: Scope, actor: ScopeActor, filters: ListLeadFilters = {}) => {
     const where: Prisma.LeadWhereInput = { ...scopeFilter(scope, actor) };
     if (filters.appStatus) where.appStatus = filters.appStatus;
     if (filters.source) where.source = filters.source;
