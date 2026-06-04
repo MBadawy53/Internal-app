@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,6 +66,14 @@ export function LeadForm({
   );
 
   const [businessLineId, setBusinessLineId] = useState(initial?.businessLineId ?? "");
+  const [productPrice, setProductPrice] = useState("");
+  const [downpayment, setDownpayment] = useState("");
+  const priceNum = Number(productPrice);
+  const downNum = Number(downpayment);
+  const downpaymentPct =
+    Number.isFinite(priceNum) && priceNum > 0 && Number.isFinite(downNum) && downNum >= 0
+      ? (downNum / priceNum) * 100
+      : null;
   const visibleProducts = useMemo(
     () => (businessLineId ? products.filter((p) => p.businessLineId === businessLineId) : products),
     [businessLineId, products],
@@ -172,6 +181,31 @@ export function LeadForm({
               </option>
             ))}
           </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="productPriceEgp">{t("productPrice")}</Label>
+          <MoneyInput
+            id="productPriceEgp"
+            name="productPriceEgp"
+            value={productPrice}
+            onChange={setProductPrice}
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="downpaymentEgp">{t("downpayment")}</Label>
+          <MoneyInput
+            id="downpaymentEgp"
+            name="downpaymentEgp"
+            value={downpayment}
+            onChange={setDownpayment}
+            required
+          />
+          {downpaymentPct !== null ? (
+            <p className="text-xs text-muted-foreground">
+              {t("downpaymentPctHint", { pct: downpaymentPct.toFixed(2) })}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="customerNote">{t("customerNote")}</Label>

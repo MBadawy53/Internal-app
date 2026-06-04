@@ -494,6 +494,9 @@
       "customerNote": "ملاحظة العميل",
       "employmentType": "نوع الوظيفة",
       "branch": "فرع كونتكت",
+      "productPrice": "سعر المنتج (ج.م.)",
+      "downpayment": "الدفعة المقدمة (ج.م.)",
+      "downpaymentPctHint": "{pct}% من سعر المنتج.",
       "consent": "وافق العميل على التواصل بشأن هذا الطلب."
     },
     "employmentTypes": {

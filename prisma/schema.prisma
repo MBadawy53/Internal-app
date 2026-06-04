@@ -544,6 +544,11 @@ model Lead {
   campaignId           String?
   branchId             String?
   employmentType       EmploymentType?
+  // Asset price the customer wants to finance and the up-front amount they
+  // plan to pay. Captured at create time; the actual approved loan amount
+  // (finalLoanAmountPiastres) is set later when the lead moves to CONTRACT.
+  productPricePiastres BigInt?
+  downpaymentPiastres  BigInt?
   // Two-dimensional status model from the Auto Loans reference: each lead
   // carries both an application status (credit dimension) and a product
   // status (fulfilment dimension), with an optional fast/normal track.

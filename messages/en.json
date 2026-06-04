@@ -494,6 +494,9 @@
       "customerNote": "Customer note",
       "employmentType": "Employment type",
       "branch": "Contact branch",
+      "productPrice": "Product price (EGP)",
+      "downpayment": "Down payment (EGP)",
+      "downpaymentPctHint": "{pct}% of the product price.",
       "consent": "The customer has consented to be contacted about this enquiry."
     },
     "employmentTypes": {

@@ -40,6 +40,8 @@ const CreateLeadSchema = z.object({
     errorMap: () => ({ message: "Employment type is required" }),
   }),
   branchId: z.string().min(1, "Branch is required"),
+  productPriceEgp: z.coerce.number().positive("Product price is required"),
+  downpaymentEgp: z.coerce.number().nonnegative("Down payment is required"),
   consentGiven: z.coerce.boolean().refine((v) => v === true, "Consent is required"),
 });
 
@@ -58,6 +60,8 @@ function fromCreateFormData(fd: FormData) {
     customerNote: fd.get("customerNote")?.toString() ?? "",
     employmentType: fd.get("employmentType")?.toString() ?? "",
     branchId: fd.get("branchId")?.toString() ?? "",
+    productPriceEgp: fd.get("productPriceEgp")?.toString() ?? "",
+    downpaymentEgp: fd.get("downpaymentEgp")?.toString() ?? "",
     consentGiven: fd.get("consentGiven") === "on" || fd.get("consentGiven") === "true",
   };
 }
@@ -113,6 +117,8 @@ export async function createLeadAction(
       customerNote: d.customerNote || null,
       consentGivenAt: new Date(),
       employmentType: d.employmentType,
+      productPricePiastres: BigInt(Math.round(d.productPriceEgp * 100)),
+      downpaymentPiastres: BigInt(Math.round(d.downpaymentEgp * 100)),
       businessLine: { connect: { id: d.businessLineId } },
       owner: { connect: { id: ownerId } },
       referredBy: { connect: { id: actor.id } },
