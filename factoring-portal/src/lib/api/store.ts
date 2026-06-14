@@ -47,7 +47,7 @@ const cases: FactoringCase[] = [
   seed('reverse', 'supplier', 'BUY-CRF', 'SUP-BIM', 3120000, 'INV-2026-0431', '2026-06-05', '2026-08-04', 'pendingbuyer', {}),
   seed('reverse', 'supplier', 'BUY-EDT', 'SUP-KHZ', 2640000, 'INV-2026-0433', '2026-06-06', '2026-07-21', 'pendingbuyer', {}),
   seed('reverse', 'buyer', 'BUY-SAU', 'SUP-BIM', 960000, 'INV-2026-0440', '2026-06-07', '2026-07-22', 'fra', {}),
-  seed('reverse', 'buyer', 'BUY-CRF', 'SUP-BIM', 5400000, 'INV-2026-0444', '2026-06-08', '2026-08-07', 'division', { flagConc: true }),
+  seed('reverse', 'buyer', 'BUY-CRF', 'SUP-BIM', 5400000, 'INV-2026-0444', '2026-06-08', '2026-08-07', 'deviation', { flagConc: true }),
   seed('reverse', 'supplier', 'BUY-EDT', 'SUP-KHZ', 1450000, 'INV-2026-0447', '2026-06-08', '2026-07-23', 'credit', {}),
   seed('reverse', 'buyer', 'BUY-CRF', 'SUP-KHZ', 2210000, 'INV-2026-0451', '2026-06-09', '2026-08-08', 'approved', {}),
   seed('reverse', 'buyer', 'BUY-SAU', 'SUP-BIM', 1130000, 'INV-2026-0455', '2026-06-09', '2026-07-24', 'submitted', {}),
@@ -56,7 +56,7 @@ const cases: FactoringCase[] = [
   // Normal / recourse
   seed('normal', 'supplier', 'BUY-CRF', 'SUP-ARG', 6800000, 'INV-2026-0466', '2026-06-04', '2026-08-03', 'funded', { recourse: true, disclosure: 'disclosed' }),
   seed('normal', 'supplier', 'BUY-PEP', 'SUP-ARG', 3300000, 'INV-2026-0470', '2026-06-07', '2026-08-06', 'credit', { recourse: true, disclosure: 'disclosed' }),
-  seed('normal', 'supplier', 'BUY-PEP', 'SUP-HMD', 2900000, 'INV-2026-0473', '2026-06-08', '2026-09-06', 'division', { recourse: true, disclosure: 'silent', flagConc: true }),
+  seed('normal', 'supplier', 'BUY-PEP', 'SUP-HMD', 2900000, 'INV-2026-0473', '2026-06-08', '2026-09-06', 'deviation', { recourse: true, disclosure: 'silent', flagConc: true }),
   seed('normal', 'supplier', 'BUY-MEF', 'SUP-HMD', 1750000, 'INV-2026-0477', '2026-06-09', '2026-09-08', 'fra', { recourse: true, disclosure: 'silent' }),
   seed('normal', 'supplier', 'BUY-CRF', 'SUP-ARG', 4100000, 'INV-2026-0480', '2026-06-10', '2026-08-09', 'approved', { recourse: true, disclosure: 'disclosed', ackEscrow: false }),
   seed('normal', 'supplier', 'BUY-PEP', 'SUP-HMD', 2050000, 'INV-2026-0483', '2026-06-10', '2026-08-09', 'settled', { recourse: true, disclosure: 'silent' }),
@@ -68,12 +68,12 @@ const cases: FactoringCase[] = [
 const notifications: NotificationItem[] = [
   { role: 'buyer', icon: '⏳', bg: '#FCEDE2', col: '#C2410C', title: 'Supplier invoice awaiting your validation', body: 'BIM Stores submitted INV-2026-0431 (EGP 3,120,000).', time: '2h ago', unread: true },
   { role: 'supplier', icon: '🏦', bg: '#F4E8FC', col: '#9333EA', title: 'Instant SWIFT confirmation', body: 'INV-2026-0466 funded — advance disbursed to your account.', time: '5h ago', unread: true },
-  { role: 'rm', icon: '⚖️', bg: '#F1E9FD', col: '#7C3AED', title: 'Concentration breach flagged', body: 'INV-2026-0444 routed to Division Committee for allocation.', time: '1d ago', unread: true },
+  { role: 'rm', icon: '⚖️', bg: '#F1E9FD', col: '#7C3AED', title: 'Concentration breach flagged', body: 'INV-2026-0444 routed to Deviation Committee for allocation.', time: '1d ago', unread: true },
   { role: 'rm', icon: '⚠️', bg: '#FEF1E0', col: '#B5651A', title: 'Pepsi near limit', body: 'Available headroom EGP 1,000,000 — review concentration.', time: '1d ago', unread: false },
   { role: 'fra', icon: '🛡️', bg: '#ECEBFB', col: '#4F46E5', title: '2 invoices pending FRA validation', body: 'New e-invoice checks required before processing.', time: '3h ago', unread: true },
   { role: 'finance', icon: '💳', bg: '#E6F3EB', col: '#15803D', title: 'Approved request ready to fund', body: 'INV-2026-0451 cleared all gates — ready for disbursement.', time: '4h ago', unread: true },
   { role: 'credit', icon: '📊', bg: '#E1F2F6', col: '#0E7490', title: 'Credit review requested', body: 'INV-2026-0447 passed concentration checks.', time: '6h ago', unread: false },
-  { role: 'division', icon: '⚖️', bg: '#F1E9FD', col: '#7C3AED', title: 'Allocation review pending', body: '2 buyers flagged for supplier concentration division.', time: '7h ago', unread: true },
+  { role: 'deviation', icon: '⚖️', bg: '#F1E9FD', col: '#7C3AED', title: 'Allocation review pending', body: '2 buyers flagged for supplier concentration division.', time: '7h ago', unread: true },
 ];
 
 export const store = { buyers, suppliers, cases, notifications };

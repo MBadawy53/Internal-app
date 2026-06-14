@@ -74,6 +74,21 @@ Mirrors BRD §9.2 (El Hamd → El Far).
 3. **Credit → Finance:** approve → fund (SWIFT) → settle via escrow → close, as above.
 4. Try the seeded **INV-2026-0486** (EGP 2.4M, funded, ack pending) to jump in mid-cycle.
 
+## Walkthrough C — Profile approval with the Credit/Legal "Modified" loop (v0.3)
+
+Mirrors the requested rework cycle: RM creates a profile → **Credit** then **Legal**
+review → either can **return to RM** → RM **updates & resubmits** → it reappears
+in the Credit/Legal queue as **"Modified"** for re-review.
+
+1. **Credit — Tarek Fouad:** open **Profile Approvals** → pick a pending profile
+   (e.g. *Pepsi Egypt*) → **Return to RM** (or Approve to route it to Legal).
+2. **RM — Yara Mansour:** open **Profile Approvals** → the returned profile shows
+   **"Returned to RM"** → click **Update & resubmit (Modified)**. Missing docs are
+   provided and it goes back to the queue.
+3. **Credit / Legal:** the profile now shows status **"Modified"** in the queue →
+   open it and **Approve** or **Return** again. Credit-approve routes to **Legal**;
+   Legal-approve activates the profile.
+
 ## Resetting the demo
 
 State is in-memory. **Refresh the page** to reset to the seeded data set.

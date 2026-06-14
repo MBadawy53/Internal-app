@@ -10,7 +10,7 @@
   --st-submitted:#2563EB; --st-submitted-bg:#E7EFFE;
   --st-pendingbuyer:#C2410C; --st-pendingbuyer-bg:#FCEDE2;
   --st-fra:#4F46E5; --st-fra-bg:#ECEBFB;
-  --st-division:#7C3AED; --st-division-bg:#F1E9FD;
+  --st-deviation:#7C3AED; --st-deviation-bg:#F1E9FD;
   --st-credit:#0E7490; --st-credit-bg:#E1F2F6;
   --st-review:#0E7490; --st-review-bg:#E1F2F6;
   --st-approved:#0B6E4F; --st-approved-bg:#E3F4EC;
@@ -265,7 +265,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand-400)!important;
 .badge-st.submitted{color:var(--st-submitted);background:var(--st-submitted-bg)}
 .badge-st.pendingbuyer{color:var(--st-pendingbuyer);background:var(--st-pendingbuyer-bg)}
 .badge-st.fra{color:var(--st-fra);background:var(--st-fra-bg)}
-.badge-st.division{color:var(--st-division);background:var(--st-division-bg)}
+.badge-st.deviation{color:var(--st-deviation);background:var(--st-deviation-bg)}
 .badge-st.credit{color:var(--st-credit);background:var(--st-credit-bg)}
 .badge-st.review{color:var(--st-review);background:var(--st-review-bg)}
 .badge-st.approved{color:var(--st-approved);background:var(--st-approved-bg)}
@@ -277,7 +277,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand-400)!important;
 .tag.reverse{background:var(--brand-50);color:var(--brand-600)}
 .tag.normal{background:var(--accent-soft);color:#B5651A}
 .tag.disclosed{background:var(--st-submitted-bg);color:var(--st-submitted)}
-.tag.silent{background:var(--st-division-bg);color:var(--st-division)}
+.tag.silent{background:var(--st-deviation-bg);color:var(--st-deviation)}
 
 /* ===================== ALERTS ===================== */
 .alert{display:flex;gap:11px;padding:13px 15px;border-radius:var(--r-sm);font-size:13px;line-height:1.5;align-items:flex-start}

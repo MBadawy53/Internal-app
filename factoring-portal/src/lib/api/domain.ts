@@ -21,8 +21,8 @@ export const STAGE: Record<Stage, StageMeta> = {
   submitted: { label: 'Submitted', short: 'Submitted', cls: 'submitted' },
   pendingbuyer: { label: 'Pending Buyer Validation', short: 'Buyer Validation', cls: 'pendingbuyer' },
   fra: { label: 'FRA Validation', short: 'FRA Validation', cls: 'fra' },
-  division: { label: 'Division Committee', short: 'Division Cttee', cls: 'division' },
-  credit: { label: 'Credit Review', short: 'Credit Review', cls: 'credit' },
+  deviation: { label: 'Deviation Committee', short: 'Deviation Cttee', cls: 'deviation' },
+  credit: { label: 'Execution Validation', short: 'Execution Val.', cls: 'credit' },
   approved: { label: 'Approved', short: 'Approved', cls: 'approved' },
   funded: { label: 'Funded', short: 'Funded', cls: 'funded' },
   settled: { label: 'Settled', short: 'Settled', cls: 'settled' },
@@ -33,13 +33,13 @@ export const STAGE: Record<Stage, StageMeta> = {
 /**
  * Build the ordered stage chain for a request. Two stages are conditional:
  *  - Buyer Validation: only supplier-initiated reverse invoices (BRD §5.1).
- *  - Division Committee: only when supplier concentration is flagged (BRD §5.1).
+ *  - Deviation Committee: only when supplier concentration is flagged (BRD §5.1).
  */
 export function chainFor(c: Pick<FactoringCase, 'type' | 'initiator' | 'flagConc'>): Stage[] {
   const ch: Stage[] = ['draft', 'submitted'];
   if (c.type === 'reverse' && c.initiator === 'supplier') ch.push('pendingbuyer');
   ch.push('fra');
-  if (c.flagConc) ch.push('division');
+  if (c.flagConc) ch.push('deviation');
   ch.push('credit', 'approved', 'funded', 'settled', 'closed');
   return ch;
 }
@@ -63,7 +63,7 @@ export function transitionLabel(_from: Stage, to: Stage): string {
   const m: Partial<Record<Stage, string>> = {
     pendingbuyer: 'validated by buyer',
     fra: 'passed FRA validation',
-    division: 'cleared committee allocation',
+    deviation: 'cleared committee allocation',
     credit: 'credit-approved',
     approved: 'approved',
     funded: 'funded via SWIFT',

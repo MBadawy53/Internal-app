@@ -12,7 +12,7 @@ export type Stage =
   | 'submitted'
   | 'pendingbuyer'
   | 'fra'
-  | 'division'
+  | 'deviation'
   | 'credit'
   | 'approved'
   | 'funded'

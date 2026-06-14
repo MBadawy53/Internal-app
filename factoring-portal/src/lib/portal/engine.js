@@ -1,22 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 /* ============================================================
- * Contact Factoring — Digital Factoring Portal
- * UI / interaction engine (ported from the approved HTML prototype).
- *
- * ARCHITECTURE — the integration seam:
- *   • All DATA is read from the in-memory store  ->  src/lib/api/store.ts
- *   • All MUTATIONS are delegated to the API client -> src/lib/api (mockApi)
- *   • To wire real back-end services, implement the FactoringApi contract
- *     in src/lib/api/http.ts and switch the export in src/lib/api/index.ts.
- *
- * This file is deliberately framework-agnostic DOM code: it is mounted by
- * the React component src/components/FactoringPortal.tsx via initFactoringPortal().
+ * Contact Factoring — Digital Factoring Portal (v0.3)
+ * Self-contained UI/interaction engine, ported from the approved
+ * v0.3 HTML prototype. Mounted by src/components/FactoringPortal.tsx
+ * via initFactoringPortal(). The typed integration contract lives in
+ * src/lib/api (FactoringApi) for wiring real back-end services.
  * ============================================================ */
-import { STAGE, chainFor, transitionLabel, mkAudit, store, api } from '@/lib/api';
-
-const { buyers: BUYERS, suppliers: SUPPLIERS, cases, notifications } = store;
-
 /* ============================================================
    CONTACT FACTORING — Digital Factoring Portal (prototype)
    Single-file SPA · no backend · in-memory mock data.
@@ -25,6 +15,29 @@ const { buyers: BUYERS, suppliers: SUPPLIERS, cases, notifications } = store;
    ============================================================ */
 const LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAADgCAMAAAAt85rTAAAA51BMVEUoKID////zgSAZJIAgJYH1gh5kP3D5hBgmJn/8uDPgeC4jI34aGnsAAHcQEHmIiLX/3iEYIIG4uND/vC7oqj5mUHIeHnwWFnpQT5YAAHjHx9vqzC+9vdQ3NokLC3gAAHKqqsjt7fT19fn/4xmSkrnf3+rR0eKcnL9eXp2EhLFJSZF8fKzb2+hiYp2xsc5nW3BsbKGZmb49PItxcKVCQo0xMYRXVphkY5t3dqeSgF/nujXiljiLUV4HEITLsUD8xC33lidNNnRMRXe2ZEl+cGT71SX4qzB0R2i9pEv8oiZZUHNmVXFdPHEPfAppAAAIuklEQVR4nO2a+ZObOhLHYeO3UZ6EHJNdCfthMA74wMdibGPv+fZ6e///f8/qxMierVpPhkpVqj8/ZAYQkr5St7qbjOcBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPBq0I2vPZW3BxFKGbYavW9NIU7ROi4y33IgX3tGbwpKmonvsGLPdfBKw0YIS/o2F8ZiV54/Hz03ppjnAA8G3rMS8VTTr0LezO/0+Yv0qR7Q2Lz3pOuynRkueeq1J+GXe3nCBflTXeDSTDR4cuiDfm/53HDPwaJHfX6kXRAxwiklN39E4lJAxBNOE0qwmWhuJppy9dRj4odqyjlhd7uKme6EYi9Z6PeaQF4/5/b/L4h27LMIl4qDcnsWDKp8Fu7zHeV6kqiezcIwjPMUVYdwss+bQElMzRE1mUkOhG3iMJxp8spL8E0dHZfXwz6UvVSMmLH19aYXhUnYytufUrHiCqEHJ7v2ZJ3nXM2RbIwpTuyqLM5YbnTW3f6YBgvHHiYnYhYoqZe3pjviGk8vAvFtjF2AOw+I5wSOAsmHNPTvKajTiZoo4fen1kWFVea+T60LGk745Tl+EYGVMS8dR+eruzlmichukuJBoDyPSO7cqcnuoVUtJk93Tp+LNHU2Ohv3oA+fbPdH2r1PVo9CqIcGj/r8beIlzmZnnOcPrcQ5STf3K8McwSH9X7P8AvjS9B47BzyuH4VkBJHN422hBwXORCdJsn1oNUn4/bY2pHGu1z1khzebm3btHwV2hsVhdbFZzorRvZ3uJmpPoIzbQLNtVoJdjXGkaS4H238ctGuWzSr1FLXBpVTXby9PKPHa8bu3+dDcno05Y6nZ5Q1JMv3bMCDitlmEgtrmy4RJsKcTTIwZac/ToY0kwtRF0aISUGvZK9JbQtranJtb29A4S+Wg1vMO1DhsFsjbdjuFRU4eO0GMJsF4NBrPjD1ap94ErRBj2XPSXyZKzfCZMwZZ271B3YkMk6vZbnUaJMZ0h5zqjZ3fElGWnI/7Rea3zMeLB1Np87vn8t6nsOd07CS7Y2N8lZZtd/ASmCimT4PAzD9iU/3L1s4dBavJXZBZJOaX+ubrxFp2f4koMmvv590xcGuJ+ppV+vqUmtalnKQ9aOeB3XA7UXa+qy3lMyNm0vF1a9lNPzmoEuiZhXZc0E54ZuKSseMsmVpJqpVxX+GCZmN3uhNWPhRfQoQRM+yEAq7Xa97j9582zNfdIEGNc1WmojC2GAatJNVqbzffnq3azFEbvYv9+ng0F7ZN2Um7jQlse6wFsY20ThYYFI5qu1WVdUG9CzaCRsysknFBa3jZLqWE2wh5NgN1PhTcW3avAo/dJCI1lmiOGGIsKaFFZxcQMzoIMWertug2757KLm02PbN3O6e1Tbwv/bngzUQnKcMtaXdbUWAMdknNLmSqgLUnzySxtqotmpvAEyrDs9H9atO0jrPbU3jc4/cYZPxczPNS1uWpPJ3KMkqN34QpxpwbfXPGrQuqsGUj6JBYi95RuTo2c1HnMhubrgZW4GLM9Sre0t1ArW1PCl+o70TctUVM3ERtebrmt1NFvnlzVG5aFJVYnMiWvos0EbW7aVSkbSK6XTcqY/XIsV1bed2Twlu1dCMPHosdP06REwXRVO9NFjC3sPLsihRh2NYU+/sSX7iuW+xmfZRKEmtpHSLmPQSybYDatVD5KTNf4uIEOzVPlr5gE8I975ZBvOcKjPsS6NH7rCNjnj0XWyYEe8zc1J8weeuCiDotgxdsYj5FXuKuZE6YUx72UQtqULB0RlZh3K2950NZAFh31V9MbcEo7NXGMyP4oa4V1jqW4zg7Jk7opLvXZV+njMxH61nmrK24yet9m4/knpZkGqmEDI2MdvkZhVa3LzUir+Sl9betkaAjJD3FN9OXJzEdtuPO+4wV6lPlcZ3n+VBSI32PNtf1enM5B+aTKBtq9KrU+kLHPhaU12EuO1jLigmn0+N6uKmmaaNbme3BCW90u/wqVxHxJLrqFsceg70emxHOOZG0toLlVeerNNGYD5z6wj5W7xPePmXqGcLE7VLeUJ9dmb1mpp+e9QGAhgeS5OHAuL/B0/4OzT7hy0KyvROEkruvSnyZ9RgWnKFf5rXd2Wz1jBBjCKv/lRE/6yKUn/0xw/Jf8VME0atMHZiuuximPckdiWNPHZ0jl3evASmBe6+ua8SnlxVuSkzOu8sZ7fxtfca8qSKKztG5rM7Rhp0a0lQ18RjeVadJPxvKf/2D4Te/cPjt96/gd++kwFkaBJTLrK4QBYXK7lSis0aFypIufib/882P9r5MB450p4J9P1X97//w+aPi848funz643fP8/5PAykw226L2BPJSz73J1NRRyxnJ3F3KbKbxbDwZyLnjveVEChS0zwWddRcNY362EHEf/ho+OQI/PCz5/nu+wGyPrioRHUVHP147e9Tylkt9nLqZ0lS+kXjb1MaKIGHNBU5qKifRdN9H8XE4M9W38cPXyzw/V9GygdnwtZGGyEs2flx7i9TQlkpBNaicuRnP2tkNZIogRuiBC7S4Kpee3NGfzUW+vEnV9/fXiPw7wMtkCJVOR42wkRL4Vx5SMTuXc+Fv98t/HB1E7gmgUi6M38R+/O6DxOl//hs+OmTwz/fv4J3nhHomb+5yITxqRrwmorzZRnJSiI7X6zAvREYycNncf+HGG/C4F+/Mvz7lw4/fwX/ERvo4ajS5z2NhuvBpcFJNBxGBKH1sOHeOr9yNq0a7OGmEsHihFhVkTQ9NXE/JoqwjXts0GU0eA2qS8yMqYmqAcnfsSolkPwXqfpC3RXtRLgXm8aI9MF00+MXi69NMpdR0b9+s/USi7bCNdff7AbKTwcY8W/rb1Pv+Sb/fBoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeua/K5jpFdPwW8IAAAAASUVORK5CYII=";
 
+/* ---------------- STAGE MODEL ---------------- */
+const STAGE = {
+  draft:        {label:'Draft',                    short:'Draft',            cls:'draft'},
+  submitted:    {label:'Submitted',                short:'Submitted',        cls:'submitted'},
+  pendingbuyer: {label:'Pending Buyer Validation', short:'Buyer Validation', cls:'pendingbuyer'},
+  fra:          {label:'FRA Validation',           short:'FRA Validation',   cls:'fra'},
+  deviation:     {label:'Deviation Committee',       short:'Deviation Cttee',   cls:'deviation'},
+  credit:       {label:'Execution Validation',     short:'Execution Val.',   cls:'credit'},
+  approved:     {label:'Approved',                 short:'Approved',         cls:'approved'},
+  funded:       {label:'Funded',                   short:'Funded',           cls:'funded'},
+  settled:      {label:'Settled',                  short:'Settled',          cls:'settled'},
+  closed:       {label:'Closed',                   short:'Closed',           cls:'closed'},
+  rejected:     {label:'Rejected',                 short:'Rejected',         cls:'rejected'},
+};
+function chainFor(c){
+  const ch=['draft','submitted'];
+  if(c.type==='reverse' && c.initiator==='supplier') ch.push('pendingbuyer');
+  ch.push('fra');
+  if(c.flagConc) ch.push('deviation');
+  ch.push('credit','approved','funded','settled','closed');
+  return ch;
+}
+function nextStage(c){ const ch=chainFor(c); const i=ch.indexOf(c.stage); return i>=0&&i<ch.length-1?ch[i+1]:null; }
 
 /* ---------------- ROLES (with profile-module fields) ---------------- */
 const ROLES = {
@@ -32,10 +45,10 @@ const ROLES = {
   buyer:    {name:'Buyer',                short:'Buyer',   icon:'🏢', color:'#1B4DA1', bg:'#E4ECF8', login:'client', internal:false, user:'Carrefour Egypt',  company:'Carrefour Egypt',           email:'finance@carrefour.eg',     mobile:'+20 100 118 2420', last:'Today · 08:05'},
   supplier: {name:'Supplier',             short:'Supplier',icon:'📦', color:'#15803D', bg:'#E6F3EB', login:'client', internal:false, user:'BIM Stores',       company:'BIM Egypt',                 email:'ar@bim.eg',                mobile:'+20 100 771 2040', last:'Today · 06:48'},
   credit:   {name:'Credit Team',          short:'Credit',  icon:'📊', color:'#0E7490', bg:'#E1F2F6', login:'ops',    internal:true,  user:'Tarek Fouad',    company:'Contact Financial Holding', email:'tarek.fouad@contact.eg',   mobile:'+20 122 304 8810', last:'Today · 07:55'},
+  legal:    {name:'Legal Team',           short:'Legal',   icon:'⚖️', color:'#92400E', bg:'#FBEEDD', login:'ops',    internal:true,  user:'Mona Adel',      company:'Contact Financial Holding', email:'mona.adel@contact.eg',     mobile:'+20 109 220 7741', last:'Today · 08:12'},
   fra:      {name:'FRA Validation Team',  short:'FRA',     icon:'🛡️', color:'#4F46E5', bg:'#ECEBFB', login:'ops',    internal:true,  user:'Nadia Saleh',    company:'Contact Financial Holding', email:'nadia.saleh@contact.eg',   mobile:'+20 111 778 9921', last:'Yesterday · 16:20'},
-  division: {name:'Division Committee',   short:'Committee',icon:'⚖️',color:'#7C3AED', bg:'#F1E9FD', login:'ops',    internal:true,  user:'Hany Greiss',    company:'Contact Financial Holding', email:'committee@contact.eg',     mobile:'+20 100 600 3340', last:'Yesterday · 14:02'},
+  deviation: {name:'Deviation Committee',   short:'Committee',icon:'⚖️',color:'#7C3AED', bg:'#F1E9FD', login:'ops',    internal:true,  user:'Hany Greiss',    company:'Contact Financial Holding', email:'committee@contact.eg',     mobile:'+20 100 600 3340', last:'Yesterday · 14:02'},
   finance:  {name:'Finance Team',         short:'Finance', icon:'🏦', color:'#9333EA', bg:'#F4E8FC', login:'ops',    internal:true,  user:'Omar Khalil',    company:'Contact Financial Holding', email:'omar.khalil@contact.eg',   mobile:'+20 100 990 1120', last:'Today · 09:10'},
-  legal:    {name:'Legal',                 short:'Legal',   icon:'§', color:'#0F766E', bg:'#DDF3EF', login:'ops',    internal:true,  user:'Mona Adel',      company:'Contact Financial Holding', email:'legal@contact.eg',         mobile:'+20 100 700 5500', last:'Today · 08:30'},
   admin:    {name:'Administrator',        short:'Admin',   icon:'⚙️', color:'#5A6B72', bg:'#EDF1F2', login:'ops',    internal:true,  user:'System Admin',   company:'Contact Financial Holding', email:'admin@contact.eg',         mobile:'+20 100 000 0001', last:'Today · 09:25'},
 };
 
@@ -60,6 +73,7 @@ const NAV = {
       {v:'buyers',i:'🏢',l:'Buyer Management'},
       {v:'suppliers',i:'📦',l:'Supplier Management'},
       {v:'supplier-linking',i:'🔗',l:'Supplier Linking'},
+      {v:'profile-approvals',i:'📝',l:'Profile Approvals', badge:()=>PROFILE_APPROVALS.filter(p=>paOverall(p).l==='Returned to RM').length},
       {v:'limits',i:'📐',l:'Limit Management'},
     ]},
     {sec:'sec_factoring', items:[
@@ -101,21 +115,31 @@ const NAV = {
   ],
   credit:[
     {sec:'sec_overview', items:[{v:'dashboard',i:'◎',l:'Credit Dashboard'}]},
+    {sec:'sec_clients', items:[
+      {v:'profile-approvals',i:'📝',l:'Profile Approvals', badge:()=>countProfile('credit')},
+    ]},
     {sec:'sec_workflow', items:[
-      {v:'credit-queue',i:'📊',l:'Credit Review', badge:()=>countStage('credit')},
+      {v:'credit-queue',i:'📊',l:'Execution Validation', badge:()=>countStage('credit')},
       {v:'limits',i:'📐',l:'Limits & Concentration'},
     ]},
     {sec:'sec_admin', items:[{v:'audit',i:'🗂️',l:'Audit Logs'}]},
+  ],
+  legal:[
+    {sec:'sec_overview', items:[{v:'dashboard',i:'◎',l:'Legal Dashboard'}]},
+    {sec:'sec_clients', items:[
+      {v:'profile-approvals',i:'⚖️',l:'Profile Approvals', badge:()=>countProfile('legal')},
+    ]},
+    {sec:'sec_admin', items:[{v:'documents',i:'📁',l:'Legal Documents'},{v:'audit',i:'🗂️',l:'Audit Logs'}]},
   ],
   fra:[
     {sec:'sec_overview', items:[{v:'dashboard',i:'◎',l:'FRA Dashboard'}]},
     {sec:'sec_workflow', items:[{v:'fra-queue',i:'🛡️',l:'FRA Validation Queue', badge:()=>countStage('fra')}]},
     {sec:'sec_admin', items:[{v:'audit',i:'🗂️',l:'Validation Audit'}]},
   ],
-  division:[
+  deviation:[
     {sec:'sec_overview', items:[{v:'dashboard',i:'◎',l:'Committee Dashboard'}]},
     {sec:'sec_workflow', items:[
-      {v:'division-queue',i:'⚖️',l:'Concentration Review', badge:()=>countStage('division')},
+      {v:'deviation-queue',i:'⚖️',l:'Limit Deviations', badge:()=>countStage('deviation')},
       {v:'limits',i:'📐',l:'Limit Allocation'},
     ]},
     {sec:'sec_admin', items:[{v:'audit',i:'🗂️',l:'Committee Audit'}]},
@@ -127,14 +151,6 @@ const NAV = {
       {v:'settlements',i:'💳',l:'Settlement Tracking'},
     ]},
     {sec:'sec_admin', items:[{v:'reports',i:'📈',l:'Finance Reports'},{v:'audit',i:'🗂️',l:'Audit Logs'}]},
-  ],
-  legal:[
-    {sec:'sec_overview', items:[{v:'dashboard',i:'§',l:'Legal Dashboard'}]},
-    {sec:'sec_workflow', items:[
-      {v:'invoices',i:'📑',l:'Contracts & Requests'},
-      {v:'documents',i:'📁',l:'Documents'},
-      {v:'audit',i:'🗂️',l:'Audit Logs'},
-    ]},
   ],
   admin:[
     {sec:'sec_admin', items:[
@@ -152,6 +168,98 @@ const NAV = {
   ],
 };
 
+/* ---------------- MOCK DATA (Contact demo entities) ---------------- */
+const BUYERS = [
+  {id:'BUY-CRF', name:'Carrefour Egypt',   short:'Carrefour', cr:'CR-118420', email:'finance@carrefour.eg', phone:'+20 100 118 2420', brand:'#1B4DA1', limit:50000000, used:32000000, terms:'Net 60', buffer:'15 days', rate:'15.5%', bank:'CIB · 1100-4421', suppliers:['SUP-BIM','SUP-KHZ','SUP-ARG'], status:'active', concStatus:'Normal'},
+  {id:'BUY-PEP', name:'Pepsi Egypt',       short:'Pepsi',     cr:'CR-203817', email:'ap@pepsi.eg',         phone:'+20 122 203 8170', brand:'#004B93', limit:30000000, used:29000000, terms:'Net 45', buffer:'10 days', rate:'16.0%', bank:'NBE · 8830-2210',  suppliers:['SUP-ARG','SUP-HMD'], status:'active', concStatus:'High'},
+  {id:'BUY-EDT', name:'Edita Food',        short:'Edita',     cr:'CR-330091', email:'treasury@edita.eg',   phone:'+20 111 330 0910', brand:'#C8102E', limit:40000000, used:12400000, terms:'Net 60', buffer:'15 days', rate:'15.0%', bank:'QNB · 5521-0098',  suppliers:['SUP-KHZ'], status:'active', concStatus:'Normal'},
+  {id:'BUY-SAU', name:'Saudi Markets',     short:'Saudi',     cr:'CR-559002', email:'finance@saudimkt.eg', phone:'+20 100 559 0020', brand:'#2E7D32', limit:25000000, used:9000000,  terms:'Net 45', buffer:'12 days', rate:'15.8%', bank:'AAIB · 9912-3380', suppliers:['SUP-BIM'], status:'active', concStatus:'Normal'},
+  {id:'BUY-MEF', name:'Mahmoud El Far',    short:'El Far',    cr:'CR-447090', email:'ap@elfar.eg',         phone:'+20 111 447 0900', brand:'#E8730C', limit:20000000, used:18500000, terms:'Net 90', buffer:'20 days', rate:'14.8%', bank:'Banque Misr · 3300-1120', suppliers:['SUP-HMD'], status:'pending', concStatus:'Elevated'},
+];
+const SUPPLIERS = [
+  {id:'SUP-BIM', name:'BIM Stores',            short:'BIM',          cr:'CR-771204', email:'ar@bim.eg',        phone:'+20 100 771 2040', model:'reverse', buyers:['BUY-CRF','BUY-SAU'], shareOfSales:'34%', since:'2019', limit:18000000, used:11500000, conc:'35%', terms:'Net 60', rate:'15.5%', bank:'CIB · 2210-7781', status:'active'},
+  {id:'SUP-KHZ', name:'Kheir Zaman',           short:'Kheir Zaman',  cr:'CR-664823', email:'finance@kheirzaman.eg', phone:'+20 122 664 8230', model:'reverse', buyers:['BUY-CRF','BUY-EDT'], shareOfSales:'21%', since:'2020', limit:16000000, used:7400000,  conc:'25%', terms:'Net 60', rate:'15.5%', bank:'AAIB · 9912-3380', status:'active'},
+  {id:'SUP-ARG', name:'Awlad Ragab',           short:'Awlad Ragab',  cr:'CR-559017', email:'collections@awladragab.eg', phone:'+20 111 559 0170', model:'normal',  buyers:['BUY-CRF','BUY-PEP'], shareOfSales:'—',  since:'2018', limit:22000000, used:13800000, conc:'40%', terms:'Net 45', rate:'14.5%', bank:'Banque Misr · 3300-1120', status:'active', recourse:true, disclosure:'disclosed'},
+  {id:'SUP-HMD', name:'Super Market El Hamd',  short:'El Hamd',      cr:'CR-882140', email:'ap@elhamd.eg',     phone:'+20 100 882 1400', model:'normal',  buyers:['BUY-PEP','BUY-MEF'], shareOfSales:'—',  since:'2021', limit:12000000, used:6500000,  conc:'45%', terms:'Net 90', rate:'14.8%', bank:'QNB · 8810-2099', status:'active', recourse:true, disclosure:'silent'},
+];
+
+/* ---------------- PROFILE APPROVAL CYCLE (Credit + Legal) ---------------- */
+/* RM creates a profile → Credit review → Legal review → Active.
+   Each team can approve, reject (return to RM), comment to the RM, or flag missing documents. */
+let PA_SEQ = 5001;
+const PROFILE_APPROVALS = [
+  { id:'PA-'+(PA_SEQ++), kind:'buyer',    entityId:'BUY-MEF', name:'Mahmoud El Far', cr:'CR-447090', submittedBy:'Yara Mansour (RM)', submittedOn:'2026-06-10',
+    credit:{status:'pending', by:null, on:null, note:''}, legal:{status:'waiting', by:null, on:null, note:''},
+    docs:[{n:'Commercial Register.pdf',ok:true},{n:'Tax Card.pdf',ok:true},{n:'Board Resolution.pdf',ok:false},{n:'Bank Mandate.pdf',ok:true},{n:'Audited Financials FY25.pdf',ok:false}],
+    comments:[] },
+  { id:'PA-'+(PA_SEQ++), kind:'supplier', entityId:'SUP-HMD', name:'Super Market El Hamd', cr:'CR-882140', submittedBy:'Yara Mansour (RM)', submittedOn:'2026-06-09',
+    credit:{status:'approved', by:'Tarek Fouad', on:'2026-06-10', note:'Risk grade BBB. Limit EGP 12M endorsed.'}, legal:{status:'pending', by:null, on:null, note:''},
+    docs:[{n:'Commercial Register.pdf',ok:true},{n:'Tax Card.pdf',ok:true},{n:'Recourse Agreement.pdf',ok:true},{n:'KYC Pack.pdf',ok:false}],
+    comments:[{by:'Tarek Fouad (Credit)',on:'2026-06-10',text:'Approved from credit side; full recourse documented. Legal to confirm escrow clauses.'}] },
+  { id:'PA-'+(PA_SEQ++), kind:'supplier', entityId:'SUP-ARG', name:'Awlad Ragab', cr:'CR-559017', submittedBy:'Yara Mansour (RM)', submittedOn:'2026-06-08',
+    credit:{status:'approved', by:'Tarek Fouad', on:'2026-06-09', note:'Within appetite.'}, legal:{status:'approved', by:'Mona Adel', on:'2026-06-10', note:'Contracts in order.'},
+    docs:[{n:'Commercial Register.pdf',ok:true},{n:'Tax Card.pdf',ok:true},{n:'Factoring Agreement.pdf',ok:true}],
+    comments:[] },
+  { id:'PA-'+(PA_SEQ++), kind:'buyer',    entityId:'BUY-PEP', name:'Pepsi Egypt', cr:'CR-203817', submittedBy:'Yara Mansour (RM)', submittedOn:'2026-06-07',
+    credit:{status:'returned', by:'Tarek Fouad', on:'2026-06-08', note:'Concentration cap unclear; resubmit with global limit.'}, legal:{status:'waiting', by:null, on:null, note:''},
+    docs:[{n:'Commercial Register.pdf',ok:true},{n:'Tax Card.pdf',ok:false}],
+    comments:[{by:'Tarek Fouad (Credit)',on:'2026-06-08',text:'Returned to RM — please attach the Tax Card and confirm the global concentration limit before re-submitting.'}] },
+];
+function paOverall(p){
+  if(p.credit.status==='modified'||p.legal.status==='modified') return {l:'Modified — re-review', c:'submitted'};
+  if(p.credit.status==='returned'||p.legal.status==='returned') return {l:'Returned to RM', c:'rejected'};
+  if(p.credit.status==='approved'&&p.legal.status==='approved') return {l:'Active', c:'settled'};
+  if(p.credit.status==='pending') return {l:'Credit review', c:'credit'};
+  if(p.legal.status==='pending') return {l:'Legal review', c:'pendingbuyer'};
+  return {l:'In review', c:'fra'};
+}
+function paQueueFor(team){ return PROFILE_APPROVALS.filter(p=>p[team] && (p[team].status==='pending'||p[team].status==='modified')); }
+function countProfile(team){ return paQueueFor(team).length; }
+let CASE_SEQ = 1042;
+function mkAudit(actor, action, note){ return {ts:nowStr(), actor, action, note:note||''}; }
+const cases = [
+  c('reverse','buyer','BUY-CRF','SUP-BIM', 4250000,'INV-2026-0412','2026-05-28','2026-07-27','settled',{}),
+  c('reverse','buyer','BUY-CRF','SUP-KHZ', 1880000,'INV-2026-0418','2026-06-01','2026-07-31','funded',{}),
+  c('reverse','supplier','BUY-CRF','SUP-BIM', 3120000,'INV-2026-0431','2026-06-05','2026-08-04','pendingbuyer',{}),
+  c('reverse','supplier','BUY-EDT','SUP-KHZ', 2640000,'INV-2026-0433','2026-06-06','2026-07-21','pendingbuyer',{}),
+  c('reverse','buyer','BUY-SAU','SUP-BIM',   960000,'INV-2026-0440','2026-06-07','2026-07-22','fra',{}),
+  c('reverse','buyer','BUY-CRF','SUP-BIM', 5400000,'INV-2026-0444','2026-06-08','2026-08-07','deviation',{flagConc:true}),
+  c('reverse','supplier','BUY-EDT','SUP-KHZ', 1450000,'INV-2026-0447','2026-06-08','2026-07-23','credit',{}),
+  c('reverse','buyer','BUY-CRF','SUP-KHZ', 2210000,'INV-2026-0451','2026-06-09','2026-08-08','approved',{}),
+  c('reverse','buyer','BUY-SAU','SUP-BIM', 1130000,'INV-2026-0455','2026-06-09','2026-07-24','submitted',{}),
+  c('reverse','supplier','BUY-CRF','SUP-BIM',  780000,'INV-2026-0460','2026-06-10','2026-08-09','rejected',{rejFrom:'fra'}),
+  c('reverse','buyer','BUY-CRF','SUP-KHZ', 1600000,'INV-2026-0462','2026-06-10','2026-08-09','draft',{}),
+  /* Normal / recourse */
+  c('normal','supplier','BUY-CRF','SUP-ARG', 6800000,'INV-2026-0466','2026-06-04','2026-08-03','funded',{recourse:true,disclosure:'disclosed'}),
+  c('normal','supplier','BUY-PEP','SUP-ARG', 3300000,'INV-2026-0470','2026-06-07','2026-08-06','credit',{recourse:true,disclosure:'disclosed'}),
+  c('normal','supplier','BUY-PEP','SUP-HMD', 2900000,'INV-2026-0473','2026-06-08','2026-09-06','deviation',{recourse:true,disclosure:'silent',flagConc:true}),
+  c('normal','supplier','BUY-MEF','SUP-HMD', 1750000,'INV-2026-0477','2026-06-09','2026-09-08','fra',{recourse:true,disclosure:'silent'}),
+  c('normal','supplier','BUY-CRF','SUP-ARG', 4100000,'INV-2026-0480','2026-06-10','2026-08-09','approved',{recourse:true,disclosure:'disclosed',ackEscrow:false}),
+  c('normal','supplier','BUY-PEP','SUP-HMD', 2050000,'INV-2026-0483','2026-06-10','2026-08-09','settled',{recourse:true,disclosure:'silent'}),
+  /* Silent factoring — escrow collection, buyer NOT notified, acknowledgement pending */
+  c('normal','supplier','BUY-MEF','SUP-HMD', 2400000,'INV-2026-0486','2026-06-10','2026-09-08','funded',{recourse:true,disclosure:'silent',ackEscrow:false}),
+  c('normal','supplier','BUY-PEP','SUP-HMD', 1850000,'INV-2026-0489','2026-06-11','2026-09-09','approved',{recourse:true,disclosure:'silent',ackEscrow:false}),
+];
+function c(type,initiator,buyerId,supplierId,amount,invoiceNo,issue,due,stage,extra){
+  extra=extra||{};
+  const b=BUYERS.find(x=>x.id===buyerId), s=SUPPLIERS.find(x=>x.id===supplierId);
+  const id='REQ-'+(CASE_SEQ++);
+  return {
+    id, ref:id, type, initiator, buyerId, supplierId,
+    buyer:b?b.name:buyerId, supplier:s?s.name:supplierId,
+    amount, currency:'EGP', invoiceNo, issue, due, terms:b?b.terms:'Net 60',
+    stage, prevStage:null, rejFrom:extra.rejFrom||null,
+    recourse: type==='normal' ? true : !!extra.recourse,
+    disclosure: extra.disclosure||null, flagConc: !!extra.flagConc,
+    ackEscrow: extra.ackEscrow!==undefined?extra.ackEscrow:(extra.disclosure==='silent'?false:true),
+    bulk:false,
+    fraStatus: stage==='fra'?'pending':(['draft','submitted','pendingbuyer','rejected'].includes(stage)?'—':'validated'),
+    fraNotes:'',
+    docs:[ {n:'Commercial invoice.pdf',t:'Invoice',sz:'214 KB'},{n:'Delivery note.pdf',t:'Proof of delivery',sz:'88 KB'} ],
+    notes:'',
+    audit:[ mkAudit(initiator==='buyer'?'Buyer':'Supplier','Request created','Invoice uploaded to portal') ],
+  };
+}
 
 /* ---------------- DATA HELPERS ---------------- */
 function countStage(s){ return cases.filter(c=>c.stage===s).length; }
@@ -180,6 +288,16 @@ function avatarStyle(name){ const col=colorFor(name); return `background:${col}1
 
 /* ---------------- STATE ---------------- */
 const state = { role:'rm', view:'dashboard', lang:'en', theme:'light', param:null, tab:null, notifOpen:false, pmenuOpen:false, activeBuyerId:'BUY-CRF', activeSupplierId:'SUP-BIM' };
+const notifications = [
+  {role:'buyer', icon:'⏳', bg:'#FCEDE2', col:'#C2410C', title:'Supplier invoice awaiting your validation', body:'BIM Stores submitted INV-2026-0431 (EGP 3,120,000).', time:'2h ago', unread:true},
+  {role:'supplier', icon:'🏦', bg:'#F4E8FC', col:'#9333EA', title:'Instant SWIFT confirmation', body:'INV-2026-0466 funded — advance disbursed to your account.', time:'5h ago', unread:true},
+  {role:'rm', icon:'⚖️', bg:'#F1E9FD', col:'#7C3AED', title:'Concentration breach flagged', body:'INV-2026-0444 routed to Deviation Committee for allocation.', time:'1d ago', unread:true},
+  {role:'rm', icon:'⚠️', bg:'#FEF1E0', col:'#B5651A', title:'Pepsi near limit', body:'Available headroom EGP 1,000,000 — review concentration.', time:'1d ago', unread:false},
+  {role:'fra', icon:'🛡️', bg:'#ECEBFB', col:'#4F46E5', title:'2 invoices pending FRA validation', body:'New e-invoice checks required before processing.', time:'3h ago', unread:true},
+  {role:'finance', icon:'💳', bg:'#E6F3EB', col:'#15803D', title:'Approved request ready to fund', body:'INV-2026-0451 cleared all gates — ready for disbursement.', time:'4h ago', unread:true},
+  {role:'credit', icon:'📊', bg:'#E1F2F6', col:'#0E7490', title:'Credit review requested', body:'INV-2026-0447 passed concentration checks.', time:'6h ago', unread:false},
+  {role:'deviation', icon:'⚖️', bg:'#F1E9FD', col:'#7C3AED', title:'Allocation review pending', body:'2 buyers flagged for limit / concentration exceedances.', time:'7h ago', unread:true},
+];
 function myNotifs(){ return notifications.filter(n=>n.role===state.role || n.role==='all'); }
 
 
@@ -212,7 +330,7 @@ function clientPipeline(c){
   const labels = supplier
     ? ['Submitted','Buyer Validation','Approved','Funded','Settled','Closed']
     : ['Submitted','Under Validation','Approved','Funded','Settled','Closed'];
-  const map={ draft:0, submitted:0, pendingbuyer:1, fra:1, division:1, credit:1, approved:2, funded:3, settled:4, closed:5 };
+  const map={ draft:0, submitted:0, pendingbuyer:1, fra:1, deviation:1, credit:1, approved:2, funded:3, settled:4, closed:5 };
   const rejected = c.stage==='rejected';
   const curIdx = rejected ? (map[c.rejFrom]!==undefined?map[c.rejFrom]:1) : (map[c.stage]!==undefined?map[c.stage]:0);
   let html='<div class="pipe-rail">';
@@ -274,63 +392,44 @@ function qrCard(){
   return `<div class="qr-card"><div class="qr">${fakeQR()}</div><div><h4>Download our mobile app</h4><p>Scan to manage factoring on the go.</p>
     <div class="stores"><span>🍎 App Store</span><span>▶ Google Play</span></div></div></div>`;
 }
-/* ---------------- DEMO USERS (prototype sign-in) ----------------
-   Fixed demo accounts so each role can be exercised end-to-end.
-   The mock auth does not verify secrets — internal users share one
-   demo password and clients share one demo OTP (documented in DEMO.md).
-   🔌 Replace with SSO/AD (internal) and an OTP provider (clients). */
-const DEMO_PASSWORD = 'Demo@2026';
-const DEMO_OTP = '202611';
-const DEMO_USERS = {
-  internal: [
-    { name: 'Yara Mansour', email: 'yara.mansour@contact.eg', role: 'rm' },
-    { name: 'Tarek Fouad', email: 'tarek.fouad@contact.eg', role: 'credit' },
-    { name: 'Mona Adel', email: 'legal@contact.eg', role: 'legal' },
-    { name: 'Nadia Saleh', email: 'nadia.saleh@contact.eg', role: 'fra' },
-    { name: 'Hany Greiss', email: 'committee@contact.eg', role: 'division' },
-    { name: 'Omar Khalil', email: 'omar.khalil@contact.eg', role: 'finance' },
-    { name: 'System Admin', email: 'admin@contact.eg', role: 'admin' },
+/* ---------------- DEMO USERS (prototype sign-in) ---------------- */
+const DEMO_PASSWORD='Demo@2026';
+const DEMO_OTP='202611';
+const DEMO_USERS={
+  internal:[
+    {name:'Yara Mansour',email:'yara.mansour@contact.eg',role:'rm'},
+    {name:'Tarek Fouad',email:'tarek.fouad@contact.eg',role:'credit'},
+    {name:'Mona Adel',email:'mona.adel@contact.eg',role:'legal'},
+    {name:'Omar Khalil',email:'omar.khalil@contact.eg',role:'finance'},
+    {name:'Nadia Saleh',email:'nadia.saleh@contact.eg',role:'fra'},
+    {name:'Hany Greiss',email:'committee@contact.eg',role:'deviation'},
+    {name:'System Admin',email:'admin@contact.eg',role:'admin'},
   ],
-  clients: [
-    { name: 'Carrefour Egypt', mobile: '+20 100 118 2420', kind: 'buyer', id: 'BUY-CRF' },
-    { name: 'Pepsi Egypt', mobile: '+20 122 203 8170', kind: 'buyer', id: 'BUY-PEP' },
-    { name: 'BIM Stores', mobile: '+20 100 771 2040', kind: 'supplier', id: 'SUP-BIM' },
-    { name: 'Awlad Ragab', mobile: '+20 111 559 0170', kind: 'supplier', id: 'SUP-ARG' },
-    { name: 'Super Market El Hamd', mobile: '+20 100 882 1400', kind: 'supplier', id: 'SUP-HMD' },
+  clients:[
+    {name:'Carrefour Egypt',mobile:'+20 100 118 2420',kind:'buyer',id:'BUY-CRF'},
+    {name:'Pepsi Egypt',mobile:'+20 122 203 8170',kind:'buyer',id:'BUY-PEP'},
+    {name:'BIM Stores',mobile:'+20 100 771 2040',kind:'supplier',id:'SUP-BIM'},
+    {name:'Awlad Ragab',mobile:'+20 111 559 0170',kind:'supplier',id:'SUP-ARG'},
+    {name:'Super Market El Hamd',mobile:'+20 100 882 1400',kind:'supplier',id:'SUP-HMD'},
   ],
 };
-function setPortal(p){
-  authState.portal=p; authState.screen='login';
-  if(p==='employee') authState.tab='ops';
-  if(p==='client') authState.tab='client';
-  try{ location.hash = p ? ('#'+p) : ''; }catch(e){}
-  renderAuth();
-}
-function demoLogin(role, entityId){
-  if(role==='buyer'){ if(entityId) state.activeBuyerId=entityId; }
-  else if(role==='supplier'){ if(entityId) state.activeSupplierId=entityId; }
-  enterApp(role);
-}
+function setPortal(p){ authState.portal=p; authState.screen='login'; if(p==='employee')authState.tab='ops'; if(p==='client')authState.tab='client'; try{location.hash=p?('#'+p):'';}catch(e){} renderAuth(); }
+function demoLogin(role,entityId){ if(role==='buyer'){ if(entityId)state.activeBuyerId=entityId; } else if(role==='supplier'){ if(entityId)state.activeSupplierId=entityId; } enterApp(role); }
 function demoPanel(which){
   const mini=(label,sub,icon,onclick)=>`<button onclick="${onclick}"><span class="ric">${icon}</span><span style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</b><small style="opacity:.8">${sub}</small></span></button>`;
-  const ops=DEMO_USERS.internal.map(u=>mini(u.name, ROLES[u.role].name, ROLES[u.role].icon, `demoLogin('${u.role}')`)).join('');
-  const cli=DEMO_USERS.clients.map(u=>mini(u.name, u.kind==='buyer'?'Buyer':'Supplier', u.kind==='buyer'?'🏢':'📦', `demoLogin('${u.kind}','${u.id}')`)).join('');
+  const ops=DEMO_USERS.internal.map(u=>mini(u.name,ROLES[u.role].name,ROLES[u.role].icon,`demoLogin('${u.role}')`)).join('');
+  const cli=DEMO_USERS.clients.map(u=>mini(u.name,u.kind==='buyer'?'Buyer':'Supplier',u.kind==='buyer'?'🏢':'📦',`demoLogin('${u.kind}','${u.id}')`)).join('');
   if(which==='employee') return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:10px"><div><h4 style="margin-bottom:2px">Quick demo login — Employees</h4><p style="margin:0">One-click sign-in as any internal role.</p></div><div class="role-mini">${ops}</div></div>`;
   if(which==='client') return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:10px"><div><h4 style="margin-bottom:2px">Quick demo login — Clients</h4><p style="margin:0">One-click sign-in as a buyer or supplier.</p></div><div class="role-mini">${cli}</div></div>`;
   return '';
 }
-function dashLegal(){
-  const pend=cases.filter(c=>['credit','approved'].includes(c.stage));
-  const docs=cases.reduce((a,c)=>a+c.docs.length,0);
-  return pageHead('Legal','Legal Dashboard','Review contracts and documentation on approved and in-review requests, with full audit visibility.')
-    + `<div class="grid cols-4">
-        ${stat('Awaiting legal review', pend.length, '📑','#DDF3EF','#0F766E')}
-        ${stat('Approved this cycle', cases.filter(c=>['approved','funded','settled','closed'].includes(c.stage)).length, '✓','#E3F4EC','#0B6E4F')}
-        ${stat('Documents on file', docs, '📁','#ECEBFB','#4F46E5')}
-        ${stat('Rejected', cases.filter(c=>c.stage==='rejected').length, '✕','#FBEAE8','#B42318')}
-      </div>`
-    + `<div class="section-title">Contracts & requests for review</div>`
-    + caseTable(pend.length?pend:cases.slice(0,8), {emptyTitle:'Nothing to review', emptyBody:'Approved requests appear here for legal / contract review.'});
+function paResubmit(id){ const p=PROFILE_APPROVALS.find(x=>x.id===id); if(!p)return;
+  if(p.credit.status!=='returned'&&p.legal.status!=='returned'){ toast('Nothing to resubmit — no team returned this profile','warn','ℹ️'); return; }
+  ['credit','legal'].forEach(tm=>{ if(p[tm].status==='returned'){ p[tm]={status:'modified', by:null, on:null, note:'Updated & resubmitted by RM'}; } });
+  p.docs.forEach(d=>d.ok=true); p.modified=true;
+  p.comments.push({by:ROLES[state.role].user+' (RM)', on:'2026-06-14', text:'Updated the profile and resubmitted. Missing documents provided. Please re-review.'});
+  toast('Profile updated & resubmitted — back in the review queue as “Modified”','ok','🔁');
+  renderSidebar(); route();
 }
 function renderAuth(){
   const a=el('auth');
@@ -348,7 +447,7 @@ function renderAuth(){
     const emp=authState.portal==='employee';
     card=`<div class="glass">
       <button class="gback" onclick="setPortal(null)">← Choose portal</button>
-      <h2>${emp?'Employee sign in':'Client sign in'}</h2><div class="gsub">${emp?'Internal teams — RM, Credit, Legal, Finance, FRA, Committee, Admin.':'Buyers & Suppliers access their requests.'}</div>
+      <h2>${emp?'Employee sign in':'Client sign in'}</h2><div class="gsub">${emp?'Internal teams — RM, Credit, Legal, Finance, FRA, Deviation, Admin.':'Buyers & Suppliers access their requests.'}</div>
       ${emp?opsForm():clientForm()}
       <div class="gnote">${emp?'Authenticate with your Contact email & password.':'Authenticate with mobile number & OTP.'} <b>Prototype — no real credentials needed.</b></div>
     </div>${demoPanel(authState.portal)}${qrCard()}`;
@@ -375,7 +474,7 @@ function renderAuth(){
 function opsForm(){
   return `<div class="gfield"><label>Team</label><div class="gin"><span class="ic">🛡️</span>
       <select id="opsTeam" style="flex:1;background:transparent;border:none;color:#fff;padding:13px 0;font-size:14px">
-        ${['rm','credit','legal','finance','fra','division','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
+        ${['rm','credit','legal','finance','fra','deviation','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
       </select></div></div>
     <div class="gfield"><label>Email address</label><div class="gin"><span class="ic">✉️</span><input id="opsEmail" type="email" placeholder="name@contact.eg" value="yara.mansour@contact.eg"></div></div>
     <div class="gfield"><label>Password</label><div class="gin"><span class="ic">🔒</span><input id="opsPass" type="password" placeholder="••••••••" value="Demo@2026"><button class="eye" onclick="togglePass(this)">👁</button></div></div>
@@ -426,7 +525,6 @@ function startCountdown(){
 }
 function resendOtp(via){ toast('OTP re-sent via '+via,'ok',via==='SMS'?'✉️':'🟢'); const m=el('otpMeta'),r=el('otpResend'); if(r)r.classList.add('hidden'); if(m)m.innerHTML='Resend code available in <span class="cd" id="otpCd">00:10</span>'; startCountdown(); }
 function doOps(){
-  // Resolve the role from the demo email if it matches; otherwise use the Team picker.
   const email=(el('opsEmail')?el('opsEmail').value:'').trim().toLowerCase();
   const u=DEMO_USERS.internal.find(x=>x.email.toLowerCase()===email);
   const team=u?u.role:(el('opsTeam')?el('opsTeam').value:'rm');
@@ -434,7 +532,6 @@ function doOps(){
 }
 function sendOtp(){
   let id=el('clientCo')?el('clientCo').value:null;
-  // If the entered mobile matches a demo client, sign in as that exact company.
   const mob=(el('clientMobile')?el('clientMobile').value:'').replace(/\s/g,'');
   const m=DEMO_USERS.clients.find(x=>x.mobile.replace(/\s/g,'')===mob);
   if(m){ authState.clientKind=m.kind; id=m.id; }
@@ -528,9 +625,11 @@ function crumbsFor(){
     case:[home,{label:'Invoices',go:"go('invoices')"},{label:(findCase(p)||{}).invoiceNo||'Request'}],
     'pending-validation':[home,{label:'Pending Validation'}],
     'fra-queue':[home,{label:'FRA Validation'}],
-    'division-queue':[home,{label:'Division Committee'}],
-    'division-detail':[home,{label:'Division Committee',go:"go('division-queue')"},{label:'Allocation'}],
-    'credit-queue':[home,{label:'Credit Review'}],
+    'deviation-queue':[home,{label:'Deviation Committee'}],
+    'deviation-detail':[home,{label:'Deviation Committee',go:"go('deviation-queue')"},{label:'Exceedance Decision'}],
+    'profile-approvals':[home,{label:'Profile Approvals'}],
+    'profile-approval-detail':[home,{label:'Profile Approvals',go:"go('profile-approvals')"},{label:'Review'}],
+    'credit-queue':[home,{label:'Execution Validation'}],
     approvals:[home,{label:'Approvals'}],
     'finance-queue':[home,{label:'Funding & Settlement'}],
     settlements:[home,{label:'Settlement Tracking'}],
@@ -583,8 +682,10 @@ function route(){
     case 'case': html=viewCase(); break;
     case 'pending-validation': html=viewPendingValidation(); break;
     case 'fra-queue': html=viewFRA(); break;
-    case 'division-queue': html=viewDivision(); break;
-    case 'division-detail': html=viewDivisionDetail(); break;
+    case 'deviation-queue': html=viewDeviation(); break;
+    case 'deviation-detail': html=viewDeviationDetail(); break;
+    case 'profile-approvals': html=viewProfileApprovals(); break;
+    case 'profile-approval-detail': html=viewProfileApprovalDetail(); break;
     case 'credit-queue': html=viewCredit(); break;
     case 'approvals': html=viewApprovals(); break;
     case 'finance-queue': html=viewFinance(); break;
@@ -623,17 +724,17 @@ function viewDashboard(){
     case 'buyer': return dashBuyer();
     case 'supplier': return dashSupplier();
     case 'credit': return dashCredit();
+    case 'legal': return dashLegal();
     case 'fra': return dashFRA();
-    case 'division': return dashDivision();
+    case 'deviation': return dashDeviation();
     case 'finance': return dashFinance();
     case 'admin': return dashAdmin();
-    case 'legal': return dashLegal();
   }
 }
 function greet(name){ return `${t('greeting')}, ${name.split(' ')[0]}`; }
 function attentionList(items){
   return items.map(it=>`<div class="doc" style="cursor:pointer" onclick="go('${it.v}')">
-    <div class="di" style="background:${STAGE[it.s]?'var(--st-'+STAGE[it.s].cls+'-bg)':'var(--surface-2)'}">${it.s==='fra'?'🛡️':it.s==='pendingbuyer'?'⏳':it.s==='division'?'⚖️':'✓'}</div>
+    <div class="di" style="background:${STAGE[it.s]?'var(--st-'+STAGE[it.s].cls+'-bg)':'var(--surface-2)'}">${it.s==='fra'?'🛡️':it.s==='pendingbuyer'?'⏳':it.s==='deviation'?'⚖️':'✓'}</div>
     <div><b style="font-size:13px">${it.t}</b></div><div class="da"><button class="btn btn-sm btn-quiet">Open →</button></div></div>`).join('');
 }
 function quickCard(ic,title,sub,v){ return `<button class="sm-node" style="text-align:left;cursor:pointer;border:none" onclick="go('${v}')"><h4>${ic} ${title}</h4><p style="color:var(--muted);font-size:12.5px;margin:0">${sub}</p></button>`; }
@@ -642,7 +743,7 @@ function dashRM(){
   const inflight=cases.filter(c=>!['settled','closed','rejected'].includes(c.stage));
   const totalLimit=BUYERS.reduce((a,b)=>a+b.limit,0), used=BUYERS.reduce((a,b)=>a+b.used,0);
   const pendApprovals=cases.filter(c=>['submitted','pendingbuyer'].includes(c.stage)).length;
-  const underReview=cases.filter(c=>['fra','division','credit'].includes(c.stage)).length;
+  const underReview=cases.filter(c=>['fra','deviation','credit'].includes(c.stage)).length;
   const funded=cases.filter(c=>['funded','settled','closed'].includes(c.stage));
   return pageHead('Relationship Manager', greet(ROLES.rm.user), 'Onboarding, limits and case routing across reverse and recourse factoring.',
       `<button class="btn btn-ghost" onclick="go('buyer-new')">＋ New Buyer</button><button class="btn btn-primary" onclick="go('invoice-new')">＋ New Request</button>`)
@@ -663,7 +764,7 @@ function dashRM(){
           <div class="card-pad">${attentionList([
             {t:'2 supplier invoices awaiting buyer validation', s:'pendingbuyer', v:'approvals'},
             {t:'1 request in FRA validation', s:'fra', v:'fra-queue'},
-            {t:'2 concentration reviews at Division Committee', s:'division', v:'limits'},
+            {t:'2 concentration reviews at Deviation Committee', s:'deviation', v:'limits'},
           ])}</div></div>
         <div class="card"><div class="card-h"><h3>Recent notifications</h3><div class="ch-act"><button class="btn btn-sm btn-quiet" onclick="go('notifications')">View all →</button></div></div>
           <div class="card-pad">${myNotifs().slice(0,3).map(n=>`<div class="notif"><div class="nic" style="background:${n.bg};color:${n.col}">${n.icon}</div><div><b style="font-size:13px">${n.title}</b><p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft)">${n.body}</p></div></div>`).join('')}</div></div>
@@ -705,7 +806,7 @@ function dashSupplier(){
   return pageHead('Supplier Portal', greet(me.name), me.model==='normal'?'Recourse factoring — you are Contact\'s client and obligor.':'Reverse factoring — early payment against your buyer\'s approved limit.',
       `<button class="btn btn-primary" onclick="go('invoice-new')">＋ Upload Invoice</button>`)
     + (me.model==='normal'?`<div class="alert danger" style="margin-bottom:16px"><span class="ai">⚠️</span><div><b>Full recourse facility.</b> On buyer non-payment at maturity, Contact retains recourse to your account.</div></div>`:'')
-    + (ackP.length?`<div class="alert" style="background:var(--st-division-bg);color:var(--st-division);margin-bottom:16px"><span class="ai">🔐</span><div><b>${ackP.length} silent-factoring acknowledgement(s) required.</b> Confirm collection only via Contact's escrow account. <a style="text-decoration:underline;cursor:pointer" onclick="go('escrow-ack')">Acknowledge →</a></div></div>`:'')
+    + (ackP.length?`<div class="alert" style="background:var(--st-deviation-bg);color:var(--st-deviation);margin-bottom:16px"><span class="ai">🔐</span><div><b>${ackP.length} silent-factoring acknowledgement(s) required.</b> Confirm collection only via Contact's escrow account. <a style="text-decoration:underline;cursor:pointer" onclick="go('escrow-ack')">Acknowledge →</a></div></div>`:'')
     + `<div class="grid cols-4">
         ${stat('Facility limit', egpC(me.limit), '📐','#E7E7F6','#34349A')}
         ${stat('Financed YTD', egpC(funded.reduce((a,c)=>a+c.amount,0)), '🏦','#F4E8FC','#9333EA',funded.length+' invoices','up')}
@@ -730,15 +831,97 @@ function swiftBlock(c){
 }
 function dashCredit(){
   const q=cases.filter(c=>c.stage==='credit');
-  return pageHead('Credit Team', greet(ROLES.credit.user), 'Assess applications, review limits and concentration, approve or reject for execution.')
+  return pageHead('Credit Team', greet(ROLES.credit.user), 'Review created profiles (credit), validate execution of financing requests, approve or reject.')
     + `<div class="grid cols-4">
-      ${stat('Awaiting credit review', q.length, '📊','#E1F2F6','#0E7490','SLA 24h','flat')}
+      ${stat('Profiles to review', countProfile('credit'), '📝','#FBEEDD','#92400E','credit sign-off','flat')}
+      ${stat('Execution validations', q.length, '📊','#E1F2F6','#0E7490','SLA 24h','flat')}
       ${stat('Approved this week', cases.filter(c=>['approved','funded','settled','closed'].includes(c.stage)).length, '✓','#E3F4EC','#0B6E4F','+3','up')}
-      ${stat('Total exposure', egpC(SUPPLIERS.reduce((a,s)=>a+s.used,0)), '⇄','#E7E7F6','#34349A')}
-      ${stat('Concentration alerts', cases.filter(c=>c.flagConc).length, '⚠️','#FBEAE8','#B42318','review','down')}
+      ${stat('Exceedances', cases.filter(c=>c.flagConc).length, '⚠️','#FBEAE8','#B42318','at committee','down')}
     </div>`
-    + `<div class="section-title">Credit review queue</div>`
-    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Assess</button>`, emptyTitle:'Queue clear', emptyBody:'No applications awaiting credit review.', emptyIcon:'✓'});
+    + (countProfile('credit')?`<div class="section-title">Profiles awaiting credit review</div>`+profileApprovalTable(paQueueFor('credit')):'')
+    + `<div class="section-title">Execution validation queue</div>`
+    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Assess</button>`, emptyTitle:'Queue clear', emptyBody:'No applications awaiting execution validation.', emptyIcon:'✓'});
+}
+function dashLegal(){
+  const q=paQueueFor('legal');
+  return pageHead('Legal Team', greet(ROLES.legal.user), 'Legal review of created buyer & supplier profiles — contracts, recourse and escrow clauses, KYC. Approve, reject or request documents.')
+    + `<div class="grid cols-3">
+      ${stat('Profiles to review', q.length, '⚖️','#FBEEDD','#92400E','legal sign-off','flat')}
+      ${stat('Credit-cleared, awaiting legal', PROFILE_APPROVALS.filter(p=>p.credit.status==='approved'&&p.legal.status==='pending').length, '📝','#E1F2F6','#0E7490')}
+      ${stat('Active this quarter', PROFILE_APPROVALS.filter(p=>paOverall(p).l==='Active').length, '✓','#E3F4EC','#0B6E4F','onboarded','up')}
+    </div>`
+    + `<div class="section-title">Profiles awaiting legal review</div>`
+    + profileApprovalTable(q);
+}
+function profileApprovalTable(list){
+  if(!list||!list.length) return emptyState('Nothing to review','No profiles are awaiting your sign-off.','✓');
+  const teamCol=p=>{ const t=(s)=>`<span class="badge-st ${s.status==='approved'?'approved':s.status==='returned'?'rejected':s.status==='modified'?'submitted':s.status==='pending'?'credit':'fra'}"><i class="bd"></i>${s.status==='waiting'?'Waiting':s.status.charAt(0).toUpperCase()+s.status.slice(1)}</span>`;
+    return t; };
+  const T=teamCol();
+  return `<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Profile</th><th>Type</th><th>Submitted by</th><th>Credit</th><th>Legal</th><th>Missing docs</th><th></th></tr></thead><tbody>
+    ${list.map(p=>{ const missing=p.docs.filter(d=>!d.ok).length;
+      return `<tr class="row-link" onclick="go('profile-approval-detail','${p.id}')"><td>${party(p.name, p.cr)}</td><td><span class="tag ${p.kind==='buyer'?'reverse':'normal'}">${p.kind}</span></td><td class="t-sub">${p.submittedBy}<div class="t-sub mono">${p.submittedOn}</div></td><td>${T(p.credit)}</td><td>${T(p.legal)}</td><td>${missing?`<span class="badge-st rejected"><i class="bd"></i>${missing} missing</span>`:'<span class="t-sub">—</span>'}</td><td>${(state.role==='rm'||state.role==='admin')&&(p.credit.status==='returned'||p.legal.status==='returned')?`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();paResubmit('${p.id}')">🔁 Resubmit</button>`:`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();go('profile-approval-detail','${p.id}')">Review</button>`}</td></tr>`;
+    }).join('')}
+  </tbody></table></div></div>`;
+}
+function viewProfileApprovals(){
+  const team = state.role==='legal'?'legal':state.role==='credit'?'credit':null;
+  const sub = state.role==='rm'
+    ? 'Track the credit and legal sign-off of every profile you created. Returned profiles need your correction and re-submission.'
+    : 'Review created buyer & supplier profiles. Approve, reject (return to RM), comment to the RM, and flag missing documents.';
+  const list = team ? PROFILE_APPROVALS.filter(p=>p[team]) : PROFILE_APPROVALS;
+  return pageHead(ROLES[state.role].name, 'Profile Approvals', sub)
+    + `<div class="alert info" style="margin-bottom:16px"><span class="ai">🔄</span><div><b>Approval cycle.</b> RM creates a profile → <b>Credit</b> review → <b>Legal</b> review → <b>Active</b>. Either team can return it to the RM with comments and a list of missing documents.</div></div>`
+    + profileApprovalTable(list);
+}
+function viewProfileApprovalDetail(){
+  const p=PROFILE_APPROVALS.find(x=>x.id===state.param); if(!p) return emptyState('Profile not found','','📝');
+  const role=state.role; const canCredit = role==='credit'&&(p.credit.status==='pending'||p.credit.status==='modified'); const canLegal = role==='legal'&&(p.legal.status==='pending'||p.legal.status==='modified');
+  const ov=paOverall(p);
+  const teamCard=(label,s)=>`<div class="kv"><div class="row"><span class="k">${label} status</span><span class="v"><span class="badge-st ${s.status==='approved'?'approved':s.status==='returned'?'rejected':s.status==='modified'?'submitted':s.status==='pending'?'credit':'fra'}"><i class="bd"></i>${s.status==='waiting'?'Waiting for credit':s.status.charAt(0).toUpperCase()+s.status.slice(1)}</span></span></div>${s.by?`<div class="row"><span class="k">Decided by</span><span class="v">${s.by} · ${s.on}</span></div>`:''}${s.note?`<div class="row"><span class="k">Note</span><span class="v">${s.note}</span></div>`:''}</div>`;
+  return pageHead('Profile Approvals', p.name, p.kind.charAt(0).toUpperCase()+p.kind.slice(1)+' profile · '+p.cr+' · submitted by '+p.submittedBy,
+      `<button class="btn btn-ghost" onclick="go('profile-approvals')">← Queue</button> <span class="badge-st ${ov.c}" style="align-self:center"><i class="bd"></i>${ov.l}</span>`)
+    + `<div class="detail-grid">
+      <div>
+        <div class="card card-pad" style="margin-bottom:16px"><h3 style="font-size:14.5px;margin-bottom:12px">Required documents</h3>
+          ${p.docs.map((d,i)=>`<div class="doc"><div class="di" style="background:${d.ok?'var(--st-settled-bg)':'var(--st-rejected-bg)'}">${d.ok?'✓':'!'}</div><div><b>${d.n}</b><small>${d.ok?'Provided':'Missing / not acceptable'}</small></div><div class="da">${(canCredit||canLegal)?`<button class="btn btn-sm btn-quiet" onclick="paToggleDoc('${p.id}',${i})">${d.ok?'Flag missing':'Mark received'}</button>`:(d.ok?'<button class="btn btn-sm btn-quiet">View</button>':'<span class="t-sub">requested</span>')}</div></div>`).join('')}
+        </div>
+        <div class="card card-pad"><h3 style="font-size:14.5px;margin-bottom:10px">Comments to RM</h3>
+          <div class="timeline" style="margin-bottom:12px">${p.comments.length?p.comments.map(cm=>`<div class="tl-item"><div class="tl-dot"></div><b>${cm.by}</b><div class="tl-meta">${cm.on}</div><p>${cm.text}</p></div>`).join(''):'<div class="t-sub" style="padding:4px 0">No comments yet.</div>'}</div>
+          ${(canCredit||canLegal)?`<div class="fld full"><label>Add a comment for the RM</label><textarea id="paComment" rows="2" placeholder="Explain a missing document or a required correction…"></textarea></div><button class="btn btn-quiet btn-sm" onclick="paAddComment('${p.id}')">＋ Add comment</button>`:''}
+        </div>
+      </div>
+      <div>
+        <div class="card card-pad"><h3 style="font-size:13px;margin-bottom:10px">Decision</h3>
+          ${teamCard('Credit', p.credit)}
+          <div style="height:10px"></div>
+          ${teamCard('Legal', p.legal)}
+          ${canCredit||canLegal?`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+            <button class="btn btn-primary btn-block" style="margin-bottom:8px" onclick="paDecide('${p.id}','${role}','approve')">✓ Approve (${ROLES[role].short})</button>
+            <button class="btn btn-danger btn-block" onclick="paDecide('${p.id}','${role}','return')">↩ Return to RM</button>
+            <div class="t-sub" style="margin-top:8px;font-size:11.5px">${role==='credit'?'Approving routes the profile to Legal review.':'Approving activates the profile on the portal.'}</div>
+          </div>`:((role==='rm'||role==='admin')&&(p.credit.status==='returned'||p.legal.status==='returned')?`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><button class="btn btn-primary btn-block" onclick="paResubmit('${p.id}')">🔁 Update & resubmit (Modified)</button><div class="t-sub" style="margin-top:8px;font-size:11.5px">Provides the missing documents and returns the profile to the review queue as “Modified”.</div></div>`:`<div class="alert info" style="margin-top:12px;font-size:12px"><span class="ai">👁</span><div>${role==='rm'?'View-only. Address any comments/missing documents, then re-submit.':'View-only for your role.'}</div></div>`)}
+        </div>
+        <div class="card card-pad" style="margin-top:16px"><h3 style="font-size:13px;margin-bottom:8px">Profile summary</h3>
+          <div class="kv"><div class="row"><span class="k">Entity</span><span class="v">${p.name}</span></div><div class="row"><span class="k">CR</span><span class="v mono">${p.cr}</span></div><div class="row"><span class="k">Type</span><span class="v">${p.kind}</span></div><div class="row"><span class="k">Submitted</span><span class="v">${p.submittedOn}</span></div></div>
+        </div>
+      </div>
+    </div>`;
+}
+function paToggleDoc(id,i){ const p=PROFILE_APPROVALS.find(x=>x.id===id); if(!p)return; p.docs[i].ok=!p.docs[i].ok; toast(p.docs[i].ok?'Marked received':'Flagged as missing', p.docs[i].ok?'ok':'warn', p.docs[i].ok?'✓':'⚠️'); route(); }
+function paAddComment(id){ const p=PROFILE_APPROVALS.find(x=>x.id===id); if(!p)return; const v=el('paComment')&&el('paComment').value.trim(); if(!v){toast('Write a comment first','warn','✍️');return;} p.comments.push({by:ROLES[state.role].user+' ('+ROLES[state.role].short+')', on:'2026-06-14', text:v}); toast('Comment sent to RM','ok','💬'); route(); }
+function paDecide(id,team,action){ const p=PROFILE_APPROVALS.find(x=>x.id===id); if(!p)return;
+  const missing=p.docs.filter(d=>!d.ok).length;
+  if(action==='approve'&&missing){ toast(missing+' document(s) still missing — flag resolved or comment first','warn','⚠️'); return; }
+  if(action==='approve'){ p[team]={status:'approved', by:ROLES[team].user, on:'2026-06-14', note:p[team].note||'Approved.'};
+    if(team==='credit'){ if(p.legal.status!=='approved') p.legal.status='pending'; toast('Credit approved — routed to Legal review','ok','✓'); }
+    else { toast('Legal approved — profile is now Active','ok','✓'); }
+  } else {
+    p[team]={status:'returned', by:ROLES[team].user, on:'2026-06-14', note:p[team].note||'Returned to RM for correction.'};
+    if(!p.comments.length) p.comments.push({by:ROLES[team].user+' ('+ROLES[team].short+')',on:'2026-06-14',text:'Returned for correction — please address the missing documents.'});
+    toast('Returned to RM for correction','err','↩');
+  }
+  renderSidebar(); route();
 }
 function dashFRA(){
   const q=cases.filter(c=>c.stage==='fra');
@@ -752,16 +935,16 @@ function dashFRA(){
     + `<div class="section-title">FRA validation queue</div>`
     + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Validate</button>`, emptyTitle:'Nothing to validate', emptyBody:'All uploaded invoices cleared FRA validation.', emptyIcon:'🛡️'});
 }
-function dashDivision(){
-  const q=cases.filter(c=>c.stage==='division');
-  return pageHead('Division Committee', greet(ROLES.division.user), 'Review supplier concentration limits and divide approved limits among suppliers.')
+function dashDeviation(){
+  const q=cases.filter(c=>c.stage==='deviation');
+  return pageHead('Deviation Committee', greet(ROLES.deviation.user), 'Decide on limit, concentration and global-limit exceedances — override (proceed) or reject.')
     + `<div class="grid cols-3">
-      ${stat('Concentration reviews', q.length, '⚖️','#F1E9FD','#7C3AED','pending','flat')}
-      ${stat('Buyers under review', new Set(q.map(c=>c.buyerId)).size, '🏢','#E4ECF8','#1B4DA1')}
-      ${stat('Allocations set', 6, '📐','#E3F4EC','#0B6E4F','this quarter','up')}
+      ${stat('Exceedances pending', q.length, '⚖️','#F1E9FD','#7C3AED','awaiting decision','flat')}
+      ${stat('Obligors affected', new Set(q.map(c=>c.type==='normal'?c.supplierId:c.buyerId)).size, '🏢','#E4ECF8','#1B4DA1')}
+      ${stat('Overrides this quarter', 6, '✓','#E3F4EC','#0B6E4F','approved deviations','up')}
     </div>`
-    + `<div class="section-title">Concentration & allocation queue</div>`
-    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="go('division-detail','${c.id}')">Review</button>`, emptyTitle:'No allocations pending', emptyBody:'No concentration breaches awaiting committee review.', emptyIcon:'⚖️'});
+    + `<div class="section-title">Limit / concentration exceedance queue</div>`
+    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="go('deviation-detail','${c.id}')">Decide</button>`, emptyTitle:'No deviations pending', emptyBody:'No requests have exceeded their limit or concentration.', emptyIcon:'⚖️'});
 }
 function dashFinance(){
   const fund=cases.filter(c=>c.stage==='approved'), settle=cases.filter(c=>c.stage==='funded');
@@ -1024,17 +1207,17 @@ function viewLimitDetail(buyerScope){
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Linked Supplier</th><th style="text-align:end">Allocated Limit</th><th style="text-align:end">Utilised Limit</th><th style="text-align:end">Remaining Limit</th><th>Utilisation</th></tr></thead><tbody>
       ${alloc.map(a=>`<tr class="row-link" onclick="go('supplier-detail','${a.s.id}')"><td>${party(a.s.name,'Linked supplier')}</td><td class="t-amt">${egp(a.allocated)}</td><td class="t-amt">${egp(a.utilized)}</td><td class="t-amt">${egp(a.remaining)}</td><td style="min-width:120px"><div class="progress"><i style="width:${Math.min(100,Math.round(a.utilized/a.allocated*100))}%"></i></div></td></tr>`).join('')}
       </tbody></table></div></div>
-      <div class="alert info" style="margin-top:14px"><span class="ai">ℹ️</span><div>Allocated limits sub-divide the buyer's approved facility across linked suppliers. Re-allocation is governed by the Division Committee.</div></div>`;
+      <div class="alert info" style="margin-top:14px"><span class="ai">ℹ️</span><div>Allocated limits sub-divide the buyer's approved facility across linked suppliers. Re-allocation is governed by the Deviation Committee.</div></div>`;
   } else if(tab==='concentration'){
     body=`<div class="grid cols-2"><div class="card"><div class="card-h"><h3>Supplier concentration</h3></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Supplier</th><th style="text-align:end">Concentration %</th><th>Risk indicator</th></tr></thead><tbody>
       ${alloc.map(a=>`<tr><td>${party(a.s.name)}</td><td class="t-amt">${a.conc}%</td><td>${riskTag(a.conc)}</td></tr>`).join('')}
       </tbody></table></div></div>
       <div class="card card-pad"><h3 style="font-size:14.5px;margin-bottom:14px">Allocation distribution</h3>
         ${alloc.map(a=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span class="t-strong">${a.s.short}</span><span class="t-sub">${a.conc}%</span></div><div class="progress"><i style="width:${a.conc*2}%;background:${a.conc>=40?'linear-gradient(90deg,#E0796F,#B42318)':a.conc>=25?'linear-gradient(90deg,#F6801F,#FBB833)':'linear-gradient(90deg,var(--brand-400),var(--brand))'}"></i></div></div>`).join('')}
-        <div class="alert ${buyerConcStatus(b).l==='High'?'danger':buyerConcStatus(b).l==='Elevated'?'warn':'ok'}" style="margin-top:6px;font-size:12px"><span class="ai">⚖️</span><div>Portfolio concentration: <b>${buyerConcStatus(b).l}</b>. ${buyerConcStatus(b).l!=='Normal'?'Recommend Division Committee review of supplier distribution.':'Within policy thresholds.'}</div></div>
+        <div class="alert ${buyerConcStatus(b).l==='High'?'danger':buyerConcStatus(b).l==='Elevated'?'warn':'ok'}" style="margin-top:6px;font-size:12px"><span class="ai">⚖️</span><div>Portfolio concentration: <b>${buyerConcStatus(b).l}</b>. ${buyerConcStatus(b).l!=='Normal'?'Recommend Deviation Committee review of supplier distribution.':'Within policy thresholds.'}</div></div>
       </div></div>`;
   } else if(tab==='alerts'){
-    const breaches=avail<0, near=avail>=0&&avail<b.limit*0.1, concAlerts=alloc.filter(a=>a.conc>=40), pendRev=cases.filter(c=>c.buyerId===b.id&&['fra','division','credit','submitted','pendingbuyer'].includes(c.stage));
+    const breaches=avail<0, near=avail>=0&&avail<b.limit*0.1, concAlerts=alloc.filter(a=>a.conc>=40), pendRev=cases.filter(c=>c.buyerId===b.id&&['fra','deviation','credit','submitted','pendingbuyer'].includes(c.stage));
     const alerts=[];
     if(breaches) alerts.push({t:'danger',ic:'⛔',h:'Limit breach',b:'Outstanding exceeds approved limit by '+egp(Math.abs(avail))+'.'});
     if(near) alerts.push({t:'warn',ic:'⚠️',h:'Near-limit warning',b:'Only '+egp(avail)+' headroom remaining ('+Math.round(avail/b.limit*100)+'%).'});
@@ -1056,11 +1239,11 @@ function viewLimitDetail(buyerScope){
         <div class="card card-pad"><h3 style="font-size:14.5px;margin-bottom:8px">Committee decisions</h3>
           <div class="timeline" style="margin-top:8px">
             <div class="tl-item"><div class="tl-dot"></div><b>Facility approved</b><div class="tl-meta">Credit Team · 2026-01-16</div><p>${egp(b.limit)} approved · ${b.terms}.</p></div>
-            <div class="tl-item"><div class="tl-dot"></div><b>Supplier allocation set</b><div class="tl-meta">Division Committee · 2026-02-02</div><p>Distributed across ${b.suppliers.length} linked suppliers.</p></div>
+            <div class="tl-item"><div class="tl-dot"></div><b>Supplier allocation set</b><div class="tl-meta">Deviation Committee · 2026-02-02</div><p>Distributed across ${b.suppliers.length} linked suppliers.</p></div>
             <div class="tl-item"><div class="tl-dot"></div><b>Periodic review</b><div class="tl-meta">RM · 2026-05-30</div><p>No change to limit; concentration within policy.</p></div>
           </div></div></div>
       <div class="section-title">Audit trail</div>
-      ${auditTimeline([mkAudit('RM · Yara Mansour','Limit created',egp(b.limit)+' requested'),mkAudit('Credit · Tarek Fouad','Limit approved','Risk grade assigned'),mkAudit('Division Committee','Allocation recorded','Supplier distribution set'),mkAudit('RM · Yara Mansour','Reviewed','Periodic review — no change')])}`;
+      ${auditTimeline([mkAudit('RM · Yara Mansour','Limit created',egp(b.limit)+' requested'),mkAudit('Credit · Tarek Fouad','Limit approved','Risk grade assigned'),mkAudit('Deviation Committee','Allocation recorded','Supplier distribution set'),mkAudit('RM · Yara Mansour','Reviewed','Periodic review — no change')])}`;
   }
   const head=pageHead('Limit Management · '+b.short, b.name+' — Limit Details', 'Approved '+egp(b.limit)+' · Outstanding '+egp(b.used)+' · Available '+egp(avail),
       buyerScope?'':`<button class="btn btn-ghost" onclick="go('limits')">← All limits</button><button class="btn btn-primary" onclick="go('buyer-detail','${b.id}')">Buyer profile</button>`);
@@ -1102,7 +1285,7 @@ function viewFactoring(){
           ${node('8','#15803D','Settled with recourse to supplier')}
         </div></div>
     </div>
-    <div class="alert brand" style="margin-top:16px"><span class="ai">🛡️</span><div><b>Shared gates.</b> Both models pass internal <b>FRA Validation</b> and, where concentration is flagged, <b>Division Committee</b> review before credit approval, funding and settlement — each with a full audit trail.</div></div>`;
+    <div class="alert brand" style="margin-top:16px"><span class="ai">🛡️</span><div><b>Shared gates.</b> Both models pass internal <b>FRA Validation</b> and, where concentration is flagged, <b>Deviation Committee</b> review before credit approval, funding and settlement — each with a full audit trail.</div></div>`;
 }
 
 function viewInvoices(){
@@ -1211,8 +1394,8 @@ function caseActions(c){
   if(c.stage==='draft'){ if(r==='buyer'||r==='supplier') h+=btn('Submit request','advanceCase(\''+c.id+'\',\'Submitted for processing\')'); else h+=info('var(--surface-2)','var(--ink-soft)','📝','Draft — awaiting submission by the client.'); return h; }
   if(c.stage==='submitted'){ return info('var(--brand-50)','var(--brand-700)','🔄','Submitted — routing to automated FRA e-invoice validation.'); }
   if(c.stage==='fra'){ return info('var(--brand-50)','var(--brand-700)','🛡️','Automated FRA e-invoice validation in progress. No manual action required (future FRA system integration).'); }
-  if(c.stage==='division'){ if(r==='division') h+=btn('Open committee review →','go(\'division-detail\',\''+c.id+'\')'); else h+=info('var(--st-division-bg)','var(--st-division)','⚖️','At Division Committee for concentration review.'); return h; }
-  if(c.stage==='credit'){ if(r==='credit'){ h+=btn('✓ Review & approve','advanceCase(\''+c.id+'\',\'Credit approved\')'); h+=btn('Reject','askReject(\''+c.id+'\')','btn-danger'); } else h+=info('var(--st-credit-bg)','var(--st-credit)','📊','Under credit review & approval.'); return h; }
+  if(c.stage==='deviation'){ if(r==='deviation') h+=btn('Open committee decision →','go(\'deviation-detail\',\''+c.id+'\')'); else h+=info('var(--st-deviation-bg)','var(--st-deviation)','⚖️','At Deviation Committee — limit / concentration exceeded, awaiting override or reject.'); return h; }
+  if(c.stage==='credit'){ if(r==='credit'){ h+=btn('✓ Validate execution & approve','advanceCase(\''+c.id+'\',\'Execution validated by Credit\')'); h+=btn('Reject','askReject(\''+c.id+'\')','btn-danger'); } else h+=info('var(--st-credit-bg)','var(--st-credit)','📊','At Contact execution validation.'); return h; }
   if(c.stage==='approved'){ if(r==='finance') h+=btn('💸 Fund (instant SWIFT)','advanceCase(\''+c.id+'\',\'Funds disbursed via instant SWIFT\')','btn-gold'); else h+=info('var(--st-approved-bg)','var(--st-approved)','✓','Approved — awaiting disbursement by Finance.'); return h; }
   if(c.stage==='funded'){ if(r==='finance') h+=btn('Settle with bank','openSettle(\''+c.id+'\')','btn-gold'); else h+=info('var(--st-funded-bg)','var(--st-funded)','🏦','Funded — settlement pending at maturity by Finance.'); return h; }
   if(c.stage==='settled'){ if(r==='finance') h+=btn('Close request','advanceCase(\''+c.id+'\',\'Request closed\')','btn-quiet'); else h+=info('var(--st-settled-bg)','var(--st-settled)','✓','Settled.'); return h; }
@@ -1222,7 +1405,7 @@ function stageHint(c){
   const m={ draft:'Draft — not yet submitted.', submitted:'Submitted; awaiting routing to FRA validation.',
     pendingbuyer:'Supplier-uploaded reverse invoice — buyer must validate before processing.',
     fra:'Internal FRA e-invoice validation. Not visible to buyer or supplier.',
-    division:'Flagged for supplier concentration — Division Committee allocates the limit.',
+    deviation:'Limit / concentration / global limit exceeded — Deviation Committee overrides or rejects.',
     credit:'Credit team assesses risk, limit and concentration.', approved:'Approved — ready for disbursement.',
     funded:'Advance disbursed; awaiting settlement at maturity.', settled:'Settled with the bank.', closed:'Closed.', rejected:'Rejected.' };
   return m[c.stage]||'';
@@ -1254,7 +1437,7 @@ function viewPendingValidation(){
     + caseTable(list,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="advanceCase('${c.id}','Buyer validated')">Validate</button> <button class="btn btn-sm btn-danger" onclick="askReject('${c.id}')">Dispute</button>`, emptyTitle:'Nothing to validate', emptyBody:'No supplier invoices are awaiting your validation.', emptyIcon:'✓'});
 }
 function viewFRA(){
-  const order=['fra','division','credit','approved','funded','settled','closed'];
+  const order=['fra','deviation','credit','approved','funded','settled','closed'];
   const q=cases.filter(c=>order.includes(c.stage)).sort((a,b)=>order.indexOf(a.stage)-order.indexOf(b.stage));
   const fraStatusTag=c=>c.stage==='fra'
     ? '<span class="badge-st fra"><i class="bd"></i>Pending (automated)</span>'
@@ -1266,33 +1449,48 @@ function viewFRA(){
       </tbody></table></div></div>`
     : emptyState('No requests in validation','Requests appear here once submitted.','🛡️'));
 }
-function viewDivision(){
-  const q=cases.filter(c=>c.stage==='division');
-  return pageHead('Workflow', 'Division Committee — Concentration Review', 'Review supplier concentration and divide approved limits across suppliers.')
-    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="go('division-detail','${c.id}')">Review</button>`, emptyTitle:'No reviews pending', emptyBody:'No concentration breaches awaiting allocation.', emptyIcon:'⚖️'});
+function viewDeviation(){
+  const q=cases.filter(c=>c.stage==='deviation');
+  return pageHead('Workflow', 'Deviation Committee', 'Decide on requests where the available limit, counterparty concentration % or the global concentration limit is exceeded — override (proceed) or reject.')
+    + `<div class="alert warn" style="margin-bottom:16px"><span class="ai">⚖️</span><div><b>Exceedance decisions only.</b> The obligor check runs automatically; a request reaches the committee only when a limit is exceeded or the global limit is fully utilised. The committee may <b>override</b> to proceed (on the available / requested portion) or <b>reject</b>.</div></div>`
+    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="go('deviation-detail','${c.id}')">Decide</button>`, emptyTitle:'No deviations pending', emptyBody:'No requests have exceeded their limit or concentration.', emptyIcon:'⚖️'});
 }
-function viewDivisionDetail(){
+function viewDeviationDetail(){
   const c=findCase(state.param); if(!c) return emptyState('Request not found','','⚖️');
-  const b=findBuyer(c.buyerId); const alloc=allocFor(b);
-  return pageHead('Division Committee', 'Concentration Review — '+c.invoiceNo, b.name+' · '+egp(c.amount),
-      `<button class="btn btn-ghost" onclick="go('division-queue')">← Queue</button>`)
+  const isSupplierObligor = c.type==='normal';
+  const ob = isSupplierObligor ? findSupplier(c.supplierId) : findBuyer(c.buyerId);
+  const limit = ob? ob.limit : 0, used = ob? ob.used : 0, avail = limit-used;
+  const reqd = c.amount, exceeded = reqd>avail;
+  const concParty = isSupplierObligor ? findBuyer(c.buyerId) : findSupplier(c.supplierId);
+  const concVal = isSupplierObligor ? (concParty&&concParty.short) : (concParty&&concParty.conc);
+  return pageHead('Deviation Committee', 'Exceedance Decision — '+c.invoiceNo, ob.name+' · '+egp(c.amount),
+      `<button class="btn btn-ghost" onclick="go('deviation-queue')">← Queue</button>`)
     + `<div class="detail-grid">
       <div>
-        <div class="card card-pad" style="margin-bottom:16px"><h3 style="font-size:14.5px;margin-bottom:12px">Concentration analysis — ${b.short}</h3>
-          ${alloc.map(a=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span class="t-strong">${a.s.short}</span><span>${riskTag(a.conc)} <span class="t-sub mono">${a.conc}%</span></span></div><div class="progress"><i style="width:${a.conc*2}%;background:${a.conc>=40?'linear-gradient(90deg,#E0796F,#B42318)':'linear-gradient(90deg,var(--brand-400),var(--brand))'}"></i></div></div>`).join('')}
+        <div class="card card-pad" style="margin-bottom:16px"><h3 style="font-size:14.5px;margin-bottom:12px">Obligor check — ${ob.short}</h3>
+          <div class="kv">
+            <div class="row"><span class="k">Obligor (${isSupplierObligor?'supplier':'buyer'})</span><span class="v">${ob.name}</span></div>
+            <div class="row"><span class="k">Approved limit</span><span class="v mono">${egp(limit)}</span></div>
+            <div class="row"><span class="k">Outstanding / utilised</span><span class="v mono">${egp(used)}</span></div>
+            <div class="row"><span class="k">Available headroom</span><span class="v mono" style="color:${avail<reqd?'var(--st-rejected)':'var(--st-settled)'}">${egp(avail)}</span></div>
+            <div class="row"><span class="k">Requested amount</span><span class="v mono">${egp(reqd)}</span></div>
+            <div class="row"><span class="k">${isSupplierObligor?'Buyer':'Supplier'} concentration</span><span class="v mono">${isSupplierObligor?concVal:(concVal||'—')}</span></div>
+            <div class="row"><span class="k">Global concentration limit</span><span class="v">${c.flagConc?'<span class="badge-st rejected"><i class="bd"></i>Exceeded</span>':'<span class="badge-st approved"><i class="bd"></i>Within</span>'}</span></div>
+          </div>
+          <div class="alert ${exceeded?'danger':'warn'}" style="margin-top:14px;font-size:12.5px"><span class="ai">⚠️</span><div><b>${exceeded?'Limit exceeded.':'Concentration / global limit exceeded.'}</b> ${exceeded?('Requested '+egp(reqd)+' exceeds available headroom of '+egp(avail)+'. Overriding finances the available portion ('+egp(Math.max(0,avail))+') — partial utilisation.'):'Counterparty concentration or the global concentration limit is exceeded; a committee decision is required to proceed.'}</div></div>
         </div>
-        <div class="card card-pad"><h3 style="font-size:14.5px;margin-bottom:12px">Distribution decision</h3>
-          <div class="form-grid">${alloc.map(a=>`<div class="fld"><label>${a.s.short} allocation (EGP)</label><input type="text" value="${money(a.allocated)}"></div>`).join('')}</div>
-          <div class="fld full" style="margin-top:12px"><label>Committee notes</label><textarea rows="2" placeholder="Rationale for allocation / concentration decision…"></textarea></div>
+        <div class="card card-pad"><h3 style="font-size:14.5px;margin-bottom:12px">Committee decision</h3>
+          <div class="seg" style="margin-bottom:14px"><button class="on" id="utilFull" onclick="setUtil('${c.id}','full',this)">Finance in full</button><button id="utilPart" onclick="setUtil('${c.id}','partial',this)">Partial — available portion</button></div>
+          <div class="fld full"><label>Committee note (recorded in audit) <span style="color:var(--st-rejected)">*</span></label><textarea id="devNote" rows="3" placeholder="Rationale for override or reject…"></textarea></div>
         </div>
       </div>
       <div>
         ${caseActionPanel(c)}
-        ${state.role==='division'?`<div class="card card-pad" style="margin-top:16px"><h3 style="font-size:13px;margin-bottom:10px">Committee actions</h3>
-          <button class="btn btn-primary btn-block" style="margin-bottom:8px" onclick="advanceCase('${c.id}','Committee approved allocation & routed to credit')">✓ Approve allocation</button>
-          <button class="btn btn-danger btn-block" onclick="askReject('${c.id}')">Reject — concentration breach</button>
-        </div>`:''}
-        <div class="card card-pad" style="margin-top:16px"><h3 style="font-size:13px;margin-bottom:8px">Approval history</h3>
+        ${state.role==='deviation'?`<div class="card card-pad" style="margin-top:16px"><h3 style="font-size:13px;margin-bottom:10px">Committee actions</h3>
+          <button class="btn btn-primary btn-block" style="margin-bottom:8px" onclick="overrideCase('${c.id}')">✓ Override — proceed</button>
+          <button class="btn btn-danger btn-block" onclick="askReject('${c.id}')">Reject — exceedance not approved</button>
+        </div>`:`<div class="card card-pad" style="margin-top:16px"><div class="alert info" style="margin:0;font-size:12px"><span class="ai">👁</span><div>View-only. Only the Deviation Committee can override or reject.</div></div></div>`}
+        <div class="card card-pad" style="margin-top:16px"><h3 style="font-size:13px;margin-bottom:8px">Decision history</h3>
           ${auditTimeline(c.audit)}
         </div>
       </div>
@@ -1300,11 +1498,11 @@ function viewDivisionDetail(){
 }
 function viewCredit(){
   const q=cases.filter(c=>c.stage==='credit');
-  return pageHead('Workflow', 'Credit Review Queue', 'Assess applications, limits and concentration; approve or reject for execution.')
-    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Assess</button>`, emptyTitle:'Queue clear', emptyBody:'No applications awaiting credit review.', emptyIcon:'📊'});
+  return pageHead('Workflow', 'Execution Validation Queue', 'After the obligor check (and any committee override), Contact validates each request for execution — approve to fund, or reject.')
+    + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Validate</button>`, emptyTitle:'Queue clear', emptyBody:'No requests awaiting execution validation.', emptyIcon:'📊'});
 }
 function viewApprovals(){
-  const q=cases.filter(c=>['submitted','pendingbuyer','fra','division','credit'].includes(c.stage));
+  const q=cases.filter(c=>['submitted','pendingbuyer','fra','deviation','credit'].includes(c.stage));
   return pageHead('Workflow', 'Approvals', 'All requests awaiting an action across the approval chain.')
     + `<div class="toolbar"><div class="chips"><span class="chip on">All pending</span><span class="chip">Buyer validation</span><span class="chip">FRA</span><span class="chip">Committee</span><span class="chip">Credit</span></div></div>`
     + caseTable(q,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="openCase('${c.id}')">Open</button>`, emptyTitle:'All clear', emptyBody:'Nothing is awaiting approval.', emptyIcon:'✓'});
@@ -1335,7 +1533,7 @@ function viewFinancing(){
 function viewEscrowAck(){
   const list=escrowPending();
   return pageHead('Supplier', 'Escrow Acknowledgements', 'Silent-factoring requests requiring you to confirm collection only via Contact\'s escrow account.')
-    + (list.length?`<div class="alert" style="background:var(--st-division-bg);color:var(--st-division);margin-bottom:16px"><span class="ai">🔐</span><div>Under silent factoring the buyer is not notified. You must route all collections to the designated escrow account.</div></div>`:'')
+    + (list.length?`<div class="alert" style="background:var(--st-deviation-bg);color:var(--st-deviation);margin-bottom:16px"><span class="ai">🔐</span><div>Under silent factoring the buyer is not notified. You must route all collections to the designated escrow account.</div></div>`:'')
     + caseTable(list,{actions:c=>`<button class="btn btn-sm btn-primary" onclick="ackEscrow('${c.id}')">Acknowledge</button>`, emptyTitle:'Nothing to acknowledge', emptyBody:'No silent-factoring acknowledgements pending.', emptyIcon:'🔐'});
 }
 function viewDocuments(){
@@ -1355,7 +1553,7 @@ function viewUsers(){
     {n:'Yara Mansour',r:'rm',e:'yara.mansour@contact.eg'},
     {n:'Tarek Fouad',r:'credit',e:'tarek.fouad@contact.eg'},
     {n:'Nadia Saleh',r:'fra',e:'nadia.saleh@contact.eg'},
-    {n:'Hany Greiss',r:'division',e:'committee@contact.eg'},
+    {n:'Hany Greiss',r:'deviation',e:'committee@contact.eg'},
     {n:'Omar Khalil',r:'finance',e:'omar.khalil@contact.eg'},
     {n:'Carrefour Egypt',r:'buyer',e:'finance@carrefour.eg'},
     {n:'Pepsi Egypt',r:'buyer',e:'ap@pepsi.eg'},
@@ -1372,7 +1570,7 @@ function viewPermissions(){
   const caps=['View dashboards','Create profiles','Set limits','Upload invoices','Validate (buyer)','FRA validation','Committee review','Credit approval','Fund & settle','Manage users'];
   const grid={
     rm:[1,1,1,1,1,0,0,0,0,0], buyer:[1,0,0,1,1,0,0,0,0,0], supplier:[1,0,0,1,0,0,0,0,0,0],
-    credit:[1,0,2,0,0,0,2,1,0,0], fra:[1,0,0,0,0,1,0,0,0,0], division:[1,0,2,0,0,0,1,0,0,0],
+    credit:[1,0,2,0,0,0,2,1,0,0], fra:[1,0,0,0,0,1,0,0,0,0], deviation:[1,0,2,0,0,0,1,0,0,0],
     finance:[1,0,0,0,0,0,0,0,1,0], admin:[1,2,2,0,0,0,0,0,0,1],
   };
   const cell=v=>v===1?'<span class="yes">●</span>':v===2?'<span class="part">◐</span>':'<span class="no">○</span>';
@@ -1385,11 +1583,11 @@ function viewPermissions(){
 function viewSitemap(){
   const groups=[
     {h:'🔐 Authentication',ic:'#34349A',items:['Operations login (email + password)','Clients login (mobile + OTP)','Forgot-password flow','OTP journey & resend','Mobile app QR']},
-    {h:'◎ Dashboards',ic:'#1B4DA1',items:['RM','Buyer (white-labelled)','Supplier','Credit','FRA','Division','Finance','Admin']},
+    {h:'◎ Dashboards',ic:'#1B4DA1',items:['RM','Buyer (white-labelled)','Supplier','Credit','FRA','Deviation','Finance','Admin']},
     {h:'🏢 Clients & Profiles',ic:'#15803D',items:['Buyer management & branding','Supplier management','Supplier linking','Profiles & audit']},
     {h:'📐 Limit Management',ic:'#B5651A',items:['Main limits table','Overview','Supplier allocation','Concentration analysis','Alerts','Approval history']},
     {h:'🧾 Factoring & Invoices',ic:'#9333EA',items:['Factoring overview','Single upload','Bulk upload','Case file & pipeline','Pending buyer validation']},
-    {h:'🛡️ Workflow & Approvals',ic:'#4F46E5',items:['FRA validation','Division committee','Credit review','Approvals','Audit trail']},
+    {h:'🛡️ Workflow & Approvals',ic:'#4F46E5',items:['FRA validation','Deviation committee','Credit review','Approvals','Audit trail']},
     {h:'🏦 Finance',ic:'#0E7490',items:['Funding & settlement','Settlement tracking','Escrow acknowledgements','Documents']},
     {h:'⚙️ Administration',ic:'#5A6B72',items:['Users','Roles & permissions','Workflow visualization','Reports','Settings']},
   ];
@@ -1397,12 +1595,12 @@ function viewSitemap(){
     + `<div class="sitemap">${groups.map(g=>`<div class="sm-node"><h4><span style="color:${g.ic}">${g.h}</span></h4><ul>${g.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('')}</div>`;
 }
 function viewWorkflow(){
-  const stages=['draft','submitted','pendingbuyer','fra','division','credit','approved','funded','settled','closed'];
+  const stages=['draft','submitted','pendingbuyer','fra','deviation','credit','approved','funded','settled','closed'];
   return pageHead('Administration', 'Workflow Visualization', 'End-to-end status pipeline. Conditional stages: buyer validation (supplier-uploaded reverse) and committee (concentration flagged).')
     + `<div class="card card-pad" style="margin-bottom:16px"><div class="pipe-rail">${stages.map((s,i)=>`<div class="pipe-step ${i<3?'done':i===3?'current':''}"><div class="ps-line"></div><div class="ps-dot">${i<3?'✓':i+1}</div><div class="ps-lab">${STAGE[s].short}</div></div>`).join('')}</div></div>`
     + `<div class="grid cols-2">
-        <div class="card card-pad"><h3 style="font-size:14px;margin-bottom:12px"><span class="tag reverse">⇄ Reverse</span> path</h3><div class="legend" style="margin-top:0"><span>Draft → Submitted → <b style="color:var(--st-pendingbuyer)">Buyer validation*</b> → FRA → <b style="color:var(--st-division)">Committee†</b> → Credit → Approved → Funded → Settled → Closed</span></div><p class="t-sub" style="margin-top:10px">*Only when a supplier uploads. †Only when concentration is flagged.</p></div>
-        <div class="card card-pad"><h3 style="font-size:14px;margin-bottom:12px"><span class="tag normal">⟳ Normal</span> path</h3><div class="legend" style="margin-top:0"><span>Draft → Submitted → FRA → <b style="color:var(--st-division)">Committee†</b> → Credit → Approved → Funded → Settled (recourse) → Closed</span></div><p class="t-sub" style="margin-top:10px">Supplier is client & obligor; full recourse on buyer default.</p></div>
+        <div class="card card-pad"><h3 style="font-size:14px;margin-bottom:12px"><span class="tag reverse">⇄ Reverse</span> path</h3><div class="legend" style="margin-top:0"><span>Draft → Submitted → <b style="color:var(--st-pendingbuyer)">Buyer validation*</b> → FRA → <b style="color:var(--st-deviation)">Committee†</b> → Credit → Approved → Funded → Settled → Closed</span></div><p class="t-sub" style="margin-top:10px">*Only when a supplier uploads. †Only when concentration is flagged.</p></div>
+        <div class="card card-pad"><h3 style="font-size:14px;margin-bottom:12px"><span class="tag normal">⟳ Normal</span> path</h3><div class="legend" style="margin-top:0"><span>Draft → Submitted → FRA → <b style="color:var(--st-deviation)">Committee†</b> → Credit → Approved → Funded → Settled (recourse) → Closed</span></div><p class="t-sub" style="margin-top:10px">Supplier is client & obligor; full recourse on buyer default.</p></div>
       </div>
       <div class="card card-pad" style="margin-top:16px"><h3 style="font-size:14px;margin-bottom:12px">Status legend</h3><div class="legend">${stages.concat(['rejected']).map(s=>`<span><span class="sw" style="background:var(--st-${STAGE[s].cls})"></span>${STAGE[s].label}</span>`).join('')}</div></div>`;
 }
@@ -1517,12 +1715,73 @@ function openModal(html,kind){
 }
 function closeModal(){ const o=el('overlay'); o.classList.remove('open'); setTimeout(()=>{o.innerHTML='';},200); }
 
+function transitionLabel(from,to){
+  const m={ pendingbuyer:'validated by buyer', fra:'passed FRA validation', deviation:'cleared committee allocation',
+    credit:'credit-approved', approved:'approved', funded:'funded via SWIFT', settled:'settled', closed:'closed', submitted:'submitted' };
+  return m[to]||('moved to '+STAGE[to].label);
+}
+function autoFlow(c){
+  // 'submitted' and 'fra' are automated (no human action). Pass straight through.
+  const AUTO={ submitted:'Routed to FRA validation (automated)', fra:'FRA e-invoice validation passed (automated integration)' };
+  let guard=0;
+  while(AUTO[c.stage] && guard++<8){
+    const nx=nextStage(c); if(!nx) break;
+    if(c.stage==='fra') c.fraStatus='validated';
+    const note=AUTO[c.stage];
+    c.prevStage=c.stage; c.stage=nx;
+    c.audit.push(mkAudit('System · FRA e-invoice','Auto-advanced to '+STAGE[nx].label, note));
+  }
+}
+function advanceCase(id,note){
+  const c=findCase(id); if(!c) return;
+  const from=c.stage; const to=nextStage(c);
+  if(!to){ toast('No further stage.','warn','ℹ️'); return; }
+  c.prevStage=from; c.stage=to;
+  if(to==='fra') c.fraStatus='pending';
+  if(from==='fra') c.fraStatus='validated';
+  const actor=ROLES[state.role].name+' · '+ROLES[state.role].user;
+  c.audit.push(mkAudit(actor, 'Advanced to '+STAGE[to].label, note||''));
+  autoFlow(c);
+  if(c.stage==='funded'){ toast('Instant SWIFT sent — '+egp(c.amount)+' disbursed','brand','💸'); }
+  else if(c.stage==='pendingbuyer'){ toast('Sent to buyer for validation','warn','⏳'); }
+  else if(to==='fra'||to==='submitted'){ toast('FRA e-invoice validation passed — at '+STAGE[c.stage].label,'ok','🛡️'); }
+  else { toast('Request '+transitionLabel(from,to),'ok','✓'); }
+  renderSidebar(); renderTopbar(); route();
+}
+function setUtil(id,mode,btnEl){
+  const c=findCase(id); if(!c) return; c.util=mode;
+  if(btnEl&&btnEl.parentElement){ [...btnEl.parentElement.children].forEach(b=>b.classList.remove('on')); btnEl.classList.add('on'); }
+}
+function overrideCase(id){
+  const c=findCase(id); if(!c) return;
+  const note=(el('devNote')&&el('devNote').value.trim())||'';
+  if(!note){ toast('A committee note is required','warn','⚠️'); if(el('devNote'))el('devNote').focus(); return; }
+  const partial = c.util==='partial';
+  c.partial=partial;
+  c.audit.push(mkAudit(ROLES.deviation.name+' · '+ROLES.deviation.user, 'Deviation override — proceed', (partial?'Partial utilisation (available portion). ':'Full utilisation. ')+note));
+  const from=c.stage; const to=nextStage(c);
+  c.prevStage=from; c.stage=to||c.stage;
+  toast('Override approved — '+(partial?'partial utilisation':'full utilisation'),'ok','⚖️');
+  renderSidebar(); renderTopbar(); route();
+}
 function askReject(id){
   const c=findCase(id); if(!c) return;
   openModal(`<div class="modal-h"><div><h3>Reject request</h3><div class="mh-sub">${c.invoiceNo} · ${egp(c.amount)}</div></div><button class="x" onclick="closeModal()">✕</button></div>
     <div class="modal-b"><div class="fld"><label>Reason for rejection <span class="req">*</span></label><textarea id="rejReason" rows="3" placeholder="Explain why this request is being rejected…"></textarea></div>
     <div class="alert warn" style="margin-top:12px"><span class="ai">⚠️</span><div>The initiator will be notified. This action is recorded in the audit trail.</div></div></div>
     <div class="modal-f"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="confirmReject('${id}')">Confirm rejection</button></div>`);
+}
+function confirmReject(id){
+  const c=findCase(id); if(!c) return;
+  const reason=(el('rejReason')&&el('rejReason').value)||'No reason provided';
+  c.rejFrom=c.stage; c.stage='rejected'; c.notes=reason;
+  c.audit.push(mkAudit(ROLES[state.role].name+' · '+ROLES[state.role].user,'Rejected at '+STAGE[c.rejFrom].label,reason));
+  closeModal(); toast('Request rejected','err','✕'); renderSidebar(); renderTopbar(); route();
+}
+function ackEscrow(id){
+  const c=findCase(id); if(!c) return;
+  c.ackEscrow=true; c.audit.push(mkAudit(ROLES[state.role].name+' · '+ROLES[state.role].user,'Escrow acknowledgement signed','Silent factoring — collection via escrow confirmed'));
+  toast('Escrow acknowledgement recorded','ok','🔐'); renderSidebar(); route();
 }
 function openSettle(id){
   const c=findCase(id); if(!c) return;
@@ -1535,6 +1794,13 @@ function openSettle(id){
     </div>
     <div class="modal-f"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="confirmSettle('${id}')">Confirm settlement</button></div>`);
 }
+function confirmSettle(id){
+  const c=findCase(id); if(!c) return;
+  c.prevStage=c.stage; c.stage='settled';
+  c.docs.push({n:'Proof of payment.pdf',t:'Settlement',sz:'104 KB'});
+  c.audit.push(mkAudit(ROLES[state.role].name+' · '+ROLES[state.role].user,'Settled with bank','Proof of payment uploaded'));
+  closeModal(); toast('Request settled','ok','💳'); renderSidebar(); renderTopbar(); route();
+}
 function addDoc(id){
   const c=findCase(id); if(!c) return;
   openModal(`<div class="modal-h"><div><h3>Upload document</h3><div class="mh-sub">${c.invoiceNo}</div></div><button class="x" onclick="closeModal()">✕</button></div>
@@ -1542,9 +1808,31 @@ function addDoc(id){
       <div class="dropzone" onclick="simulateUpload(this)" style="margin-top:12px"><div class="dz-ic">⇪</div>Click to upload<div class="upbar hidden" id="upDemo"><i style="width:0%"></i></div></div></div>
     <div class="modal-f"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="confirmDoc('${id}')">Add document</button></div>`);
 }
+function confirmDoc(id){
+  const c=findCase(id); if(!c) return;
+  const ty=(el('docType')&&el('docType').value)||'Document';
+  c.docs.push({n:ty+'.pdf',t:ty,sz:(80+Math.floor(Math.random()*180))+' KB'});
+  c.audit.push(mkAudit(ROLES[state.role].name+' · '+ROLES[state.role].user,'Document uploaded',ty));
+  closeModal(); toast('Document added','ok','📄'); if(state.view==='case'){state.tab='documents';route();}
+}
 function simulateUpload(zone){
   const bar=zone.querySelector('.upbar'); if(!bar) return; bar.classList.remove('hidden');
   const i=bar.querySelector('i'); let w=0; const t=setInterval(()=>{ w+=12+Math.random()*16; if(w>=100){w=100;clearInterval(t);toast('Upload complete','ok','✓');} i.style.width=w+'%'; },140);
+}
+function submitInvoice(kind){
+  if(kind==='bulk'){ toast('Bulk invoices submitted for validation','ok','⇪'); go('invoices'); return; }
+  // create a new case for the active client
+  let buyerId,supplierId,initiator;
+  if(state.role==='buyer'){ const b=myBuyer(); buyerId=b.id; supplierId=b.suppliers[0]; initiator='buyer'; }
+  else if(state.role==='supplier'){ const s=mySupplier(); supplierId=s.id; buyerId=s.buyers[0]; initiator='supplier'; }
+  else { buyerId=BUYERS[0].id; supplierId=SUPPLIERS[0].id; initiator='buyer'; }
+  const b=findBuyer(buyerId), s=findSupplier(supplierId);
+  const isReverseSupplier = initiator==='supplier' && s.model==='reverse';
+  const nc=c(s.model, initiator, buyerId, supplierId, 1000000+Math.floor(Math.random()*3000000), 'INV-2026-0'+(490+Math.floor(Math.random()*99)), '2026-06-11','2026-08-10', isReverseSupplier?'pendingbuyer':'submitted', {recourse:s.model==='normal',disclosure:s.disclosure});
+  cases.unshift(nc);
+  if(!isReverseSupplier) autoFlow(nc);
+  toast(isReverseSupplier?'Invoice submitted — pending buyer validation':'Invoice submitted — FRA e-invoice validation passed', isReverseSupplier?'warn':'ok', isReverseSupplier?'⏳':'🛡️');
+  go('case', nc.id);
 }
 
 /* notification panel */
@@ -1600,64 +1888,12 @@ function buildTweaks(){
 
 
 /* ============================================================
-   PART 4 — MUTATIONS (delegated to the typed API seam)
-   Each helper below is the swap point for a real back-end call.
-   ============================================================ */
-function actorLabel(){ return ROLES[state.role].name + ' · ' + ROLES[state.role].user; }
-
-function advanceCase(id, note){
-  // 🔌 SWAP: api.advanceCase -> POST /requests/:id/advance
-  const res = api.advanceCase(id, { actor: actorLabel(), note });
-  if(!res){ toast('No further stage.','warn','ℹ️'); return; }
-  const c = res.case, from = res.from, to = res.to;
-  if(c.stage==='funded'){ toast('Instant SWIFT sent — '+egp(c.amount)+' disbursed','brand','💸'); }
-  else if(c.stage==='pendingbuyer'){ toast('Sent to buyer for validation','warn','⏳'); }
-  else if(to==='fra'||to==='submitted'){ toast('FRA e-invoice validation passed — at '+STAGE[c.stage].label,'ok','🛡️'); }
-  else { toast('Request '+transitionLabel(from,to),'ok','✓'); }
-  renderSidebar(); renderTopbar(); route();
-}
-function confirmReject(id){
-  // 🔌 SWAP: api.rejectCase -> POST /requests/:id/reject
-  const reason = (el('rejReason') && el('rejReason').value) || 'No reason provided';
-  if(!api.rejectCase(id, { actor: actorLabel(), reason })) return;
-  closeModal(); toast('Request rejected','err','✕'); renderSidebar(); renderTopbar(); route();
-}
-function ackEscrow(id){
-  // 🔌 SWAP: api.acknowledgeEscrow -> POST /requests/:id/escrow-ack
-  if(!api.acknowledgeEscrow(id, { actor: actorLabel() })) return;
-  toast('Escrow acknowledgement recorded','ok','🔐'); renderSidebar(); route();
-}
-function confirmSettle(id){
-  // 🔌 SWAP: api.settleCase -> POST /requests/:id/settle
-  if(!api.settleCase(id, { actor: actorLabel() })) return;
-  closeModal(); toast('Request settled','ok','💳'); renderSidebar(); renderTopbar(); route();
-}
-function confirmDoc(id){
-  // 🔌 SWAP: api.addDocument -> POST /requests/:id/documents
-  const ty = (el('docType') && el('docType').value) || 'Document';
-  if(!api.addDocument(id, { actor: actorLabel(), type: ty })) return;
-  closeModal(); toast('Document added','ok','📄'); if(state.view==='case'){ state.tab='documents'; route(); }
-}
-function submitInvoice(kind){
-  if(kind==='bulk'){ toast('Bulk invoices submitted for validation','ok','⇪'); go('invoices'); return; }
-  // 🔌 SWAP: api.createCase -> POST /requests
-  const res = api.createCase({ role: state.role, activeBuyerId: state.activeBuyerId, activeSupplierId: state.activeSupplierId });
-  if(!res){ toast('Unable to create request','warn','⚠️'); return; }
-  toast(res.pendingBuyer ? 'Invoice submitted — pending buyer validation' : 'Invoice submitted — FRA e-invoice validation passed',
-        res.pendingBuyer ? 'warn' : 'ok', res.pendingBuyer ? '⏳' : '🛡️');
-  go('case', res.case.id);
-}
-
-/* ============================================================
-   BOOTSTRAP — mount into the React-rendered DOM scaffold.
-   Inline event attributes (onclick=...) resolve against window,
-   so the engine's handlers are exposed here once on init.
+   BOOTSTRAP — mount into the React-rendered DOM scaffold and expose
+   the inline-handler functions on window.
    ============================================================ */
 export function initFactoringPortal(){
   if (typeof window === 'undefined') return;
-  Object.assign(window, { state, STAGE, ROLES, NAV, I18N, BUYERS, SUPPLIERS, cases, notifications, __ATTACH__ });
+  Object.assign(window, { chainFor,nextStage,t,paOverall,paQueueFor,countProfile,mkAudit,c,countStage,pendingForBuyer,escrowPending,myBuyer,mySupplier,myCases,findCase,findBuyer,findSupplier,money,egp,egpC,mShort,nowStr,initials,colorFor,avatarStyle,myNotifs,badge,typeTag,discTag,party,pipeline,clientPipeline,caseTable,emptyState,stat,pageHead,tabBar,auditTimeline,limitBar,fld,fakeQR,qrCard,renderAuth,opsForm,clientForm,forgotFlow,authTab,authClient,authGo,togglePass,otpNext,startCountdown,resendOtp,doOps,sendOtp,verifyOtp,enterApp,logout,renderShell,renderSidebar,renderTopbar,profileMenu,togglePmenu,crumbsHtml,crumbsFor,setLang,applyTheme,toggleTheme,switchRole,toggleSidebar,go,goBack,openCase,quickSearch,globalSearch,route,wlBanner,shade,viewDashboard,greet,attentionList,quickCard,dashRM,dashBuyer,dashSupplier,swiftBlock,dashCredit,dashLegal,profileApprovalTable,viewProfileApprovals,viewProfileApprovalDetail,paToggleDoc,paAddComment,paDecide,dashFRA,dashDeviation,dashFinance,dashAdmin,viewBuyers,viewBuyerDetail,viewSuppliers,viewSupplierDetail,viewProfileForm,submitProfile,viewSupplierLinking,allocFor,buyerConcStatus,buyerAlertStatus,riskTag,viewLimits,viewLimitDetail,viewFactoring,viewInvoices,viewInvoiceNew,viewInvoiceBulk,viewCase,caseActionPanel,caseActions,stageHint,docManager,validationPanel,viewPendingValidation,viewFRA,viewDeviation,viewDeviationDetail,viewCredit,viewApprovals,viewFinance,viewSettlements,viewFinancing,viewEscrowAck,viewDocuments,viewUsers,viewPermissions,viewSitemap,viewWorkflow,viewAudit,viewReports,viewNotifications,saveProfileName,viewSettings,viewSearch,toast,openModal,closeModal,transitionLabel,autoFlow,advanceCase,setUtil,overrideCase,askReject,confirmReject,ackEscrow,openSettle,confirmSettle,addDoc,confirmDoc,simulateUpload,submitInvoice,renderNotifPanel,toggleNotif,boot,twLoad,twApply,twCur,twSet,twPanelHtml,twRender,twDismiss,buildTweaks,setPortal,demoLogin,demoPanel,paResubmit, state, authState, STAGE, ROLES, NAV, I18N, BUYERS, SUPPLIERS, cases, notifications, PROFILE_APPROVALS });
   try { twLoad(); twApply(); buildTweaks(); } catch(e) {}
   boot();
 }
-
-const __ATTACH__ = (function(){ const m = { t, countStage, pendingForBuyer, escrowPending, myBuyer, mySupplier, myCases, findCase, findBuyer, findSupplier, money, egp, egpC, mShort, nowStr, initials, colorFor, avatarStyle, myNotifs, badge, typeTag, discTag, party, pipeline, clientPipeline, caseTable, emptyState, stat, pageHead, tabBar, auditTimeline, limitBar, fld, fakeQR, qrCard, renderAuth, demoPanel, demoLogin, setPortal, dashLegal, opsForm, clientForm, forgotFlow, authTab, authClient, authGo, togglePass, otpNext, startCountdown, resendOtp, doOps, sendOtp, verifyOtp, enterApp, logout, renderShell, renderSidebar, renderTopbar, profileMenu, togglePmenu, crumbsHtml, crumbsFor, setLang, applyTheme, toggleTheme, switchRole, toggleSidebar, go, goBack, openCase, quickSearch, globalSearch, route, wlBanner, shade, viewDashboard, greet, attentionList, quickCard, dashRM, dashBuyer, dashSupplier, swiftBlock, dashCredit, dashFRA, dashDivision, dashFinance, dashAdmin, viewBuyers, viewBuyerDetail, viewSuppliers, viewSupplierDetail, viewProfileForm, submitProfile, viewSupplierLinking, allocFor, buyerConcStatus, buyerAlertStatus, riskTag, viewLimits, viewLimitDetail, viewFactoring, viewInvoices, viewInvoiceNew, viewInvoiceBulk, viewCase, caseActionPanel, caseActions, stageHint, docManager, validationPanel, viewPendingValidation, viewFRA, viewDivision, viewDivisionDetail, viewCredit, viewApprovals, viewFinance, viewSettlements, viewFinancing, viewEscrowAck, viewDocuments, viewUsers, viewPermissions, viewSitemap, viewWorkflow, viewAudit, viewReports, viewNotifications, saveProfileName, viewSettings, viewSearch, toast, openModal, closeModal, advanceCase, askReject, confirmReject, ackEscrow, openSettle, confirmSettle, addDoc, confirmDoc, simulateUpload, submitInvoice, renderNotifPanel, toggleNotif, boot, twLoad, twApply, twCur, twSet, twPanelHtml, twRender, twDismiss, buildTweaks }; if(typeof window!=="undefined"){ Object.assign(window, m); } return m; })();
