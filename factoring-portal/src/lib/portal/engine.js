@@ -35,6 +35,7 @@ const ROLES = {
   fra:      {name:'FRA Validation Team',  short:'FRA',     icon:'🛡️', color:'#4F46E5', bg:'#ECEBFB', login:'ops',    internal:true,  user:'Nadia Saleh',    company:'Contact Financial Holding', email:'nadia.saleh@contact.eg',   mobile:'+20 111 778 9921', last:'Yesterday · 16:20'},
   division: {name:'Division Committee',   short:'Committee',icon:'⚖️',color:'#7C3AED', bg:'#F1E9FD', login:'ops',    internal:true,  user:'Hany Greiss',    company:'Contact Financial Holding', email:'committee@contact.eg',     mobile:'+20 100 600 3340', last:'Yesterday · 14:02'},
   finance:  {name:'Finance Team',         short:'Finance', icon:'🏦', color:'#9333EA', bg:'#F4E8FC', login:'ops',    internal:true,  user:'Omar Khalil',    company:'Contact Financial Holding', email:'omar.khalil@contact.eg',   mobile:'+20 100 990 1120', last:'Today · 09:10'},
+  legal:    {name:'Legal',                 short:'Legal',   icon:'§', color:'#0F766E', bg:'#DDF3EF', login:'ops',    internal:true,  user:'Mona Adel',      company:'Contact Financial Holding', email:'legal@contact.eg',         mobile:'+20 100 700 5500', last:'Today · 08:30'},
   admin:    {name:'Administrator',        short:'Admin',   icon:'⚙️', color:'#5A6B72', bg:'#EDF1F2', login:'ops',    internal:true,  user:'System Admin',   company:'Contact Financial Holding', email:'admin@contact.eg',         mobile:'+20 100 000 0001', last:'Today · 09:25'},
 };
 
@@ -126,6 +127,14 @@ const NAV = {
       {v:'settlements',i:'💳',l:'Settlement Tracking'},
     ]},
     {sec:'sec_admin', items:[{v:'reports',i:'📈',l:'Finance Reports'},{v:'audit',i:'🗂️',l:'Audit Logs'}]},
+  ],
+  legal:[
+    {sec:'sec_overview', items:[{v:'dashboard',i:'§',l:'Legal Dashboard'}]},
+    {sec:'sec_workflow', items:[
+      {v:'invoices',i:'📑',l:'Contracts & Requests'},
+      {v:'documents',i:'📁',l:'Documents'},
+      {v:'audit',i:'🗂️',l:'Audit Logs'},
+    ]},
   ],
   admin:[
     {sec:'sec_admin', items:[
@@ -253,7 +262,7 @@ function limitBar(name,used,limit){
 function fld(label,type,ph,req){ return `<div class="fld"><label>${label}${req?' <span class="req">*</span>':''}</label><input type="${type||'text'}" placeholder="${ph||''}"></div>`; }
 
 /* ---------------- AUTH (two tabs · glassmorphism) ---------------- */
-let authState = {tab:'ops', screen:'login', clientKind:'buyer'};
+let authState = {tab:'ops', screen:'login', clientKind:'buyer', portal:null};
 let otpTimer=null;
 function fakeQR(){
   let cells=''; const n=11; let seed=7;
@@ -276,6 +285,7 @@ const DEMO_USERS = {
   internal: [
     { name: 'Yara Mansour', email: 'yara.mansour@contact.eg', role: 'rm' },
     { name: 'Tarek Fouad', email: 'tarek.fouad@contact.eg', role: 'credit' },
+    { name: 'Mona Adel', email: 'legal@contact.eg', role: 'legal' },
     { name: 'Nadia Saleh', email: 'nadia.saleh@contact.eg', role: 'fra' },
     { name: 'Hany Greiss', email: 'committee@contact.eg', role: 'division' },
     { name: 'Omar Khalil', email: 'omar.khalil@contact.eg', role: 'finance' },
@@ -289,37 +299,59 @@ const DEMO_USERS = {
     { name: 'Super Market El Hamd', mobile: '+20 100 882 1400', kind: 'supplier', id: 'SUP-HMD' },
   ],
 };
+function setPortal(p){
+  authState.portal=p; authState.screen='login';
+  if(p==='employee') authState.tab='ops';
+  if(p==='client') authState.tab='client';
+  try{ location.hash = p ? ('#'+p) : ''; }catch(e){}
+  renderAuth();
+}
 function demoLogin(role, entityId){
   if(role==='buyer'){ if(entityId) state.activeBuyerId=entityId; }
   else if(role==='supplier'){ if(entityId) state.activeSupplierId=entityId; }
   enterApp(role);
 }
-function demoPanel(){
+function demoPanel(which){
   const mini=(label,sub,icon,onclick)=>`<button onclick="${onclick}"><span class="ric">${icon}</span><span style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</b><small style="opacity:.8">${sub}</small></span></button>`;
   const ops=DEMO_USERS.internal.map(u=>mini(u.name, ROLES[u.role].name, ROLES[u.role].icon, `demoLogin('${u.role}')`)).join('');
   const cli=DEMO_USERS.clients.map(u=>mini(u.name, u.kind==='buyer'?'Buyer':'Supplier', u.kind==='buyer'?'🏢':'📦', `demoLogin('${u.kind}','${u.id}')`)).join('');
-  return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:12px">
-    <div><h4 style="margin-bottom:2px">Quick demo login</h4><p style="margin:0">One-click sign-in as any role — no credentials needed.</p></div>
-    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#AEB1E6;font-weight:700">Internal teams</div>
-    <div class="role-mini">${ops}</div>
-    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#AEB1E6;font-weight:700;margin-top:4px">Clients</div>
-    <div class="role-mini">${cli}</div>
-  </div>`;
+  if(which==='employee') return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:10px"><div><h4 style="margin-bottom:2px">Quick demo login — Employees</h4><p style="margin:0">One-click sign-in as any internal role.</p></div><div class="role-mini">${ops}</div></div>`;
+  if(which==='client') return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:10px"><div><h4 style="margin-bottom:2px">Quick demo login — Clients</h4><p style="margin:0">One-click sign-in as a buyer or supplier.</p></div><div class="role-mini">${cli}</div></div>`;
+  return '';
+}
+function dashLegal(){
+  const pend=cases.filter(c=>['credit','approved'].includes(c.stage));
+  const docs=cases.reduce((a,c)=>a+c.docs.length,0);
+  return pageHead('Legal','Legal Dashboard','Review contracts and documentation on approved and in-review requests, with full audit visibility.')
+    + `<div class="grid cols-4">
+        ${stat('Awaiting legal review', pend.length, '📑','#DDF3EF','#0F766E')}
+        ${stat('Approved this cycle', cases.filter(c=>['approved','funded','settled','closed'].includes(c.stage)).length, '✓','#E3F4EC','#0B6E4F')}
+        ${stat('Documents on file', docs, '📁','#ECEBFB','#4F46E5')}
+        ${stat('Rejected', cases.filter(c=>c.stage==='rejected').length, '✕','#FBEAE8','#B42318')}
+      </div>`
+    + `<div class="section-title">Contracts & requests for review</div>`
+    + caseTable(pend.length?pend:cases.slice(0,8), {emptyTitle:'Nothing to review', emptyBody:'Approved requests appear here for legal / contract review.'});
 }
 function renderAuth(){
   const a=el('auth');
   let card='';
-  if(authState.screen==='login'){
-    const ops=authState.tab==='ops';
+  if(authState.screen==='login' && !authState.portal){
     card=`<div class="glass">
-      <h2>Sign in</h2><div class="gsub">Access the Contact Digital Factoring Portal.</div>
-      <div class="atabs">
-        <button class="${ops?'on':''}" onclick="authTab('ops')">Operations<small>Internal teams</small></button>
-        <button class="${!ops?'on':''}" onclick="authTab('client')">Clients<small>Buyers & Suppliers</small></button>
+      <h2>Welcome to Contact Factoring</h2><div class="gsub">Choose how you'd like to sign in.</div>
+      <div class="role-mini" style="grid-template-columns:1fr;gap:10px;margin-top:6px">
+        <button onclick="setPortal('employee')"><span class="ric">🧭</span><span style="min-width:0"><b style="display:block">Employee Portal</b><small style="opacity:.8">RM · Credit · Legal & internal teams — email & password</small></span></button>
+        <button onclick="setPortal('client')"><span class="ric">🏢</span><span style="min-width:0"><b style="display:block">Client Portal</b><small style="opacity:.8">Buyers & Suppliers — mobile number & OTP</small></span></button>
       </div>
-      ${ops?opsForm():clientForm()}
-      <div class="gnote">${ops?'Internal users (RM, Credit, Finance, FRA, Division Committee) authenticate with Contact email & password.':'External parties (Buyers & Suppliers) authenticate with mobile number & OTP.'} <b>Prototype — no real credentials needed.</b></div>
-    </div>${demoPanel()}${qrCard()}`;
+      <div class="gnote" style="margin-top:16px">Separate sign-in for staff and clients. <b>Prototype — no real credentials needed.</b></div>
+    </div>`;
+  } else if(authState.screen==='login'){
+    const emp=authState.portal==='employee';
+    card=`<div class="glass">
+      <button class="gback" onclick="setPortal(null)">← Choose portal</button>
+      <h2>${emp?'Employee sign in':'Client sign in'}</h2><div class="gsub">${emp?'Internal teams — RM, Credit, Legal, Finance, FRA, Committee, Admin.':'Buyers & Suppliers access their requests.'}</div>
+      ${emp?opsForm():clientForm()}
+      <div class="gnote">${emp?'Authenticate with your Contact email & password.':'Authenticate with mobile number & OTP.'} <b>Prototype — no real credentials needed.</b></div>
+    </div>${demoPanel(authState.portal)}${qrCard()}`;
   } else if(authState.screen==='otp'){
     card=`<div class="glass">
       <button class="gback" onclick="authGo('login')">← Back</button>
@@ -343,7 +375,7 @@ function renderAuth(){
 function opsForm(){
   return `<div class="gfield"><label>Team</label><div class="gin"><span class="ic">🛡️</span>
       <select id="opsTeam" style="flex:1;background:transparent;border:none;color:#fff;padding:13px 0;font-size:14px">
-        ${['rm','credit','finance','fra','division','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
+        ${['rm','credit','legal','finance','fra','division','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
       </select></div></div>
     <div class="gfield"><label>Email address</label><div class="gin"><span class="ic">✉️</span><input id="opsEmail" type="email" placeholder="name@contact.eg" value="yara.mansour@contact.eg"></div></div>
     <div class="gfield"><label>Password</label><div class="gin"><span class="ic">🔒</span><input id="opsPass" type="password" placeholder="••••••••" value="Demo@2026"><button class="eye" onclick="togglePass(this)">👁</button></div></div>
@@ -417,7 +449,7 @@ function enterApp(role){
   el('auth').style.display='none'; el('app').style.display='block';
   renderShell(); toast('Signed in as '+ROLES[role].name,'brand','✓');
 }
-function logout(){ state.pmenuOpen=false; el('app').style.display='none'; el('auth').style.display='grid'; authState={tab:'ops',screen:'login',clientKind:'buyer'}; renderAuth(); }
+function logout(){ state.pmenuOpen=false; el('app').style.display='none'; el('auth').style.display='grid'; authState={tab:'ops',screen:'login',clientKind:'buyer',portal:null}; renderAuth(); }
 
 /* ---------------- SHELL ---------------- */
 function renderShell(){ renderSidebar(); renderTopbar(); renderNotifPanel(); route(); }
@@ -595,6 +627,7 @@ function viewDashboard(){
     case 'division': return dashDivision();
     case 'finance': return dashFinance();
     case 'admin': return dashAdmin();
+    case 'legal': return dashLegal();
   }
 }
 function greet(name){ return `${t('greeting')}, ${name.split(' ')[0]}`; }
@@ -1531,6 +1564,7 @@ function boot(){
   applyTheme();
   document.documentElement.dir = state.lang==='ar'?'rtl':'ltr';
   el('app').style.display='none';
+  try{ const hp=(location.hash||'').replace('#',''); if(hp==='employee'||hp==='client'){ authState.portal=hp; authState.tab=hp==='employee'?'ops':'client'; } }catch(e){}
   renderAuth();
 }
 
@@ -1626,4 +1660,4 @@ export function initFactoringPortal(){
   boot();
 }
 
-const __ATTACH__ = (function(){ const m = { t, countStage, pendingForBuyer, escrowPending, myBuyer, mySupplier, myCases, findCase, findBuyer, findSupplier, money, egp, egpC, mShort, nowStr, initials, colorFor, avatarStyle, myNotifs, badge, typeTag, discTag, party, pipeline, clientPipeline, caseTable, emptyState, stat, pageHead, tabBar, auditTimeline, limitBar, fld, fakeQR, qrCard, renderAuth, demoPanel, demoLogin, opsForm, clientForm, forgotFlow, authTab, authClient, authGo, togglePass, otpNext, startCountdown, resendOtp, doOps, sendOtp, verifyOtp, enterApp, logout, renderShell, renderSidebar, renderTopbar, profileMenu, togglePmenu, crumbsHtml, crumbsFor, setLang, applyTheme, toggleTheme, switchRole, toggleSidebar, go, goBack, openCase, quickSearch, globalSearch, route, wlBanner, shade, viewDashboard, greet, attentionList, quickCard, dashRM, dashBuyer, dashSupplier, swiftBlock, dashCredit, dashFRA, dashDivision, dashFinance, dashAdmin, viewBuyers, viewBuyerDetail, viewSuppliers, viewSupplierDetail, viewProfileForm, submitProfile, viewSupplierLinking, allocFor, buyerConcStatus, buyerAlertStatus, riskTag, viewLimits, viewLimitDetail, viewFactoring, viewInvoices, viewInvoiceNew, viewInvoiceBulk, viewCase, caseActionPanel, caseActions, stageHint, docManager, validationPanel, viewPendingValidation, viewFRA, viewDivision, viewDivisionDetail, viewCredit, viewApprovals, viewFinance, viewSettlements, viewFinancing, viewEscrowAck, viewDocuments, viewUsers, viewPermissions, viewSitemap, viewWorkflow, viewAudit, viewReports, viewNotifications, saveProfileName, viewSettings, viewSearch, toast, openModal, closeModal, advanceCase, askReject, confirmReject, ackEscrow, openSettle, confirmSettle, addDoc, confirmDoc, simulateUpload, submitInvoice, renderNotifPanel, toggleNotif, boot, twLoad, twApply, twCur, twSet, twPanelHtml, twRender, twDismiss, buildTweaks }; if(typeof window!=="undefined"){ Object.assign(window, m); } return m; })();
+const __ATTACH__ = (function(){ const m = { t, countStage, pendingForBuyer, escrowPending, myBuyer, mySupplier, myCases, findCase, findBuyer, findSupplier, money, egp, egpC, mShort, nowStr, initials, colorFor, avatarStyle, myNotifs, badge, typeTag, discTag, party, pipeline, clientPipeline, caseTable, emptyState, stat, pageHead, tabBar, auditTimeline, limitBar, fld, fakeQR, qrCard, renderAuth, demoPanel, demoLogin, setPortal, dashLegal, opsForm, clientForm, forgotFlow, authTab, authClient, authGo, togglePass, otpNext, startCountdown, resendOtp, doOps, sendOtp, verifyOtp, enterApp, logout, renderShell, renderSidebar, renderTopbar, profileMenu, togglePmenu, crumbsHtml, crumbsFor, setLang, applyTheme, toggleTheme, switchRole, toggleSidebar, go, goBack, openCase, quickSearch, globalSearch, route, wlBanner, shade, viewDashboard, greet, attentionList, quickCard, dashRM, dashBuyer, dashSupplier, swiftBlock, dashCredit, dashFRA, dashDivision, dashFinance, dashAdmin, viewBuyers, viewBuyerDetail, viewSuppliers, viewSupplierDetail, viewProfileForm, submitProfile, viewSupplierLinking, allocFor, buyerConcStatus, buyerAlertStatus, riskTag, viewLimits, viewLimitDetail, viewFactoring, viewInvoices, viewInvoiceNew, viewInvoiceBulk, viewCase, caseActionPanel, caseActions, stageHint, docManager, validationPanel, viewPendingValidation, viewFRA, viewDivision, viewDivisionDetail, viewCredit, viewApprovals, viewFinance, viewSettlements, viewFinancing, viewEscrowAck, viewDocuments, viewUsers, viewPermissions, viewSitemap, viewWorkflow, viewAudit, viewReports, viewNotifications, saveProfileName, viewSettings, viewSearch, toast, openModal, closeModal, advanceCase, askReject, confirmReject, ackEscrow, openSettle, confirmSettle, addDoc, confirmDoc, simulateUpload, submitInvoice, renderNotifPanel, toggleNotif, boot, twLoad, twApply, twCur, twSet, twPanelHtml, twRender, twDismiss, buildTweaks }; if(typeof window!=="undefined"){ Object.assign(window, m); } return m; })();

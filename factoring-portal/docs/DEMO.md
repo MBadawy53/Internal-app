@@ -6,37 +6,42 @@ entire workflow.
 
 > Run it: `cd factoring-portal && npm install && npm run dev` → http://localhost:3000
 
-## Fastest path — Quick demo login
+## Two separate login pages
 
-On the sign-in screen there's a **"Quick demo login"** panel with one-click
-buttons for every role (Internal teams + Clients). Click any button to enter as
-that user instantly. You can also use the **"View as"** switcher in the top bar
-to jump between roles without signing out.
+The landing screen offers two distinct sign-in experiences (you can also deep-link straight to either):
 
-## Test users (if you prefer typing credentials)
+- **Employee Portal** — internal staff (RM, Credit, Legal, Finance, FRA, Committee, Admin), email + password. Deep link: `…/factoring-demo.html#employee`
+- **Client Portal** — Buyers & Suppliers, mobile + OTP. Deep link: `…/factoring-demo.html#client`
 
-### Internal teams — *Operations* tab
-Shared demo password: **`Demo@2026`**. Enter the email (or just pick the Team).
+Each portal has a **"Quick demo login"** panel with one-click buttons for its
+users. To switch user, **Logout** (profile menu) and pick another.
 
-| Role               | Name          | Email                      |
-| ------------------ | ------------- | -------------------------- |
-| Relationship Mgr   | Yara Mansour  | `yara.mansour@contact.eg`  |
-| Credit             | Tarek Fouad   | `tarek.fouad@contact.eg`   |
-| FRA Validation     | Nadia Saleh   | `nadia.saleh@contact.eg`   |
-| Division Committee | Hany Greiss   | `committee@contact.eg`     |
-| Finance            | Omar Khalil   | `omar.khalil@contact.eg`   |
-| Administrator      | System Admin  | `admin@contact.eg`         |
+## Test accounts — usernames & passwords
 
-### Clients — *Clients* tab
-Shared demo OTP: **`202611`** (already pre-filled). Enter the mobile (or pick the company).
+### Employee Portal — username = email, password = `Demo@2026`
 
-| Type     | Company               | Mobile               | Factoring model       |
-| -------- | --------------------- | -------------------- | --------------------- |
-| Buyer    | Carrefour Egypt       | `+20 100 118 2420`   | reverse (anchor)      |
-| Buyer    | Pepsi Egypt           | `+20 122 203 8170`   | reverse (anchor)      |
-| Supplier | BIM Stores            | `+20 100 771 2040`   | reverse               |
-| Supplier | Awlad Ragab           | `+20 111 559 0170`   | normal · disclosed    |
-| Supplier | Super Market El Hamd  | `+20 100 882 1400`   | normal · silent       |
+| Role               | Name          | Username (email)           | Password    |
+| ------------------ | ------------- | -------------------------- | ----------- |
+| Relationship Mgr   | Yara Mansour  | `yara.mansour@contact.eg`  | `Demo@2026` |
+| Credit             | Tarek Fouad   | `tarek.fouad@contact.eg`   | `Demo@2026` |
+| Legal              | Mona Adel     | `legal@contact.eg`         | `Demo@2026` |
+| Finance            | Omar Khalil   | `omar.khalil@contact.eg`   | `Demo@2026` |
+| FRA Validation     | Nadia Saleh   | `nadia.saleh@contact.eg`   | `Demo@2026` |
+| Division Committee | Hany Greiss   | `committee@contact.eg`     | `Demo@2026` |
+| Administrator      | System Admin  | `admin@contact.eg`         | `Demo@2026` |
+
+### Client Portal — username = mobile, OTP = `202611`
+
+| Type     | Company               | Username (mobile)    | OTP      | Model                |
+| -------- | --------------------- | -------------------- | -------- | -------------------- |
+| Buyer    | Carrefour Egypt       | `+20 100 118 2420`   | `202611` | reverse (anchor)     |
+| Buyer    | Pepsi Egypt           | `+20 122 203 8170`   | `202611` | reverse (anchor)     |
+| Supplier | BIM Stores            | `+20 100 771 2040`   | `202611` | reverse              |
+| Supplier | Awlad Ragab           | `+20 111 559 0170`   | `202611` | normal · disclosed   |
+| Supplier | Super Market El Hamd  | `+20 100 882 1400`   | `202611` | normal · silent      |
+
+> The OTP is pre-filled and any 6-digit value is accepted (mock auth). The
+> password field is likewise not verified — it's a demo.
 
 ## Walkthrough A — Reverse, supplier-initiated, concentration → full cycle
 
