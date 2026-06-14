@@ -36,6 +36,7 @@ const config = [
       "test-results/**",
       "prisma/migrations/**",
       "next-env.d.ts",
+      "factoring-portal/**",
     ],
   },
 ];
