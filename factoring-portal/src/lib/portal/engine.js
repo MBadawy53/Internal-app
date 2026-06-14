@@ -41,14 +41,14 @@ function nextStage(c){ const ch=chainFor(c); const i=ch.indexOf(c.stage); return
 
 /* ---------------- ROLES (with profile-module fields) ---------------- */
 const ROLES = {
-  rm:       {name:'Relationship Manager', short:'RM',      icon:'🧭', color:'#34349A', bg:'#E7E7F6', login:'ops',    internal:true,  user:'Yara Mansour',   company:'Contact Financial Holding', email:'yara.mansour@contact.eg',  mobile:'+20 100 552 7180', last:'Today · 08:40'},
+  rm:       {name:'Relationship Manager', short:'RM',      icon:'🧭', color:'#34349A', bg:'#E7E7F6', login:'ops',    internal:true,  user:'Walaa Yusuf',   company:'Contact Financial Holding', email:'walaa.yusuf@contact.eg',  mobile:'+20 100 552 7180', last:'Today · 08:40'},
   buyer:    {name:'Buyer',                short:'Buyer',   icon:'🏢', color:'#1B4DA1', bg:'#E4ECF8', login:'client', internal:false, user:'Carrefour Egypt',  company:'Carrefour Egypt',           email:'finance@carrefour.eg',     mobile:'+20 100 118 2420', last:'Today · 08:05'},
   supplier: {name:'Supplier',             short:'Supplier',icon:'📦', color:'#15803D', bg:'#E6F3EB', login:'client', internal:false, user:'BIM Stores',       company:'BIM Egypt',                 email:'ar@bim.eg',                mobile:'+20 100 771 2040', last:'Today · 06:48'},
-  credit:   {name:'Credit Team',          short:'Credit',  icon:'📊', color:'#0E7490', bg:'#E1F2F6', login:'ops',    internal:true,  user:'Tarek Fouad',    company:'Contact Financial Holding', email:'tarek.fouad@contact.eg',   mobile:'+20 122 304 8810', last:'Today · 07:55'},
-  legal:    {name:'Legal Team',           short:'Legal',   icon:'⚖️', color:'#92400E', bg:'#FBEEDD', login:'ops',    internal:true,  user:'Mona Adel',      company:'Contact Financial Holding', email:'mona.adel@contact.eg',     mobile:'+20 109 220 7741', last:'Today · 08:12'},
+  credit:   {name:'Credit Officer',          short:'Credit',  icon:'📊', color:'#0E7490', bg:'#E1F2F6', login:'ops',    internal:true,  user:'Pierre',    company:'Contact Financial Holding', email:'pierre@contact.eg',   mobile:'+20 122 304 8810', last:'Today · 07:55'},
+  legal:    {name:'Legal Officer',           short:'Legal',   icon:'⚖️', color:'#92400E', bg:'#FBEEDD', login:'ops',    internal:true,  user:'Doaa Orfy',      company:'Contact Financial Holding', email:'doaa.orfy@contact.eg',     mobile:'+20 109 220 7741', last:'Today · 08:12'},
   fra:      {name:'FRA Validation Team',  short:'FRA',     icon:'🛡️', color:'#4F46E5', bg:'#ECEBFB', login:'ops',    internal:true,  user:'Nadia Saleh',    company:'Contact Financial Holding', email:'nadia.saleh@contact.eg',   mobile:'+20 111 778 9921', last:'Yesterday · 16:20'},
   deviation: {name:'Deviation Committee',   short:'Committee',icon:'⚖️',color:'#7C3AED', bg:'#F1E9FD', login:'ops',    internal:true,  user:'Hany Greiss',    company:'Contact Financial Holding', email:'committee@contact.eg',     mobile:'+20 100 600 3340', last:'Yesterday · 14:02'},
-  finance:  {name:'Finance Team',         short:'Finance', icon:'🏦', color:'#9333EA', bg:'#F4E8FC', login:'ops',    internal:true,  user:'Omar Khalil',    company:'Contact Financial Holding', email:'omar.khalil@contact.eg',   mobile:'+20 100 990 1120', last:'Today · 09:10'},
+  finance:  {name:'Finance Viewer',         short:'Finance', icon:'🏦', color:'#9333EA', bg:'#F4E8FC', login:'ops',    internal:true,  user:'Emad Ashour',    company:'Contact Financial Holding', email:'emad.ashour@contact.eg',   mobile:'+20 100 990 1120', last:'Today · 09:10'},
   admin:    {name:'Administrator',        short:'Admin',   icon:'⚙️', color:'#5A6B72', bg:'#EDF1F2', login:'ops',    internal:true,  user:'System Admin',   company:'Contact Financial Holding', email:'admin@contact.eg',         mobile:'+20 100 000 0001', last:'Today · 09:25'},
 };
 
@@ -147,10 +147,10 @@ const NAV = {
   finance:[
     {sec:'sec_overview', items:[{v:'dashboard',i:'◎',l:'Finance Dashboard'}]},
     {sec:'sec_finance', items:[
-      {v:'finance-queue',i:'🏦',l:'Funding & Settlement', badge:()=>cases.filter(c=>['approved','funded'].includes(c.stage)).length},
+      {v:'invoices',i:'🧾',l:'All Requests'},
       {v:'settlements',i:'💳',l:'Settlement Tracking'},
     ]},
-    {sec:'sec_admin', items:[{v:'reports',i:'📈',l:'Finance Reports'},{v:'audit',i:'🗂️',l:'Audit Logs'}]},
+    {sec:'sec_admin', items:[{v:'reports',i:'📈',l:'Reports'},{v:'audit',i:'🗂️',l:'Audit Logs'}]},
   ],
   admin:[
     {sec:'sec_admin', items:[
@@ -397,11 +397,10 @@ const DEMO_PASSWORD='Demo@2026';
 const DEMO_OTP='202611';
 const DEMO_USERS={
   internal:[
-    {name:'Yara Mansour',email:'yara.mansour@contact.eg',role:'rm'},
-    {name:'Tarek Fouad',email:'tarek.fouad@contact.eg',role:'credit'},
-    {name:'Mona Adel',email:'mona.adel@contact.eg',role:'legal'},
-    {name:'Omar Khalil',email:'omar.khalil@contact.eg',role:'finance'},
-    {name:'Nadia Saleh',email:'nadia.saleh@contact.eg',role:'fra'},
+    {name:'Walaa Yusuf',email:'walaa.yusuf@contact.eg',role:'rm'},
+    {name:'Pierre',email:'pierre@contact.eg',role:'credit'},
+    {name:'Doaa Orfy',email:'doaa.orfy@contact.eg',role:'legal'},
+    {name:'Emad Ashour',email:'emad.ashour@contact.eg',role:'finance'},
     {name:'Hany Greiss',email:'committee@contact.eg',role:'deviation'},
     {name:'System Admin',email:'admin@contact.eg',role:'admin'},
   ],
@@ -474,7 +473,7 @@ function renderAuth(){
 function opsForm(){
   return `<div class="gfield"><label>Team</label><div class="gin"><span class="ic">🛡️</span>
       <select id="opsTeam" style="flex:1;background:transparent;border:none;color:#fff;padding:13px 0;font-size:14px">
-        ${['rm','credit','legal','finance','fra','deviation','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
+        ${['rm','credit','legal','finance','deviation','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
       </select></div></div>
     <div class="gfield"><label>Email address</label><div class="gin"><span class="ic">✉️</span><input id="opsEmail" type="email" placeholder="name@contact.eg" value="yara.mansour@contact.eg"></div></div>
     <div class="gfield"><label>Password</label><div class="gin"><span class="ic">🔒</span><input id="opsPass" type="password" placeholder="••••••••" value="Demo@2026"><button class="eye" onclick="togglePass(this)">👁</button></div></div>
@@ -1396,9 +1395,9 @@ function caseActions(c){
   if(c.stage==='fra'){ return info('var(--brand-50)','var(--brand-700)','🛡️','Automated FRA e-invoice validation in progress. No manual action required (future FRA system integration).'); }
   if(c.stage==='deviation'){ if(r==='deviation') h+=btn('Open committee decision →','go(\'deviation-detail\',\''+c.id+'\')'); else h+=info('var(--st-deviation-bg)','var(--st-deviation)','⚖️','At Deviation Committee — limit / concentration exceeded, awaiting override or reject.'); return h; }
   if(c.stage==='credit'){ if(r==='credit'){ h+=btn('✓ Validate execution & approve','advanceCase(\''+c.id+'\',\'Execution validated by Credit\')'); h+=btn('Reject','askReject(\''+c.id+'\')','btn-danger'); } else h+=info('var(--st-credit-bg)','var(--st-credit)','📊','At Contact execution validation.'); return h; }
-  if(c.stage==='approved'){ if(r==='finance') h+=btn('💸 Fund (instant SWIFT)','advanceCase(\''+c.id+'\',\'Funds disbursed via instant SWIFT\')','btn-gold'); else h+=info('var(--st-approved-bg)','var(--st-approved)','✓','Approved — awaiting disbursement by Finance.'); return h; }
-  if(c.stage==='funded'){ if(r==='finance') h+=btn('Settle with bank','openSettle(\''+c.id+'\')','btn-gold'); else h+=info('var(--st-funded-bg)','var(--st-funded)','🏦','Funded — settlement pending at maturity by Finance.'); return h; }
-  if(c.stage==='settled'){ if(r==='finance') h+=btn('Close request','advanceCase(\''+c.id+'\',\'Request closed\')','btn-quiet'); else h+=info('var(--st-settled-bg)','var(--st-settled)','✓','Settled.'); return h; }
+  if(c.stage==='approved'){ if(r==='admin') h+=btn('💸 Simulate Finance funding (SWIFT)','advanceCase(\''+c.id+'\',\'Funds disbursed via instant SWIFT (Finance system integration)\')','btn-gold'); else h+=info('var(--st-approved-bg)','var(--st-approved)','✓','Approved — Finance funds via the Finance system; status auto-syncs through the integration.'); return h; }
+  if(c.stage==='funded'){ if(r==='admin') h+=btn('Simulate settlement (proof of payment)','openSettle(\''+c.id+'\')','btn-gold'); else h+=info('var(--st-funded-bg)','var(--st-funded)','🏦','Funded — settlement handled in the Finance system; status auto-syncs through the integration.'); return h; }
+  if(c.stage==='settled'){ if(r==='admin') h+=btn('Close request','advanceCase(\''+c.id+'\',\'Request closed\')','btn-quiet'); else h+=info('var(--st-settled-bg)','var(--st-settled)','✓','Settled.'); return h; }
   return h;
 }
 function stageHint(c){

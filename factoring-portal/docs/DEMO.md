@@ -20,15 +20,20 @@ users. To switch user, **Logout** (profile menu) and pick another.
 
 ### Employee Portal — username = email, password = `Demo@2026`
 
-| Role               | Name          | Username (email)           | Password    |
-| ------------------ | ------------- | -------------------------- | ----------- |
-| Relationship Mgr   | Yara Mansour  | `yara.mansour@contact.eg`  | `Demo@2026` |
-| Credit             | Tarek Fouad   | `tarek.fouad@contact.eg`   | `Demo@2026` |
-| Legal              | Mona Adel     | `legal@contact.eg`         | `Demo@2026` |
-| Finance            | Omar Khalil   | `omar.khalil@contact.eg`   | `Demo@2026` |
-| FRA Validation     | Nadia Saleh   | `nadia.saleh@contact.eg`   | `Demo@2026` |
-| Division Committee | Hany Greiss   | `committee@contact.eg`     | `Demo@2026` |
-| Administrator      | System Admin  | `admin@contact.eg`         | `Demo@2026` |
+| Role                | Name         | Username (email)          | Password    | Capability |
+| ------------------- | ------------ | ------------------------- | ----------- | ---------- |
+| Relationship Mgr    | Walaa Yusuf  | `walaa.yusuf@contact.eg`  | `Demo@2026` | Create/maintain profiles, upload invoices, resubmit returned profiles |
+| Credit Officer      | Pierre       | `pierre@contact.eg`       | `Demo@2026` | Obligor override/reject, execution validation, profile approve/return |
+| Legal Officer       | Doaa Orfy    | `doaa.orfy@contact.eg`    | `Demo@2026` | Profile legal approve/return |
+| Finance Viewer      | Emad Ashour  | `emad.ashour@contact.eg`  | `Demo@2026` | **View-only** — no actions (funding/settlement happen in the Finance system and sync via integration) |
+| Administrator       | System Admin | `admin@contact.eg`        | `Demo@2026` | Full access; also simulates the Finance/FRA integration steps in testing |
+
+> **FRA** is **not** a user/login — it is an automated external stage handled by
+> another system; in the demo it is auto-passed (bypassed). **Finance** updates
+> (funding, settlement) are performed in the Finance team's own system and would
+> sync in via integration; for testing, the **Administrator** account simulates
+> those steps. The **Deviation Committee** stage remains for concentration
+> exceedances (conditional).
 
 ### Client Portal — username = mobile, OTP = `202611`
 
