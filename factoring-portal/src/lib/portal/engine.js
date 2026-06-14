@@ -265,6 +265,47 @@ function qrCard(){
   return `<div class="qr-card"><div class="qr">${fakeQR()}</div><div><h4>Download our mobile app</h4><p>Scan to manage factoring on the go.</p>
     <div class="stores"><span>🍎 App Store</span><span>▶ Google Play</span></div></div></div>`;
 }
+/* ---------------- DEMO USERS (prototype sign-in) ----------------
+   Fixed demo accounts so each role can be exercised end-to-end.
+   The mock auth does not verify secrets — internal users share one
+   demo password and clients share one demo OTP (documented in DEMO.md).
+   🔌 Replace with SSO/AD (internal) and an OTP provider (clients). */
+const DEMO_PASSWORD = 'Demo@2026';
+const DEMO_OTP = '202611';
+const DEMO_USERS = {
+  internal: [
+    { name: 'Yara Mansour', email: 'yara.mansour@contact.eg', role: 'rm' },
+    { name: 'Tarek Fouad', email: 'tarek.fouad@contact.eg', role: 'credit' },
+    { name: 'Nadia Saleh', email: 'nadia.saleh@contact.eg', role: 'fra' },
+    { name: 'Hany Greiss', email: 'committee@contact.eg', role: 'division' },
+    { name: 'Omar Khalil', email: 'omar.khalil@contact.eg', role: 'finance' },
+    { name: 'System Admin', email: 'admin@contact.eg', role: 'admin' },
+  ],
+  clients: [
+    { name: 'Carrefour Egypt', mobile: '+20 100 118 2420', kind: 'buyer', id: 'BUY-CRF' },
+    { name: 'Pepsi Egypt', mobile: '+20 122 203 8170', kind: 'buyer', id: 'BUY-PEP' },
+    { name: 'BIM Stores', mobile: '+20 100 771 2040', kind: 'supplier', id: 'SUP-BIM' },
+    { name: 'Awlad Ragab', mobile: '+20 111 559 0170', kind: 'supplier', id: 'SUP-ARG' },
+    { name: 'Super Market El Hamd', mobile: '+20 100 882 1400', kind: 'supplier', id: 'SUP-HMD' },
+  ],
+};
+function demoLogin(role, entityId){
+  if(role==='buyer'){ if(entityId) state.activeBuyerId=entityId; }
+  else if(role==='supplier'){ if(entityId) state.activeSupplierId=entityId; }
+  enterApp(role);
+}
+function demoPanel(){
+  const mini=(label,sub,icon,onclick)=>`<button onclick="${onclick}"><span class="ric">${icon}</span><span style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</b><small style="opacity:.8">${sub}</small></span></button>`;
+  const ops=DEMO_USERS.internal.map(u=>mini(u.name, ROLES[u.role].name, ROLES[u.role].icon, `demoLogin('${u.role}')`)).join('');
+  const cli=DEMO_USERS.clients.map(u=>mini(u.name, u.kind==='buyer'?'Buyer':'Supplier', u.kind==='buyer'?'🏢':'📦', `demoLogin('${u.kind}','${u.id}')`)).join('');
+  return `<div class="qr-card" style="flex-direction:column;align-items:stretch;gap:12px">
+    <div><h4 style="margin-bottom:2px">Quick demo login</h4><p style="margin:0">One-click sign-in as any role — no credentials needed.</p></div>
+    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#AEB1E6;font-weight:700">Internal teams</div>
+    <div class="role-mini">${ops}</div>
+    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#AEB1E6;font-weight:700;margin-top:4px">Clients</div>
+    <div class="role-mini">${cli}</div>
+  </div>`;
+}
 function renderAuth(){
   const a=el('auth');
   let card='';
@@ -278,7 +319,7 @@ function renderAuth(){
       </div>
       ${ops?opsForm():clientForm()}
       <div class="gnote">${ops?'Internal users (RM, Credit, Finance, FRA, Division Committee) authenticate with Contact email & password.':'External parties (Buyers & Suppliers) authenticate with mobile number & OTP.'} <b>Prototype — no real credentials needed.</b></div>
-    </div>${qrCard()}`;
+    </div>${demoPanel()}${qrCard()}`;
   } else if(authState.screen==='otp'){
     card=`<div class="glass">
       <button class="gback" onclick="authGo('login')">← Back</button>
@@ -305,7 +346,7 @@ function opsForm(){
         ${['rm','credit','finance','fra','division','admin'].map(k=>`<option value="${k}" style="color:#111">${ROLES[k].name}</option>`).join('')}
       </select></div></div>
     <div class="gfield"><label>Email address</label><div class="gin"><span class="ic">✉️</span><input id="opsEmail" type="email" placeholder="name@contact.eg" value="yara.mansour@contact.eg"></div></div>
-    <div class="gfield"><label>Password</label><div class="gin"><span class="ic">🔒</span><input id="opsPass" type="password" placeholder="••••••••" value="prototype"><button class="eye" onclick="togglePass(this)">👁</button></div></div>
+    <div class="gfield"><label>Password</label><div class="gin"><span class="ic">🔒</span><input id="opsPass" type="password" placeholder="••••••••" value="Demo@2026"><button class="eye" onclick="togglePass(this)">👁</button></div></div>
     <div class="grow"><label><input type="checkbox" checked>Remember me</label><button class="glink" onclick="authGo('fp1')">Forgot password?</button></div>
     <button class="gbtn" onclick="doOps()">Sign in</button>`;
 }
@@ -352,9 +393,19 @@ function startCountdown(){
     else if(cd){ cd.textContent='00:'+String(n).padStart(2,'0'); } },1000);
 }
 function resendOtp(via){ toast('OTP re-sent via '+via,'ok',via==='SMS'?'✉️':'🟢'); const m=el('otpMeta'),r=el('otpResend'); if(r)r.classList.add('hidden'); if(m)m.innerHTML='Resend code available in <span class="cd" id="otpCd">00:10</span>'; startCountdown(); }
-function doOps(){ const team=el('opsTeam')?el('opsTeam').value:'rm'; enterApp(team); }
+function doOps(){
+  // Resolve the role from the demo email if it matches; otherwise use the Team picker.
+  const email=(el('opsEmail')?el('opsEmail').value:'').trim().toLowerCase();
+  const u=DEMO_USERS.internal.find(x=>x.email.toLowerCase()===email);
+  const team=u?u.role:(el('opsTeam')?el('opsTeam').value:'rm');
+  enterApp(team);
+}
 function sendOtp(){
-  const id=el('clientCo')?el('clientCo').value:null;
+  let id=el('clientCo')?el('clientCo').value:null;
+  // If the entered mobile matches a demo client, sign in as that exact company.
+  const mob=(el('clientMobile')?el('clientMobile').value:'').replace(/\s/g,'');
+  const m=DEMO_USERS.clients.find(x=>x.mobile.replace(/\s/g,'')===mob);
+  if(m){ authState.clientKind=m.kind; id=m.id; }
   if(authState.clientKind==='buyer'){ if(id)state.activeBuyerId=id; } else { if(id)state.activeSupplierId=id; }
   authGo('otp');
 }
@@ -1575,4 +1626,4 @@ export function initFactoringPortal(){
   boot();
 }
 
-const __ATTACH__ = (function(){ const m = { t, countStage, pendingForBuyer, escrowPending, myBuyer, mySupplier, myCases, findCase, findBuyer, findSupplier, money, egp, egpC, mShort, nowStr, initials, colorFor, avatarStyle, myNotifs, badge, typeTag, discTag, party, pipeline, clientPipeline, caseTable, emptyState, stat, pageHead, tabBar, auditTimeline, limitBar, fld, fakeQR, qrCard, renderAuth, opsForm, clientForm, forgotFlow, authTab, authClient, authGo, togglePass, otpNext, startCountdown, resendOtp, doOps, sendOtp, verifyOtp, enterApp, logout, renderShell, renderSidebar, renderTopbar, profileMenu, togglePmenu, crumbsHtml, crumbsFor, setLang, applyTheme, toggleTheme, switchRole, toggleSidebar, go, goBack, openCase, quickSearch, globalSearch, route, wlBanner, shade, viewDashboard, greet, attentionList, quickCard, dashRM, dashBuyer, dashSupplier, swiftBlock, dashCredit, dashFRA, dashDivision, dashFinance, dashAdmin, viewBuyers, viewBuyerDetail, viewSuppliers, viewSupplierDetail, viewProfileForm, submitProfile, viewSupplierLinking, allocFor, buyerConcStatus, buyerAlertStatus, riskTag, viewLimits, viewLimitDetail, viewFactoring, viewInvoices, viewInvoiceNew, viewInvoiceBulk, viewCase, caseActionPanel, caseActions, stageHint, docManager, validationPanel, viewPendingValidation, viewFRA, viewDivision, viewDivisionDetail, viewCredit, viewApprovals, viewFinance, viewSettlements, viewFinancing, viewEscrowAck, viewDocuments, viewUsers, viewPermissions, viewSitemap, viewWorkflow, viewAudit, viewReports, viewNotifications, saveProfileName, viewSettings, viewSearch, toast, openModal, closeModal, advanceCase, askReject, confirmReject, ackEscrow, openSettle, confirmSettle, addDoc, confirmDoc, simulateUpload, submitInvoice, renderNotifPanel, toggleNotif, boot, twLoad, twApply, twCur, twSet, twPanelHtml, twRender, twDismiss, buildTweaks }; if(typeof window!=="undefined"){ Object.assign(window, m); } return m; })();
+const __ATTACH__ = (function(){ const m = { t, countStage, pendingForBuyer, escrowPending, myBuyer, mySupplier, myCases, findCase, findBuyer, findSupplier, money, egp, egpC, mShort, nowStr, initials, colorFor, avatarStyle, myNotifs, badge, typeTag, discTag, party, pipeline, clientPipeline, caseTable, emptyState, stat, pageHead, tabBar, auditTimeline, limitBar, fld, fakeQR, qrCard, renderAuth, demoPanel, demoLogin, opsForm, clientForm, forgotFlow, authTab, authClient, authGo, togglePass, otpNext, startCountdown, resendOtp, doOps, sendOtp, verifyOtp, enterApp, logout, renderShell, renderSidebar, renderTopbar, profileMenu, togglePmenu, crumbsHtml, crumbsFor, setLang, applyTheme, toggleTheme, switchRole, toggleSidebar, go, goBack, openCase, quickSearch, globalSearch, route, wlBanner, shade, viewDashboard, greet, attentionList, quickCard, dashRM, dashBuyer, dashSupplier, swiftBlock, dashCredit, dashFRA, dashDivision, dashFinance, dashAdmin, viewBuyers, viewBuyerDetail, viewSuppliers, viewSupplierDetail, viewProfileForm, submitProfile, viewSupplierLinking, allocFor, buyerConcStatus, buyerAlertStatus, riskTag, viewLimits, viewLimitDetail, viewFactoring, viewInvoices, viewInvoiceNew, viewInvoiceBulk, viewCase, caseActionPanel, caseActions, stageHint, docManager, validationPanel, viewPendingValidation, viewFRA, viewDivision, viewDivisionDetail, viewCredit, viewApprovals, viewFinance, viewSettlements, viewFinancing, viewEscrowAck, viewDocuments, viewUsers, viewPermissions, viewSitemap, viewWorkflow, viewAudit, viewReports, viewNotifications, saveProfileName, viewSettings, viewSearch, toast, openModal, closeModal, advanceCase, askReject, confirmReject, ackEscrow, openSettle, confirmSettle, addDoc, confirmDoc, simulateUpload, submitInvoice, renderNotifPanel, toggleNotif, boot, twLoad, twApply, twCur, twSet, twPanelHtml, twRender, twDismiss, buildTweaks }; if(typeof window!=="undefined"){ Object.assign(window, m); } return m; })();
