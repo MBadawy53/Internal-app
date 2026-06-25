@@ -2,7 +2,7 @@ name: Deploy Factoring demo to GitHub Pages
 
 on:
   push:
-    branches: [claude/fervent-cori-wktuny]
+    branches: [main]
     paths:
       - public/factoring-demo.html
       - .github/workflows/pages.yml
