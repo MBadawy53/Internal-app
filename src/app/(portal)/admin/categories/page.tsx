@@ -9,10 +9,16 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { CategoriesBulkPanel } from "@/components/portal/CategoriesBulkPanel";
+import { deleteCategorySafeAction } from "@/server/actions/categories";
 
 export default async function AdminCategoriesPage() {
   const session = await auth();
-  if (session?.user?.role !== Role.ADMIN && session?.user?.role !== Role.BUSINESS_LINE_OWNER) {
+  const isAdmin = session?.user?.role === Role.ADMIN;
+  const isBLOwner = session?.user?.role === Role.BUSINESS_LINE_OWNER;
+  const hasCatalogFlag = session?.user?.canEditCatalog === true;
+  if (!session?.user || (!isAdmin && !isBLOwner && !hasCatalogFlag)) {
     redirect("/dashboard");
   }
 
@@ -20,7 +26,9 @@ export default async function AdminCategoriesPage() {
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("admin.categories");
 
-  const categories = await catalogService.listCategories(actor, { includeInactive: true });
+  const categories = (await catalogService.listCategories(actor, { includeInactive: true })).sort(
+    (a, b) => b.sortOrder - a.sortOrder || a.nameEn.localeCompare(b.nameEn),
+  );
 
   return (
     <div className="space-y-6">
@@ -33,6 +41,8 @@ export default async function AdminCategoriesPage() {
           <Link href="/admin/categories/new">{t("new")}</Link>
         </Button>
       </header>
+
+      {isAdmin ? <CategoriesBulkPanel /> : null}
 
       {categories.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -56,9 +66,12 @@ export default async function AdminCategoriesPage() {
                 >
                   {c.isActive ? "active" : "inactive"}
                 </span>
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/admin/categories/${c.id}/edit`}>edit</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/admin/categories/${c.id}/edit`}>edit</Link>
+                  </Button>
+                  <DeleteButton action={deleteCategorySafeAction.bind(null, c.id)} iconOnly />
+                </div>
               </CardContent>
             </Card>
           ))}

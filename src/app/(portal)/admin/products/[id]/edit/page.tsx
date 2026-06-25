@@ -1,16 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ProductType, Role } from "@prisma/client";
+import { Company, Role } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
 import { requireActor } from "@/lib/auth/session";
 import { catalogService } from "@/server/services/catalog.service";
 import { localized } from "@/lib/i18n/localized";
+import { COMPANY_LABELS_AR, COMPANY_LABELS_EN } from "@/lib/catalog/company";
 import type { AppLocale } from "@/lib/i18n/config";
 import { ProductForm } from "@/components/portal/ProductForm";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (session?.user?.role !== Role.ADMIN && session?.user?.role !== Role.BUSINESS_LINE_OWNER) {
+  const isAdmin = session?.user?.role === Role.ADMIN;
+  const isBLOwner = session?.user?.role === Role.BUSINESS_LINE_OWNER;
+  const hasProductFlag = session?.user?.canEditProducts === true;
+  if (!session?.user || (!isAdmin && !isBLOwner && !hasProductFlag)) {
     redirect("/dashboard");
   }
 
@@ -21,7 +25,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("admin.products");
-  const tTypes = await getTranslations("productTypes");
+  const companyLabels = locale === "ar" ? COMPANY_LABELS_AR : COMPANY_LABELS_EN;
 
   const [businessLines, categories] = await Promise.all([
     catalogService.listBusinessLines(actor),
@@ -43,16 +47,32 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           id: c.id,
           name: localized(locale, c.nameEn, c.nameAr),
           businessLineId: c.businessLineId,
+          enabledAttributes: c.enabledAttributes as never,
+          requiredAttributes: c.requiredAttributes as never,
+          attributes: c.attributes.map((ca) => ({
+            id: ca.attribute.id,
+            key: ca.attribute.key,
+            nameEn: ca.attribute.nameEn,
+            nameAr: ca.attribute.nameAr,
+            type: ca.attribute.type,
+            options:
+              (
+                ca.attribute.options as {
+                  options?: { value: string; labelEn: string; labelAr: string }[];
+                } | null
+              )?.options ?? [],
+          })),
         }))}
-        productTypes={Object.values(ProductType).map((pt) => ({
-          value: pt,
-          label: tTypes(pt),
+        companies={Object.values(Company).map((c) => ({
+          value: c,
+          label: companyLabels[c],
         }))}
+        uploadsEnabled={!process.env.VERCEL}
         initial={{
           id: product.id,
           businessLineId: product.businessLineId,
           categoryId: product.categoryId,
-          type: product.type,
+          company: product.company,
           nameEn: product.nameEn,
           nameAr: product.nameAr,
           shortDescEn: product.shortDescEn,
@@ -67,22 +87,27 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           amountMaxEgp: Number(product.amountMaxPiastres) / 100,
           tenureMinMonths: product.tenureMinMonths,
           tenureMaxMonths: product.tenureMaxMonths,
+          installmentPeriod: product.installmentPeriod,
           flatInterestRateBps: product.flatInterestRateBps,
           decliningInterestRateBps: product.decliningInterestRateBps,
           adminFeeBps: product.adminFeeBps,
           adminFeeMinEgp: Number(product.adminFeeMinPiastres) / 100,
           adminFeeMaxEgp: Number(product.adminFeeMaxPiastres) / 100,
           insuranceRequired: product.insuranceRequired,
+          minDownPaymentBps: product.minDownPaymentBps,
           earlySettlementFeeBps: product.earlySettlementFeeBps,
           latePaymentFeeBps: product.latePaymentFeeBps,
           heroImageUrl: product.heroImageUrl,
           isFeatured: product.isFeatured,
           isActive: product.isActive,
-          variables: product.variables.map((v) => ({
-            nameEn: v.nameEn,
-            nameAr: v.nameAr,
-            descriptionEn: v.descriptionEn,
-            descriptionAr: v.descriptionAr,
+          attributeValues: (product.attributeValues ?? []).map((av) => ({
+            attributeId: av.attributeId,
+            value:
+              typeof av.value === "string"
+                ? av.value
+                : typeof av.value === "number" || typeof av.value === "boolean"
+                  ? av.value.toString()
+                  : "",
           })),
         }}
       />

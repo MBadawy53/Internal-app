@@ -7,6 +7,10 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { productCategoryRepository } from "@/server/repositories/productCategory.repository";
+import { isProductAttributeKey } from "@/lib/catalog/attributes";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
@@ -19,6 +23,9 @@ const CategoryInputSchema = z.object({
   descriptionAr: z.string().max(2000).optional().nullable(),
   sortOrder: z.coerce.number().int().min(0).default(0),
   isActive: z.coerce.boolean().default(true),
+  enabledAttributes: z.array(z.string()).default([]),
+  requiredAttributes: z.array(z.string()).default([]),
+  attributeIds: z.array(z.string()).default([]),
 });
 
 export type CategoryActionState =
@@ -26,6 +33,24 @@ export type CategoryActionState =
   | { ok: false; fieldErrors?: Record<string, string[]>; message?: string };
 
 function fromFormData(fd: FormData) {
+  // Form sends one hidden input per enabled / required attribute, all named
+  // identically. Filter to only the keys we recognise (defensive against
+  // tampered submissions).
+  const enabledAttributes = fd
+    .getAll("enabledAttributes")
+    .map((v) => v.toString())
+    .filter((s) => isProductAttributeKey(s));
+  const requiredAttributes = fd
+    .getAll("requiredAttributes")
+    .map((v) => v.toString())
+    .filter((s) => isProductAttributeKey(s) && enabledAttributes.includes(s));
+
+  // Selected attribute IDs (no values — products supply their own values).
+  const attributeIds = fd
+    .getAll("attributeId")
+    .map((v) => v.toString())
+    .filter(Boolean);
+
   return {
     slug: fd.get("slug")?.toString() ?? "",
     businessLineId: fd.get("businessLineId")?.toString() ?? "",
@@ -35,6 +60,9 @@ function fromFormData(fd: FormData) {
     descriptionAr: (fd.get("descriptionAr")?.toString() ?? "") || null,
     sortOrder: fd.get("sortOrder")?.toString() ?? "0",
     isActive: fd.get("isActive") === "on" || fd.get("isActive") === "true",
+    enabledAttributes,
+    requiredAttributes,
+    attributeIds,
   };
 }
 
@@ -59,8 +87,14 @@ export async function createCategoryAction(
       descriptionAr: parsed.data.descriptionAr,
       sortOrder: parsed.data.sortOrder,
       isActive: parsed.data.isActive,
+      enabledAttributes: parsed.data.enabledAttributes,
+      requiredAttributes: parsed.data.requiredAttributes,
       businessLine: { connect: { id: parsed.data.businessLineId } },
     });
+    await productCategoryRepository.replaceAttributes(
+      created.id,
+      parsed.data.attributeIds.map((attributeId, i) => ({ attributeId, sortOrder: i })),
+    );
     revalidatePath("/admin/categories");
     revalidatePath("/catalog");
     redirect(`/admin/categories`);
@@ -96,9 +130,15 @@ export async function updateCategoryAction(
       descriptionAr: parsed.data.descriptionAr,
       sortOrder: parsed.data.sortOrder,
       isActive: parsed.data.isActive,
+      enabledAttributes: parsed.data.enabledAttributes,
+      requiredAttributes: parsed.data.requiredAttributes,
       businessLine: { connect: { id: parsed.data.businessLineId } },
       updatedById: actor.id,
     });
+    await productCategoryRepository.replaceAttributes(
+      id,
+      parsed.data.attributeIds.map((attributeId, i) => ({ attributeId, sortOrder: i })),
+    );
     revalidatePath("/admin/categories");
     revalidatePath("/catalog");
     redirect(`/admin/categories`);
@@ -118,4 +158,21 @@ export async function deleteCategoryAction(id: string): Promise<void> {
   await productCategoryRepository.softDelete(id, actor.id);
   revalidatePath("/admin/categories");
   revalidatePath("/catalog");
+}
+
+export async function deleteCategorySafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  const result = await smartDelete({
+    label: "productCategory",
+    id,
+    hard: () => prisma.productCategory.delete({ where: { id } }),
+    soft: () => productCategoryRepository.softDelete(id, actor.id),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/categories");
+    revalidatePath("/catalog");
+  }
+  return result;
 }

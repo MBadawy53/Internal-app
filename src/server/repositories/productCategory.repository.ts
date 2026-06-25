@@ -13,14 +13,27 @@ export const productCategoryRepository = {
     if (!filters.includeInactive) where.isActive = true;
     return prisma.productCategory.findMany({
       where,
-      include: { businessLine: true, _count: { select: { products: true } } },
+      include: {
+        businessLine: true,
+        attributes: {
+          include: { attribute: true },
+          orderBy: { sortOrder: "desc" },
+        },
+        _count: { select: { products: true } },
+      },
       orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
     });
   },
   findById: (id: string) =>
     prisma.productCategory.findUnique({
       where: { id },
-      include: { businessLine: true },
+      include: {
+        businessLine: true,
+        attributes: {
+          include: { attribute: true },
+          orderBy: { sortOrder: "desc" },
+        },
+      },
     }),
   findBySlug: (slug: string) =>
     prisma.productCategory.findUnique({
@@ -36,4 +49,27 @@ export const productCategoryRepository = {
       where: { id },
       data: { isActive: false, updatedById },
     }),
+
+  /**
+   * Replace the full list of attributes a category enables, atomically.
+   * Anything not in the new list is removed. Values are NOT stored here —
+   * each Product fills in its own values via ProductAttributeValue.
+   */
+  replaceAttributes: async (
+    categoryId: string,
+    attributeIds: Array<{ attributeId: string; sortOrder: number }>,
+  ) => {
+    return prisma.$transaction([
+      prisma.categoryAttribute.deleteMany({ where: { categoryId } }),
+      ...attributeIds.map((a) =>
+        prisma.categoryAttribute.create({
+          data: {
+            categoryId,
+            attributeId: a.attributeId,
+            sortOrder: a.sortOrder,
+          },
+        }),
+      ),
+    ]);
+  },
 };

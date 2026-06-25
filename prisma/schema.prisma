@@ -6,11 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // For Neon (pooled DATABASE_URL is used at runtime; direct URL is used by
-  // Prisma Migrate). Local dev with plain Postgres can leave DIRECT_URL unset.
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,6 +19,8 @@ enum Role {
   TEAM_MANAGER
   BUSINESS_LINE_OWNER
   ADMIN
+  AMBASSADOR
+  AMBASSADOR_MANAGER
 }
 
 enum Locale {
@@ -29,16 +28,19 @@ enum Locale {
   AR
 }
 
-enum ProductType {
-  PERSONAL_LOAN
-  AUTO_LOAN
-  MORTGAGE
-  HOME_FURNITURE
-  HOME_INTERIOR
-  MOTORCYCLE
-  INSURANCE_POLICY
-  LEASING
-  FACTORING
+enum Company {
+  CONTACT_CREDIT
+  GLOBAL_AUTO
+  SMG
+  ABO_GHALY_FINANCE
+  EZZ_EL_ARAB_FINANCIAL
+  SARWA_LIFE
+  SARWA_INSURANCE
+  CONTACT_INSURANCE_BROKERAGE
+  CONTACT_MORTGAGE
+  CONTACT_FACTORING
+  CONTACT_LEASING
+  CONTACT_CREDITECH
 }
 
 enum LeadSource {
@@ -48,17 +50,36 @@ enum LeadSource {
   IMPORT
 }
 
-enum LeadStatus {
-  NEW
-  ASSIGNED
-  CONTACTED
-  NO_ANSWER
-  APPLICATION_CREATED
-  CREDIT_APPROVED
-  CONTRACTED
-  LICENSING
-  CREDIT_REJECTED_FT
-  CREDIT_REJECTED_NT
+/// Application Status (55) — credit assessment dimension. Mirrors the Auto
+/// Loans status reference. Concurrent with `LeadProductStatus`.
+enum LeadAppStatus {
+  CREDIT_RISK
+  INCOMPLETE
+  INVESTIGATION
+  SALES
+  APPROVAL
+  APPROVED_CLIENT
+  DENIED
+  HOLD
+}
+
+/// Product Request Status (99) — fulfilment dimension. Concurrent with
+/// `LeadAppStatus`. After APPROVAL the app status stays APPROVED_CLIENT
+/// while this dimension advances PRE_EXECUTION → EXECUTION → P_REGISTER
+/// → CONTRACT.
+enum LeadProductStatus {
+  P_INITIATE
+  PRE_EXECUTION
+  EXECUTION
+  P_REGISTER
+  CONTRACT
+  HOLD
+  SALES
+}
+
+enum LeadTrack {
+  FAST_TRACK
+  NORMAL_TRACK
 }
 
 enum LeadActivityType {
@@ -73,9 +94,12 @@ enum LeadActivityType {
 
 enum NotificationType {
   NEW_LEAD_FROM_QR
+  NEW_LEAD_MANUAL
   LEAD_ASSIGNED
   LEAD_STATUS_CHANGED
   LEAD_REFERRED
+  LEAD_ID_UPLOADED
+  SUGGESTION_UPDATED
   SYSTEM
 }
 
@@ -115,6 +139,48 @@ enum SyncJobStatus {
   FAILED
 }
 
+enum AttributeType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  SELECT
+}
+
+enum EmploymentType {
+  EMPLOYEE
+  SELF_EMPLOYED
+  BUSINESS_OWNER
+}
+
+enum InstallmentPeriod {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum QrCampaignKind {
+  LEAD_CAPTURE
+  AMBASSADOR_INVITE
+}
+
+enum FeatureKey {
+  dashboard
+  catalog
+  calculator
+  calculatorProduct
+  calculatorAffordability
+  leads
+  qr
+  ambassadors
+  notifications
+  reports
+  products
+  categories
+  commission
+  configuration
+  suggestions
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Identity & Org
 // ─────────────────────────────────────────────────────────────────────────────
@@ -135,9 +201,15 @@ model User {
   locale              Locale    @default(EN)
   businessLineId      String?
   managerId           String?
+  // Inviter, set when this user was created via an AMBASSADOR_INVITE campaign.
+  invitedById         String?
   referralCode        String    @unique
   shareConsent        Boolean   @default(false)
   isActive            Boolean   @default(true)
+  // Per-user capability flags. Granted by Admin at user creation/edit; layered
+  // on top of role permissions (additive — never removes a role's grant).
+  canEditProducts     Boolean   @default(false)
+  canEditCatalog      Boolean   @default(false)
   // True until the user submits the first-login profile completion form.
   mustCompleteProfile Boolean   @default(true)
   lastLoginAt         DateTime?
@@ -147,6 +219,8 @@ model User {
   businessLine BusinessLine? @relation(fields: [businessLineId], references: [id])
   manager      User?         @relation("UserManager", fields: [managerId], references: [id])
   reports      User[]        @relation("UserManager")
+  invitedBy    User?         @relation("UserInviter", fields: [invitedById], references: [id])
+  invited      User[]        @relation("UserInviter")
 
   ownedLeads     Lead[]                   @relation("LeadOwner")
   referredLeads  Lead[]                   @relation("LeadReferrer")
@@ -160,11 +234,105 @@ model User {
   productCreated Product[]                @relation("ProductCreatedBy")
   productUpdated Product[]                @relation("ProductUpdatedBy")
   integrationUpd IntegrationConfig[]      @relation("IntegrationUpdatedBy")
+  passwordResets PasswordResetToken[]
+  passwordResetsIssued PasswordResetToken[] @relation("PasswordResetIssuedBy")
+  suggestions    Suggestion[]             @relation("SuggestionSubmitter")
+  suggestionsReplied Suggestion[]         @relation("SuggestionResponder")
+  leadIdUploadTokensIssued LeadIdUploadToken[] @relation("LeadIdUploadIssuedBy")
 
   @@index([businessLineId])
   @@index([managerId])
+  @@index([invitedById])
   @@index([role])
   @@map("users")
+}
+
+// Single-use, SHA-256-hashed password reset tokens. The raw token is shown
+// once (in the channel delivery or admin response) — only the hash is stored
+// so a DB leak can't be replayed. Self-serve flow looks up by hash; tokens
+// are short-lived and invalidated on use.
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  userId      String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  // null for self-serve; set to the admin's userId for admin-issued resets.
+  issuedById  String?
+  // for delivery audit + rate-limit forensics.
+  requestIp   String?
+  createdAt   DateTime  @default(now())
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuedBy User? @relation("PasswordResetIssuedBy", fields: [issuedById], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// Single-use, SHA-256-hashed link the lead's owner sends the customer
+// to upload front + back of their national ID. The raw token leaves
+// the server once (shown in the owner's Copy / WhatsApp panel); only
+// the hash is stored, so a leaked DB row can't be replayed.
+model LeadIdUploadToken {
+  id         String    @id @default(cuid())
+  leadId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  // owner who issued the link, for audit + future "reminders" feature.
+  issuedById String
+  createdAt  DateTime  @default(now())
+
+  lead     Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  issuedBy User @relation("LeadIdUploadIssuedBy", fields: [issuedById], references: [id])
+
+  @@index([leadId])
+  @@index([expiresAt])
+  @@map("lead_id_upload_tokens")
+}
+
+enum SuggestionCategory {
+  IDEA
+  BUG
+  COMPLAINT
+  OTHER
+}
+
+enum SuggestionStatus {
+  NEW
+  UNDER_REVIEW
+  ACCEPTED
+  IMPLEMENTED
+  REJECTED
+}
+
+// Employee / ambassador idea, bug report, complaint, etc. Visible to the
+// submitter and admins. Admins can move it through the status machine and
+// leave a single response field; the submitter gets a SUGGESTION_UPDATED
+// notification whenever either changes.
+model Suggestion {
+  id                 String             @id @default(cuid())
+  submitterId        String
+  category           SuggestionCategory @default(IDEA)
+  status             SuggestionStatus   @default(NEW)
+  title              String
+  body               String
+  attachmentUrl      String?
+  adminResponse      String?
+  adminResponseById  String?
+  adminResponseAt    DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  submitter       User  @relation("SuggestionSubmitter", fields: [submitterId], references: [id], onDelete: Cascade)
+  adminResponseBy User? @relation("SuggestionResponder", fields: [adminResponseById], references: [id], onDelete: SetNull)
+
+  @@index([submitterId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("suggestions")
 }
 
 model BusinessLine {
@@ -188,22 +356,29 @@ model BusinessLine {
 }
 
 model ProductCategory {
-  id             String   @id @default(cuid())
-  businessLineId String
-  slug           String   @unique
-  nameEn         String
-  nameAr         String
-  descriptionEn  String?
-  descriptionAr  String?
-  sortOrder      Int      @default(0)
-  isActive       Boolean  @default(true)
-  createdById    String?
-  updatedById    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  businessLineId     String
+  slug               String   @unique
+  nameEn             String
+  nameAr             String
+  descriptionEn      String?
+  descriptionAr      String?
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  // Per-category control over which built-in product attributes show in the
+  // product form (and on the catalog detail page) and which are required.
+  // Both default to "all attributes enabled and required" — keys must come
+  // from PRODUCT_ATTRIBUTE_KEYS in src/lib/catalog/attributes.ts.
+  enabledAttributes  String[] @default(["amountRange", "tenureRange", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  requiredAttributes String[] @default(["amountRange", "tenureRange", "decliningRate", "adminFee", "insurance", "earlySettlement", "latePayment", "eligibility", "documents"])
+  createdById        String?
+  updatedById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  businessLine BusinessLine @relation(fields: [businessLineId], references: [id])
+  businessLine BusinessLine        @relation(fields: [businessLineId], references: [id])
   products     Product[]
+  attributes   CategoryAttribute[]
 
   @@index([businessLineId])
   @@map("product_categories")
@@ -217,7 +392,7 @@ model Product {
   id             String      @id @default(cuid())
   businessLineId String
   categoryId     String
-  type           ProductType
+  company        Company?
   nameEn         String
   nameAr         String
   shortDescEn    String
@@ -235,6 +410,11 @@ model Product {
   tenureMinMonths   Int
   tenureMaxMonths   Int
 
+  // How often the customer pays. The calculator's PMT formula uses
+  // periodsPerYear = { MONTHLY: 12, QUARTERLY: 4, ANNUALLY: 1 } and one
+  // amortisation row per period.
+  installmentPeriod InstallmentPeriod @default(MONTHLY)
+
   // Rates — admin enters BOTH independently. No conversion is performed.
   flatInterestRateBps      Int @default(0)
   decliningInterestRateBps Int @default(0)
@@ -246,6 +426,10 @@ model Product {
 
   // Insurance is just a boolean flag — no fee math.
   insuranceRequired Boolean @default(false)
+
+  // Minimum down payment as basis points (e.g. 4000 = 40%). The calculator
+  // enforces this when the user provides an invoice price.
+  minDownPaymentBps Int @default(0)
 
   // Policy lines (admin-entered, displayed; not factored into EMI).
   earlySettlementFeeBps Int @default(0)
@@ -260,37 +444,82 @@ model Product {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  businessLine BusinessLine      @relation(fields: [businessLineId], references: [id])
-  category     ProductCategory   @relation(fields: [categoryId], references: [id])
-  createdBy    User?             @relation("ProductCreatedBy", fields: [createdById], references: [id])
-  updatedBy    User?             @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
-  variables    ProductVariable[]
-  leads        Lead[]
-  quotes       Quote[]
-  campaigns    QrCampaign[]
+  businessLine    BusinessLine            @relation(fields: [businessLineId], references: [id])
+  category        ProductCategory         @relation(fields: [categoryId], references: [id])
+  createdBy       User?                   @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?                   @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  attributeValues ProductAttributeValue[]
+  leads           Lead[]
+  commissions     ProductCommission[]
+  quotes          Quote[]
+  campaigns       QrCampaign[]
 
   @@index([businessLineId])
   @@index([categoryId])
-  @@index([type])
+  @@index([company])
   @@index([isActive])
   @@map("products")
 }
 
-model ProductVariable {
-  id            String   @id @default(cuid())
-  productId     String
-  nameEn        String
-  nameAr        String
-  descriptionEn String?
-  descriptionAr String?
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Admin-defined attribute registry. Categories pick which attributes apply
+// (and provide values once per category — values are NOT per-product).
+model Attribute {
+  id        String        @id @default(cuid())
+  key       String        @unique // stable kebab-case slug
+  nameEn    String
+  nameAr    String
+  helpEn    String?
+  helpAr    String?
+  type      AttributeType
+  // For type = SELECT: JSON array of { value: string, labelEn: string, labelAr: string }.
+  options   Json?
+  isActive  Boolean       @default(true)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryAttributes CategoryAttribute[]
+  productValues      ProductAttributeValue[]
 
+  @@map("attributes")
+}
+
+// One row per (category, attribute) — the attribute is enabled for the
+// category. Products in the category fill in their own values via
+// ProductAttributeValue.
+model CategoryAttribute {
+  id          String   @id @default(cuid())
+  categoryId  String
+  attributeId String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category  ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attribute Attribute       @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, attributeId])
+  @@index([categoryId])
+  @@index([attributeId])
+  @@map("category_attributes")
+}
+
+// Per-product attribute values. Stored as JSON typed by the attribute.
+model ProductAttributeValue {
+  id          String   @id @default(cuid())
+  productId   String
+  attributeId String
+  value       Json
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeId])
   @@index([productId])
-  @@map("product_variables")
+  @@index([attributeId])
+  @@map("product_attribute_values")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -303,52 +532,107 @@ model Lead {
   customerPhone        String
   customerEmailEnc     String?
   nationalIdEnc        String?
+  // Front + back images of the customer's national ID, uploaded by the
+  // customer via a short-lived single-use link the lead's owner sends.
+  nationalIdFrontUrl   String?
+  nationalIdBackUrl    String?
   source               LeadSource
   referredByEmployeeId String?
   ownerEmployeeId      String?
-  businessLineId       String
+  businessLineId       String?
   productId            String?
   campaignId           String?
-  currentStatus        LeadStatus @default(NEW)
-  currentStatusReason  String?
+  branchId             String?
+  employmentType       EmploymentType?
+  // Asset price the customer wants to finance and the up-front amount they
+  // plan to pay. Captured at create time; the actual approved loan amount
+  // (finalLoanAmountPiastres) is set later when the lead moves to CONTRACT.
+  productPricePiastres BigInt?
+  downpaymentPiastres  BigInt?
+  // Two-dimensional status model from the Auto Loans reference: each lead
+  // carries both an application status (credit dimension) and a product
+  // status (fulfilment dimension), with an optional fast/normal track.
+  appStatus            LeadAppStatus     @default(INCOMPLETE)
+  productStatus        LeadProductStatus @default(P_INITIATE)
+  track                LeadTrack?
+  // Final approved loan amount in piastres. Set when the lead is moved to
+  // CONTRACT and used to compute the employee/ambassador commission.
+  // Eventually verified against the loan-system API on settlement.
+  finalLoanAmountPiastres BigInt?
   preferredContactTime String?
   customerNote         String?
   externalCrmId        String?    @unique
   consentGivenAt       DateTime
   consentIp            String?
   consentUserAgent     String?
+  // Custom field answers captured at submit time. The label/type metadata
+  // lives on the originating QrCampaign.customFields, so we can render the
+  // answers with their labels by reading the campaign.
+  customFields         Json?
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
   referredBy   User?               @relation("LeadReferrer", fields: [referredByEmployeeId], references: [id])
   owner        User?               @relation("LeadOwner", fields: [ownerEmployeeId], references: [id])
-  businessLine BusinessLine        @relation(fields: [businessLineId], references: [id])
+  businessLine BusinessLine?       @relation(fields: [businessLineId], references: [id])
   product      Product?            @relation(fields: [productId], references: [id])
   campaign     QrCampaign?         @relation(fields: [campaignId], references: [id])
+  branch       Branch?             @relation(fields: [branchId], references: [id])
   history      LeadStatusHistory[]
   activities   LeadActivity[]
   quotes       Quote[]
   syncJobs     LeadSyncJob[]
+  idUploadTokens LeadIdUploadToken[]
 
   @@index([ownerEmployeeId])
   @@index([referredByEmployeeId])
   @@index([businessLineId])
   @@index([productId])
-  @@index([currentStatus])
+  @@index([campaignId])
+  @@index([branchId])
+  @@index([appStatus])
+  @@index([productStatus])
   @@index([createdAt])
   @@index([customerPhone])
   @@map("leads")
 }
 
+// Physical Contact branches. Customers / employees pick one on the lead form
+// so the back office knows where to route documents. Sourced from
+// contact.eg/our-branches; managed by admin via /admin/branches.
+model Branch {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  nameEn        String
+  nameAr        String
+  city          String?
+  governorate   String?
+  address       String?
+  phone         String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([isActive, sortOrder])
+  @@map("branches")
+}
+
 model LeadStatusHistory {
-  id         String      @id @default(cuid())
-  leadId     String
-  fromStatus LeadStatus?
-  toStatus   LeadStatus
-  reason     String?
-  note       String?
-  actorId    String
-  createdAt  DateTime    @default(now())
+  id                String             @id @default(cuid())
+  leadId            String
+  fromAppStatus     LeadAppStatus?
+  toAppStatus       LeadAppStatus?
+  fromProductStatus LeadProductStatus?
+  toProductStatus   LeadProductStatus?
+  fromTrack         LeadTrack?
+  toTrack           LeadTrack?
+  reason            String?
+  note              String?
+  actorId           String
+  createdAt         DateTime           @default(now())
 
   lead  Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
   actor User @relation(fields: [actorId], references: [id])
@@ -397,7 +681,7 @@ model Quote {
 
   employee User    @relation(fields: [employeeId], references: [id])
   product  Product @relation(fields: [productId], references: [id])
-  lead     Lead?   @relation(fields: [leadId], references: [id])
+  lead     Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([leadId])
@@ -409,14 +693,31 @@ model Quote {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model QrCampaign {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   employeeId String
   name       String
   productId  String?
-  slug       String   @unique
-  scanCount  Int      @default(0)
-  leadCount  Int      @default(0)
-  isActive   Boolean  @default(true)
+  slug       String         @unique
+  kind       QrCampaignKind @default(LEAD_CAPTURE)
+  scanCount  Int            @default(0)
+  leadCount  Int            @default(0)
+  isActive   Boolean        @default(true)
+
+  // Public landing customisation. All optional; the page falls back to the
+  // employee name / generic copy when not set. Markdown is rendered to safe
+  // HTML server-side; the headerImageUrl is shown as-is.
+  headerImageUrl String?
+  titleEn        String?
+  titleAr        String?
+  subtitleEn     String?
+  subtitleAr     String?
+  bodyMdEn       String?
+  bodyMdAr       String?
+  // Inline custom field definitions for this campaign's public landing
+  // form. Stored as a JSON array of LeadFormField (src/lib/leadForm/types.ts).
+  // Empty array = only the built-in name/phone/email block is shown.
+  customFields   Json     @default("[]")
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -424,9 +725,36 @@ model QrCampaign {
   product  Product? @relation(fields: [productId], references: [id])
   scans    QrScan[]
   leads    Lead[]
+  applications AmbassadorApplication[]
 
   @@index([employeeId])
   @@map("qr_campaigns")
+}
+
+// Admin-managed landing-page templates. A QrCampaign can be pre-filled from
+// one of these on create/edit; the campaign keeps its own copies of the
+// fields after that (no live link), so editing a template later doesn't
+// silently mutate live campaigns.
+model QrLandingTemplate {
+  id             String         @id @default(cuid())
+  name           String
+  kind           QrCampaignKind @default(LEAD_CAPTURE)
+  headerImageUrl String?
+  titleEn        String?
+  titleAr        String?
+  subtitleEn     String?
+  subtitleAr     String?
+  bodyMdEn       String?
+  bodyMdAr       String?
+  // Inline custom field definitions copied onto every campaign minted
+  // from this template at apply time. JSON array of LeadFormField
+  // (see src/lib/leadForm/types.ts). LEAD_CAPTURE only.
+  customFields   Json           @default("[]")
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@map("qr_landing_templates")
 }
 
 model QrScan {
@@ -460,7 +788,7 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, readAt])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 
@@ -562,4 +890,152 @@ model RateLimitBucket {
   updatedAt   DateTime @updatedAt
 
   @@map("rate_limit_buckets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Runtime RBAC overrides (admin-editable)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Per-role sidebar / feature visibility. Absent row = use the hardcoded
+// default. ADMIN is never read from this table (always sees everything).
+model RoleFeatureAccess {
+  role    Role
+  feature FeatureKey
+  visible Boolean    @default(true)
+
+  @@id([role, feature])
+  @@map("role_feature_access")
+}
+
+// Per-role (action, resource) permission overrides layered on top of the
+// hardcoded ROLE_MATRIX. enabled=false removes a permission the role would
+// otherwise have; enabled=true grants the permission with 'own' scope when
+// the hardcoded matrix didn't grant it. ADMIN is never read from this table.
+model RolePermission {
+  role     Role
+  action   String
+  resource String
+  enabled  Boolean
+
+  @@id([role, action, resource])
+  @@map("role_permissions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Announcements — admin-broadcast messages shown at the top of the dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Announcement {
+  id          String   @id @default(cuid())
+  titleEn     String
+  titleAr     String
+  bodyEn      String
+  bodyAr      String
+  imageUrl    String?
+  // Target audience. Empty arrays = "no filter on this dimension"; an
+  // announcement matches a user when both lists are empty or include that
+  // user's role / businessLineId.
+  targetRoles          Role[]   @default([])
+  targetBusinessLineIds String[] @default([])
+  isActive    Boolean  @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  // True iff a push (in-app notification) was dispatched at creation time.
+  pushNotificationSent Boolean @default(false)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@map("announcements")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ambassador applications — incoming applications from public landing pages
+// served by AMBASSADOR_INVITE campaigns. The employee who owns the campaign
+// reviews each one, then approves (generating an invite link the candidate
+// follows to set a password) or rejects with a reason.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AmbassadorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AmbassadorApplication {
+  id                  String                      @id @default(cuid())
+  campaignId          String
+  employeeId          String
+  name                String
+  phone               String
+  nationalIdImageUrl  String?
+  status              AmbassadorApplicationStatus @default(PENDING)
+  rejectedReason      String?
+  approvedAt          DateTime?
+  approvedById        String?
+  rejectedAt          DateTime?
+  // SHA-256 of the invite token; raw token is shown once to the employee.
+  inviteTokenHash     String?
+  inviteTokenExpiresAt DateTime?
+  acceptedAt          DateTime?
+  createdUserId       String?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  campaign QrCampaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([employeeId])
+  @@index([status])
+  @@map("ambassador_applications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Commission tables — admin-managed, per product per persona, with optional
+// loan-amount tiers. Each tier carries either a percent (bps) or a flat
+// piastres amount (admin chooses per row).
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CommissionPersona {
+  EMPLOYEE
+  AMBASSADOR
+}
+
+model ProductCommission {
+  id        String            @id @default(cuid())
+  productId String
+  persona   CommissionPersona
+  isActive  Boolean           @default(true)
+  notes     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  product Product          @relation(fields: [productId], references: [id])
+  tiers   CommissionTier[]
+
+  @@unique([productId, persona])
+  @@index([productId])
+  @@map("product_commissions")
+}
+
+model CommissionTier {
+  id                 String   @id @default(cuid())
+  commissionId       String
+  sortOrder          Int      @default(0)
+  fromAmountPiastres BigInt   @default(0)
+  toAmountPiastres   BigInt?  // null = no upper bound
+  // Exactly one of these two carries the value:
+  ratePercentBps     Int? // 0–10_000 = 0.00–100.00%
+  flatPiastres       BigInt?
+  label              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  commission ProductCommission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@index([commissionId])
+  @@map("commission_tiers")
 }

@@ -8,16 +8,28 @@ import { localized } from "@/lib/i18n/localized";
 import type { AppLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UsersSearchBar } from "@/components/portal/UsersSearchBar";
+import { DeleteButton } from "@/components/portal/DeleteButton";
+import { deleteUserSafeAction } from "@/server/actions/users";
 
-export default async function AdminUsersPage() {
+interface SearchParams {
+  q?: string;
+}
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
   if (session?.user?.role !== Role.ADMIN) redirect("/dashboard");
 
+  const sp = await searchParams;
   const t = await getTranslations("admin.users");
   const tRoles = await getTranslations("roles");
   const locale = (await getLocale()) as AppLocale;
 
-  const users = await userAdminRepository.list();
+  const users = await userAdminRepository.list({ q: sp.q });
 
   return (
     <div className="space-y-6">
@@ -30,6 +42,14 @@ export default async function AdminUsersPage() {
           <Link href="/admin/users/new">{t("new")}</Link>
         </Button>
       </header>
+
+      <UsersSearchBar initial={sp.q ?? ""} />
+
+      {users.length === 0 ? (
+        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+          {t("search.empty")}
+        </p>
+      ) : null}
 
       <div className="grid gap-3">
         {users.map((u) => {
@@ -55,7 +75,7 @@ export default async function AdminUsersPage() {
                     {tRoles(u.role)}
                   </span>
                   <span className="text-xs text-muted-foreground">{blName}</span>
-                  <div className="mt-1 flex gap-1">
+                  <div className="mt-1 flex flex-wrap justify-end gap-1">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
                         u.isActive
@@ -70,10 +90,28 @@ export default async function AdminUsersPage() {
                         pending
                       </span>
                     ) : null}
+                    {u.canEditProducts ? (
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand-700">
+                        products
+                      </span>
+                    ) : null}
+                    {u.canEditCatalog ? (
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand-700">
+                        catalog
+                      </span>
+                    ) : null}
                   </div>
+                  <a
+                    href={`/admin/users/${u.id}/edit`}
+                    className="mt-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    edit
+                  </a>
                 </div>
               </CardHeader>
-              <CardContent />
+              <CardContent className="flex justify-end">
+                <DeleteButton action={deleteUserSafeAction.bind(null, u.id)} variant="ghost" />
+              </CardContent>
             </Card>
           );
         })}

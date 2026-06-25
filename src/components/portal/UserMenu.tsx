@@ -1,6 +1,8 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { useTransition } from "react";
+import Link from "next/link";
+import { LogOut, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Role } from "@prisma/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,6 +27,13 @@ function initials(name: string): string {
 
 export function UserMenu({ name, role }: { name: string; role: Role }) {
   const t = useTranslations();
+  const [pending, startTransition] = useTransition();
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -41,14 +50,26 @@ export function UserMenu({ name, role }: { name: string; role: Role }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <form action={logoutAction}>
-          <DropdownMenuItem asChild>
-            <button type="submit" className="flex w-full items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              <span>{t("common.logout")}</span>
-            </button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link href="/profile" className="flex w-full items-center gap-2">
+            <User className="h-4 w-4" />
+            <span>{t("nav.profile")}</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(e) => {
+            // Prevent Radix from closing the menu before the action runs;
+            // the redirect inside logoutAction handles navigation.
+            e.preventDefault();
+            handleLogout();
+          }}
+          disabled={pending}
+          className="flex w-full cursor-pointer items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>{pending ? t("common.loading") : t("common.logout")}</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

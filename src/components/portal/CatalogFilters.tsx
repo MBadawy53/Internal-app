@@ -20,11 +20,11 @@ interface CategoryItem extends Item {
 interface Props {
   businessLines: Item[];
   categories: CategoryItem[];
-  productTypes: Array<{ value: string; label: string }>;
-  initial: { bl?: string; cat?: string; type?: string; q?: string };
+  companies: Array<{ value: string; label: string }>;
+  initial: { bl?: string; cat?: string; company?: string; q?: string };
 }
 
-export function CatalogFilters({ businessLines, categories, productTypes, initial }: Props) {
+export function CatalogFilters({ businessLines, categories, companies, initial }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -101,17 +101,17 @@ export function CatalogFilters({ businessLines, categories, productTypes, initia
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="filter-type">{t("type")}</Label>
+          <Label htmlFor="filter-company">{t("company")}</Label>
           <Select
-            id="filter-type"
-            value={initial.type ?? ""}
-            onChange={(e) => update({ type: e.target.value || undefined })}
+            id="filter-company"
+            value={initial.company ?? ""}
+            onChange={(e) => update({ company: e.target.value || undefined })}
             disabled={pending}
           >
             <option value="">{t("any")}</option>
-            {productTypes.map((pt) => (
-              <option key={pt.value} value={pt.value}>
-                {pt.label}
+            {companies.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </Select>

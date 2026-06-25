@@ -108,65 +108,62 @@ Business line slugs: `auto-loan`, `insurance`, `mortgage`, `home-furniture`, `ho
 
 ---
 
-## Deploying to Vercel + Neon
+## Deploying
 
-Recommended for first preview deploy. Both services have free tiers.
+The app is provider-agnostic — anywhere that runs Next.js 15 and provides a Postgres `DATABASE_URL` works. Vercel + a managed Postgres (Vercel Postgres, Supabase, Railway, etc.) is the most common combo, but a self-hosted VPS with `docker compose up -d` works too.
 
-### 1. Provision Neon (Postgres)
+### 1. Provision a Postgres database
 
-```bash
-npx neonctl@latest auth          # sign in via browser
-npx neonctl@latest projects create --name contact-portal --region-id aws-eu-central-1
-npx neonctl@latest connection-string --pooled
-npx neonctl@latest connection-string             # direct (for migrations)
-```
+Pick one:
 
-Save both strings. The pooled one becomes `DATABASE_URL`, the direct one becomes `DIRECT_URL`.
+- **Vercel Postgres** — Vercel dashboard → Storage → Create. Copy the `DATABASE_URL`.
+- **Supabase** — supabase.com → New project → Settings → Database → URI (pooler).
+- **Railway** — railway.app → New → Postgres → Variables → `DATABASE_URL`.
+- **Self-hosted** — `docker compose up -d` from this repo.
 
-### 2. Apply schema and seed against Neon
+### 2. Apply schema and seed
 
 From your local machine:
 
 ```bash
-DATABASE_URL="<neon-pooled-url>" \
-DIRECT_URL="<neon-direct-url>" \
+DATABASE_URL="<your-postgres-url>" \
 APP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
 AUTH_SECRET="$(openssl rand -hex 32)" \
 pnpm exec prisma db push --accept-data-loss
 
-DATABASE_URL="<neon-pooled-url>" pnpm db:seed
+DATABASE_URL="<your-postgres-url>" pnpm db:seed
 ```
 
 ### 3. Import the repo on Vercel
 
 1. https://vercel.com → **Add New** → **Project** → import `mbadawy53/internal-app`.
 2. Framework preset: **Next.js** (auto-detected).
-3. Root directory: leave blank.
-4. Set **Production Branch** to `main` (or whichever you'll deploy from).
+3. Set **Production Branch** to `main`.
 
 ### 4. Vercel environment variables
 
-In **Project Settings → Environment Variables**, add (Production + Preview + Development):
-
-| Variable             | Value                                                   |
-| -------------------- | ------------------------------------------------------- |
-| `DATABASE_URL`       | Neon **pooled** connection string                       |
-| `DIRECT_URL`         | Neon **direct** connection string                       |
-| `AUTH_SECRET`        | Output of `openssl rand -hex 32`                        |
-| `APP_ENCRYPTION_KEY` | Output of `openssl rand -hex 32` (must be 64 hex chars) |
-| `AUTH_TRUST_HOST`    | `true`                                                  |
-| `APP_URL`            | `https://<your-project>.vercel.app`                     |
-| `LOG_LEVEL`          | `info`                                                  |
+| Variable             | Value                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`       | The Postgres connection string from step 1                                                   |
+| `AUTH_SECRET`        | Output of `openssl rand -hex 32`                                                             |
+| `APP_ENCRYPTION_KEY` | Output of `openssl rand -hex 32` (64 hex chars) — **must match** the value used at seed time |
+| `AUTH_TRUST_HOST`    | `true`                                                                                       |
+| `APP_URL`            | `https://<your-project>.vercel.app`                                                          |
+| `LOG_LEVEL`          | `info`                                                                                       |
 
 The remaining vars in `.env.example` (Twilio, Resend, Turnstile, etc.) can be left unset until those features land in later phases.
 
 ### 5. Deploy
 
-Click **Deploy**. The build runs `prisma generate && next build`. After the first deploy completes, the seeded admin (`admin@contact.local` / your seeded password) can log in.
+Click **Deploy**. On Vercel, the build runs `prisma generate && prisma db push --accept-data-loss && next build` (overridden in [`vercel.json`](./vercel.json)) — schema changes are applied automatically against `DATABASE_URL` on every deploy.
+
+The seed is **not** run automatically. After the first deploy, run `pnpm db:seed` once locally against the deploy's `DATABASE_URL` so the break-glass admin (`admin@contact.local` / your seeded password) and demo employees exist. Subsequent deploys skip seeding.
 
 ### Updates
 
-Every push to the production branch triggers a new deploy. Schema changes require an explicit `pnpm exec prisma db push` (or `migrate deploy`) against `DIRECT_URL` before the deploy.
+Every push to the production branch triggers a new deploy and auto-applies the schema. **Local builds do not auto-push** — `vercel.json`'s `buildCommand` only runs on Vercel; locally `pnpm build` still runs just `prisma generate && next build`.
+
+> ⚠️ `prisma db push --accept-data-loss` will silently drop columns/tables when the schema diverges. This is fine in early development. Before production cutover, switch to proper Prisma migrations (`prisma migrate dev` to generate migrations, `prisma migrate deploy` in `vercel.json`) — tracked under Phase 8 hardening.
 
 ---
 

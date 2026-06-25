@@ -4,8 +4,8 @@ import { edgeAuthConfig } from "@/lib/auth/edge-config";
 
 const { auth } = NextAuth(edgeAuthConfig);
 
-const PUBLIC_PATHS = ["/login", "/api/auth", "/api/health"];
-const PUBLIC_PREFIXES = ["/r/"]; // public lead capture lives under /r/[code]
+const PUBLIC_PATHS = ["/login", "/onboard", "/forgot", "/api/auth", "/api/health"];
+const PUBLIC_PREFIXES = ["/r/", "/invite/", "/reset/", "/lead-id/"]; // public lead capture, invite accept, password reset, national-ID upload
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -25,5 +25,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand|uploads).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand|uploads|factoring-demo).*)"],
 };

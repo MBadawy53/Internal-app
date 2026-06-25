@@ -9,3 +9,4 @@ package-lock.json
 yarn.lock
 prisma/migrations
 public/uploads
+factoring-portal

@@ -29,8 +29,19 @@
     "lightMode": "Light mode",
     "saving": "Saving…",
     "deleting": "Deleting…",
+    "savedSuccess": "Changes saved",
     "confirm": "Confirm",
-    "print": "Print"
+    "print": "Print",
+    "delete": {
+      "delete": "Delete",
+      "confirm": "Delete?",
+      "yes": "Yes, delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "doneHard": "Deleted ✓",
+      "doneSoft": "Deactivated ✓",
+      "failed": "Could not delete."
+    }
   },
   "auth": {
     "login": {
@@ -38,7 +49,11 @@
       "subtitle": "Welcome back. Use your Contact Financial credentials.",
       "identifier": "Group ID",
       "identifierPlaceholder": "C0001C",
+      "identifierPlaceholderAmbassador": "R0001R",
       "identifierHint": "Use your group ID (e.g. C0001C). Administrators can also sign in with email.",
+      "identifierHintAmbassador": "Use your ambassador ID (e.g. R0001R).",
+      "personaEmployee": "Employee",
+      "personaAmbassador": "Ambassador",
       "email": "Email",
       "emailPlaceholder": "you@contact.eg",
       "password": "Password",
@@ -54,6 +69,18 @@
         "mustOnboard": "Please complete your profile to activate your account.",
         "unknown": "Something went wrong. Please try again."
       }
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your group ID or email. If we find an account, we'll send a reset link.",
+      "identifier": "Group ID or email",
+      "identifierPlaceholder": "C0001C or you@contact.eg",
+      "identifierHint": "Employees use their group ID (e.g. C0001C). Ambassadors use their ambassador ID (e.g. R0001R).",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your inbox or WhatsApp.",
+      "sentBody": "If an account matches, you'll receive a reset link shortly. The link expires in 30 minutes. If you can't find it, ask your administrator to issue one for you.",
+      "backToLogin": "Back to sign in"
     },
     "onboard": {
       "title": "Activate your account",
@@ -89,15 +116,111 @@
     "calculator": "Loan Calculator",
     "leads": "Leads",
     "qr": "My QR Codes",
+    "ambassadors": "Ambassadors",
+    "commission": "Commission",
     "notifications": "Notifications",
+    "suggestions": "Suggestions",
     "reports": "Reports",
+    "configuration": "Configuration",
     "admin": "Administration",
     "adminCategories": "Categories",
-    "adminProducts": "Products"
+    "adminProducts": "Products",
+    "profile": "My profile"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Updates on your leads and account.",
+    "empty": "No notifications yet.",
+    "count": "{total} total · {unread} unread",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark as read",
+    "view": "View",
+    "types": {
+      "NEW_LEAD_FROM_QR": "New lead (QR)",
+      "NEW_LEAD_MANUAL": "New lead",
+      "LEAD_ASSIGNED": "Lead assigned",
+      "LEAD_STATUS_CHANGED": "Status changed",
+      "LEAD_REFERRED": "Lead referred",
+      "LEAD_ID_UPLOADED": "National ID uploaded",
+      "SUGGESTION_UPDATED": "Suggestion updated",
+      "SYSTEM": "System"
+    },
+    "summaries": {
+      "newLeadFromQr": "New lead from QR: {name}",
+      "newLeadManual": "New lead added: {name}",
+      "statusChanged": "{name}: {from} → {to}",
+      "referred": "Lead referred to you: {name}",
+      "assigned": "Lead assigned to you: {name}",
+      "leadIdUploaded": "{name} uploaded their national ID.",
+      "suggestionUpdated": "Your suggestion '{title}' is now {status}"
+    }
+  },
+  "suggestions": {
+    "title": "Suggestions",
+    "subtitle": "Share an idea, report a bug, or send feedback. Admins review every submission.",
+    "subtitleAdmin": "Every suggestion submitted by employees and ambassadors.",
+    "new": "New suggestion",
+    "edit": "Edit",
+    "editTitle": "Edit suggestion",
+    "empty": "No suggestions yet.",
+    "adminResponse": "Admin response",
+    "adminPanel": "Update status",
+    "backToList": "Back to suggestions",
+    "categories": {
+      "IDEA": "Idea",
+      "BUG": "Bug",
+      "COMPLAINT": "Complaint",
+      "OTHER": "Other"
+    },
+    "statuses": {
+      "NEW": "New",
+      "UNDER_REVIEW": "Under review",
+      "ACCEPTED": "Accepted",
+      "IMPLEMENTED": "Implemented",
+      "REJECTED": "Rejected"
+    },
+    "form": {
+      "title": "Title",
+      "category": "Category",
+      "body": "Details",
+      "bodyHint": "Describe the idea, the bug, or the issue — be specific.",
+      "attachment": "Screenshot (optional)",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+      "submit": "Submit",
+      "status": "Status",
+      "response": "Response to submitter (optional)",
+      "responseHint": "Visible to the submitter. They get notified when this changes."
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Update your account settings.",
+    "info": {
+      "title": "Profile",
+      "hint": "Update the information you provided when activating your account.",
+      "groupId": "Group ID",
+      "role": "Role",
+      "businessLine": "Business line",
+      "referralCode": "Referral code",
+      "nameEn": "Full name (English)",
+      "nameAr": "Full name (Arabic)",
+      "email": "Email",
+      "phone": "Phone",
+      "submit": "Save changes",
+      "success": "Profile updated."
+    },
+    "password": {
+      "title": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "hint": "At least 8 characters. Must differ from your current password.",
+      "submit": "Update password",
+      "success": "Password updated."
+    }
   },
   "dashboard": {
     "title": "Welcome, {name}",
-    "phaseOne": "Phase 1 foundation is in place. Catalog and calculator are now live; leads, QR, notifications, and reports arrive in subsequent phases.",
     "yourReferralCode": "Your referral code",
     "role": "Role"
   },
@@ -105,7 +228,9 @@
     "EMPLOYEE": "Employee",
     "TEAM_MANAGER": "Team Manager",
     "BUSINESS_LINE_OWNER": "Business Line Owner",
-    "ADMIN": "Administrator"
+    "ADMIN": "Administrator",
+    "AMBASSADOR": "Ambassador",
+    "AMBASSADOR_MANAGER": "Ambassador Manager"
   },
   "catalog": {
     "title": "Product Catalog",
@@ -113,16 +238,16 @@
     "filters": {
       "businessLine": "Business line",
       "category": "Category",
-      "type": "Product type",
+      "company": "Company",
       "amountRange": "Amount range (EGP)",
-      "tenureRange": "Tenure (months)",
+      "tenureRange": "Tenor (months)",
       "search": "Search products",
       "clear": "Clear filters",
       "any": "Any"
     },
     "card": {
       "amount": "Amount",
-      "tenure": "Tenure",
+      "tenure": "Tenor",
       "rate": "Rate",
       "from": "from",
       "to": "to",
@@ -131,7 +256,7 @@
     },
     "detail": {
       "amountRange": "Amount range",
-      "tenureRange": "Tenure range",
+      "tenureRange": "Tenor range",
       "flatRate": "Flat interest rate",
       "decliningRate": "Declining interest rate",
       "adminFee": "Admin fee",
@@ -152,9 +277,53 @@
   "calculator": {
     "title": "Loan Calculator",
     "subtitle": "Compute monthly installment, admin fees, and amortization for any product.",
+    "mode": {
+      "product": "Product calculator",
+      "affordability": "Affordability check"
+    },
+    "affordability": {
+      "title": "What can the customer afford?",
+      "income": "Monthly net income (EGP)",
+      "dbrHint": "We cap installments at {pct}% of net income (DBR).",
+      "creditCardLimit": "Total credit card limit (EGP)",
+      "creditCardHint": "We subtract {pct}% of the limit as an assumed monthly obligation.",
+      "existingInstallments": "Existing monthly installments (EGP)",
+      "existingInstallmentsHint": "Other consumer-finance installments the customer already pays.",
+      "grossIncome": "Net income",
+      "creditCardCut": "Credit card cut ({pct}% of limit)",
+      "existingInstallmentsCut": "Existing installments",
+      "netIncome": "Net income",
+      "maxMonthly": "Maximum monthly installment",
+      "maxMonthlyExplain": "50% of net income, per the standard debt-burden ratio.",
+      "empty": "No products fit the customer's income and tenor.",
+      "offerLoan": "Max loan",
+      "offerMonthly": "Monthly installment",
+      "range": "Product range",
+      "openInCalculator": "Use this product",
+      "applyForLead": "Apply for a lead",
+      "filtersTitle": "Filters",
+      "any": "Any",
+      "businessLine": "Business line",
+      "category": "Category",
+      "company": "Company",
+      "maxAdminFeePct": "Max admin fee (%)",
+      "maxAdminFeePctPlaceholder": "e.g. 2.5",
+      "insuranceRequiredFilter": "Only products that require insurance"
+    },
     "selectProduct": "Select a product",
+    "installmentPeriod": "Installment period",
+    "installmentPeriodHint": "Set on the product. Drives the tenor unit below.",
+    "periodMonthly": "Monthly",
+    "periodQuarterly": "Quarterly",
+    "periodAnnually": "Annually",
+    "tenureMonths": "Tenor (months)",
+    "tenureQuarters": "Tenor (quarters)",
+    "tenureYears": "Tenor (years)",
+    "invoiceValue": "Invoice price (EGP)",
+    "downPaymentPercent": "Down payment (%)",
+    "minDownPaymentHint": "Minimum {min}%",
     "principal": "Loan amount (EGP)",
-    "tenure": "Tenure (months)",
+    "tenure": "Tenor (months)",
     "calculate": "Calculate",
     "saveQuote": "Save quote",
     "saved": "Quote saved",
@@ -162,6 +331,8 @@
     "copied": "Copied!",
     "result": {
       "monthlyInstallment": "Monthly installment",
+      "loanAmount": "Loan amount",
+      "downPayment": "Down payment",
       "adminFee": "Admin fee",
       "totalInterest": "Total interest",
       "totalPayable": "Total payable",
@@ -181,15 +352,330 @@
       "principal_below_min": "Amount is below the product minimum.",
       "principal_above_max": "Amount exceeds the product maximum.",
       "principal_non_positive": "Amount must be greater than zero.",
-      "tenure_below_min": "Tenure is below the product minimum.",
-      "tenure_above_max": "Tenure exceeds the product maximum.",
-      "tenure_non_integer": "Tenure must be a whole number.",
-      "tenure_non_positive": "Tenure must be greater than zero.",
-      "selectProduct": "Please select a product first."
+      "tenure_below_min": "Tenor is below the product minimum.",
+      "tenure_above_max": "Tenor exceeds the product maximum.",
+      "tenure_non_integer": "Tenor must be a whole number.",
+      "tenure_non_positive": "Tenor must be greater than zero.",
+      "selectProduct": "Please select a product first.",
+      "dp_below_min": "Down payment must be at least {min}%."
+    }
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Manage prospective customers across the sales funnel.",
+    "new": "New lead",
+    "export": "Export CSV",
+    "empty": "No leads match the current filters.",
+    "count": "{n, plural, one {# lead} other {# leads}}",
+    "filters": {
+      "search": "Search by name or phone",
+      "status": "Status",
+      "source": "Source",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear"
+    },
+    "table": {
+      "customer": "Customer",
+      "phone": "Phone",
+      "businessLine": "Business line",
+      "status": "Status",
+      "source": "Source",
+      "owner": "Owner",
+      "created": "Created"
+    },
+    "claim": {
+      "claim": "Assign to me",
+      "claiming": "Claiming…"
+    },
+    "idUpload": {
+      "title": "Send national ID upload link",
+      "subtitle": "Only you (as the assigned owner) can issue this link. The customer opens it and uploads front + back. Link is single-use and expires in 24 hours.",
+      "generate": "Generate link",
+      "generating": "Generating…",
+      "regenerate": "Generate a new link",
+      "issuedTitle": "Link ready.",
+      "issuedBody": "Expires {expires}. Share it via WhatsApp or copy the URL.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "whatsapp": "WhatsApp",
+      "whatsappMessage": "Please upload front + back of your national ID using this link:"
+    },
+    "detail": {
+      "claimUnassigned": "This lead has no owner. Take it.",
+      "claimNewStage": "This lead is still in NEW. You can take it over.",
+      "info": "Customer info",
+      "phone": "Phone",
+      "email": "Email",
+      "nationalId": "National ID",
+      "owner": "Owner",
+      "referredBy": "Referred by",
+      "product": "Product",
+      "preferredTime": "Preferred contact time",
+      "createdAt": "Created",
+      "note": "Customer note",
+      "status": "Status",
+      "editProductTitle": "Business line & product",
+      "timeline": "Activity timeline",
+      "history": "Status history",
+      "addActivity": "Add activity",
+      "noActivities": "No activities yet.",
+      "noHistory": "No status changes yet.",
+      "customFields": "Additional information",
+      "yes": "Yes",
+      "no": "No",
+      "nationalIdImages": "National ID images",
+      "nationalIdFront": "Front",
+      "nationalIdBack": "Back",
+      "backToList": "Back to leads"
+    },
+    "productEdit": {
+      "businessLine": "Business line",
+      "product": "Product",
+      "noProduct": "— (no product)",
+      "saved": "Saved"
+    },
+    "status": {
+      "changeTo": "Change status to",
+      "track": "Track",
+      "trackUnset": "— (unset)",
+      "reason": "Reason",
+      "note": "Note",
+      "update": "Update status",
+      "updating": "Updating…",
+      "terminal": "This lead has reached a terminal status.",
+      "finalLoanAmount": "Final approved loan amount (EGP)",
+      "finalLoanAmountHint": "Required to close the contract. Used to compute commission. Will be verified against the loan system."
+    },
+    "commissionCard": {
+      "title": "Commission",
+      "recipient": "Earned by",
+      "loanAmount": "Loan amount",
+      "tier": "Tier",
+      "commission": "Commission",
+      "disclaimer": "Computed from the product's current tier schedule. Final figure depends on the loan system reconciliation.",
+      "persona": {
+        "EMPLOYEE": "Employee",
+        "AMBASSADOR": "Ambassador"
+      },
+      "reason": {
+        "NO_AMOUNT": "Final loan amount is missing.",
+        "NO_PRODUCT": "This lead has no product attached. Set a product to compute commission.",
+        "NO_RECIPIENT": "No employee or ambassador is linked to this lead, so there's no recipient to pay.",
+        "NO_SCHEDULE": "No commission schedule is configured for this product yet. Ask the admin to set it under Commission settings.",
+        "NO_TIER": "No commission tier covers this loan amount. Ask the admin to add a tier for it."
+      }
+    },
+    "activity": {
+      "type": "Type",
+      "content": "Content",
+      "add": "Add",
+      "adding": "Adding…"
+    },
+    "form": {
+      "customerName": "Customer name",
+      "customerPhone": "Customer phone",
+      "customerEmail": "Customer email",
+      "nationalId": "National ID",
+      "nationalIdFront": "National ID — front",
+      "nationalIdBack": "National ID — back",
+      "nationalIdImageHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+      "businessLine": "Business line",
+      "product": "Product (optional)",
+      "owner": "Assign owner",
+      "preferredContactTime": "Preferred contact time",
+      "preferredContactTimeAny": "— Any time —",
+      "preferredContactTimeSlots": {
+        "morning": "10 AM – 2 PM",
+        "afternoon": "2 PM – 6 PM",
+        "evening": "6 PM – 10 PM"
+      },
+      "customerNote": "Customer note",
+      "employmentType": "Employment type",
+      "branch": "Contact branch",
+      "productPrice": "Product price (EGP)",
+      "downpayment": "Down payment (EGP)",
+      "downpaymentPctHint": "{pct}% of the product price.",
+      "consent": "The customer has consented to be contacted about this enquiry."
+    },
+    "employmentTypes": {
+      "EMPLOYEE": "Employee",
+      "SELF_EMPLOYED": "Self-employed",
+      "BUSINESS_OWNER": "Business owner"
+    },
+    "appStatuses": {
+      "CREDIT_RISK": "Credit risk",
+      "INCOMPLETE": "Incomplete",
+      "INVESTIGATION": "Investigation",
+      "SALES": "Sales (docs)",
+      "APPROVAL": "Approval",
+      "APPROVED_CLIENT": "Approved client",
+      "DENIED": "Denied",
+      "HOLD": "Hold"
+    },
+    "productStatuses": {
+      "P_INITIATE": "P.Initiate",
+      "PRE_EXECUTION": "Pre-execution",
+      "EXECUTION": "Execution",
+      "P_REGISTER": "P.Register",
+      "CONTRACT": "Contract",
+      "HOLD": "Hold",
+      "SALES": "Sales (pending)"
+    },
+    "tracks": {
+      "FAST_TRACK": "Fast track",
+      "NORMAL_TRACK": "Normal track"
+    },
+    "sources": {
+      "QR_CODE": "QR code",
+      "MANUAL_ENTRY": "Manual entry",
+      "REFERRAL": "Referral",
+      "IMPORT": "Import"
+    },
+    "activityTypes": {
+      "CALL": "Call",
+      "NOTE": "Note",
+      "EMAIL": "Email",
+      "WHATSAPP": "WhatsApp",
+      "SMS": "SMS",
+      "FILE": "File",
+      "STATUS_CHANGE": "Status change"
     }
   },
   "admin": {
     "title": "Administration",
+    "leadForm": {
+      "types": {
+        "TEXT": "Short text",
+        "TEXTAREA": "Long text",
+        "NUMBER": "Number",
+        "SELECT": "Dropdown",
+        "BOOLEAN": "Yes / No",
+        "DATE": "Date"
+      }
+    },
+    "commission": {
+      "title": "Commission tables",
+      "subtitle": "Set the per-product commission rates that Employees and Ambassadors see in their portal.",
+      "edit": "Edit",
+      "personaEmployee": "Employee",
+      "personaAmbassador": "Ambassador",
+      "emptyProducts": "No products yet.",
+      "editTitle": "Edit commission",
+      "editor": {
+        "isActive": "Visible to this persona",
+        "from": "From (EGP)",
+        "to": "To (EGP)",
+        "openEnded": "∞ (open)",
+        "valueType": "Type",
+        "valueAmount": "Value",
+        "label": "Label (optional)",
+        "percent": "Percent (%)",
+        "flat": "Flat (EGP)",
+        "remove": "Remove",
+        "addRow": "Add tier",
+        "notes": "Notes (optional)"
+      }
+    },
+    "branches": {
+      "title": "Branches",
+      "subtitle": "Contact branches that customers / employees pick on the lead form.",
+      "newTitle": "Add a branch",
+      "create": "Create branch",
+      "empty": "No branches yet — add the first one above.",
+      "deleteConfirm": "Delete this branch?",
+      "fields": {
+        "slug": "Slug",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "city": "City",
+        "governorate": "Governorate",
+        "address": "Address",
+        "phone": "Phone",
+        "isActive": "Active",
+        "sortOrder": "Sort order"
+      }
+    },
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "Broadcast banners that appear at the top of the dashboard.",
+      "new": "New announcement",
+      "edit": "Edit announcement",
+      "empty": "No announcements yet.",
+      "inactive": "Inactive",
+      "allRoles": "All roles",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete",
+      "form": {
+        "titleEn": "Title (English)",
+        "titleAr": "Title (Arabic)",
+        "bodyEn": "Body (English)",
+        "bodyAr": "Body (Arabic)",
+        "image": "Image",
+        "imageHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+        "clearImage": "Remove image",
+        "targetRoles": "Target roles",
+        "targetRolesHint": "Leave empty to target all roles.",
+        "targetBusinessLines": "Target business lines",
+        "targetBusinessLinesHint": "Leave empty to target every business line.",
+        "startsAt": "Starts at",
+        "endsAt": "Ends at",
+        "isActive": "Active",
+        "sendNotification": "Send an in-app notification to targeted users",
+        "alreadySent": "already sent",
+        "create": "Create announcement"
+      }
+    },
+    "permissions": {
+      "title": "Role permissions",
+      "subtitle": "Pick a role and tick the features and actions it can access.",
+      "selectRole": "Role",
+      "hint": "Changes apply within ~30 seconds across the app.",
+      "featuresHeading": "Features (sidebar)",
+      "actionsHeading": "Actions",
+      "save": "Save changes",
+      "saved": "Saved.",
+      "features": {
+        "dashboard": "Dashboard",
+        "catalog": "Product catalog",
+        "calculator": "Calculator (page)",
+        "calculatorProduct": "Calculator — installment mode",
+        "calculatorAffordability": "Calculator — affordability mode",
+        "leads": "Leads",
+        "qr": "QR campaigns",
+        "ambassadors": "Ambassadors",
+        "commission": "Commission",
+        "notifications": "Notifications",
+        "reports": "Reports",
+        "configuration": "Configuration",
+        "products": "Admin — products",
+        "categories": "Admin — categories"
+      },
+      "resources": {
+        "catalog": "Catalog",
+        "product": "Products",
+        "productCategory": "Categories",
+        "productAttribute": "Attributes",
+        "businessLine": "Business lines",
+        "calculator": "Calculator",
+        "quote": "Quotes",
+        "lead": "Leads",
+        "qr": "QR campaigns",
+        "notification": "Notifications",
+        "report": "Reports"
+      },
+      "actions": {
+        "create": "Create",
+        "read": "View",
+        "update": "Edit",
+        "delete": "Delete",
+        "list": "List",
+        "export": "Export",
+        "assign": "Assign"
+      }
+    },
     "categories": {
       "title": "Categories",
       "subtitle": "Group products into categories under each business line.",
@@ -205,19 +691,114 @@
         "sortOrder": "Sort order",
         "isActive": "Active"
       },
+      "attributes": {
+        "title": "Product attributes",
+        "help": "Pick which attributes appear on products in this category, and which are required.",
+        "attribute": "Attribute",
+        "visible": "Visible",
+        "required": "Required",
+        "labels": {
+          "amountRange": "Loan amount range (min / max)",
+          "tenureRange": "Tenor range (months)",
+          "flatRate": "Flat interest rate",
+          "decliningRate": "Declining interest rate",
+          "adminFee": "Admin fee (% + min / max)",
+          "insurance": "Insurance",
+          "earlySettlement": "Early settlement fee",
+          "latePayment": "Late payment fee",
+          "eligibility": "Eligibility text",
+          "documents": "Required documents list"
+        }
+      },
+      "customAttributes": {
+        "title": "Custom attributes for this category",
+        "help": "Pick which attributes appear on products in this category. Each product fills in its own values.",
+        "noneDefined": "No attributes have been defined yet. Visit Admin → Attributes to create the first one.",
+        "notSelected": "Not included in this category."
+      },
       "deleteConfirm": "Are you sure you want to deactivate this category?",
-      "empty": "No categories yet. Create one to get started."
+      "empty": "No categories yet. Create one to get started.",
+      "bulk": {
+        "title": "Bulk create / edit via CSV",
+        "subtitle": "Download the current categories, edit in Excel, upload to apply. Rows whose slug already exists are updated; new slugs are created. Attribute mappings are not changed by bulk upload.",
+        "download": "Download CSV",
+        "upload": "Upload",
+        "summary": "{created} created · {updated} updated.",
+        "errorsToggle": "Show row errors",
+        "rowPrefix": "Row {row}",
+        "purge": "Permanently delete inactive",
+        "purgeConfirm": "Permanently delete every inactive category that has no products attached? This cannot be undone.",
+        "purgeSummary": "{deleted} permanently deleted · {skipped} skipped (still have products).",
+        "purgeSkippedToggle": "Show skipped categories",
+        "purgeSkippedReason": "{count} products still reference this category"
+      }
+    },
+    "attributes": {
+      "title": "Attributes",
+      "subtitle": "Global registry of custom product attributes. Categories pick which to apply and set values.",
+      "new": "New attribute",
+      "edit": "Edit attribute",
+      "empty": "No attributes yet. Create one to get started.",
+      "fields": {
+        "key": "Key",
+        "keyHelp": "Stable kebab-case identifier (e.g. \"vehicle-make\"). Used internally; cannot be a duplicate.",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "helpEn": "Help text (English)",
+        "helpAr": "Help text (Arabic)",
+        "type": "Type",
+        "sortOrder": "Sort order",
+        "isActive": "Active",
+        "optionsTitle": "SELECT options",
+        "optionsHelp": "List the choices a category can pick for this attribute.",
+        "optionsEmpty": "No options yet. Add at least one.",
+        "optionValue": "Value",
+        "optionLabelEn": "Label (English)",
+        "optionLabelAr": "Label (Arabic)",
+        "optionAdd": "Add option",
+        "optionRemove": "Remove"
+      },
+      "types": {
+        "TEXT": "Text",
+        "NUMBER": "Number",
+        "BOOLEAN": "Yes / No",
+        "SELECT": "Select"
+      }
     },
     "users": {
       "title": "Users",
       "subtitle": "Provision new employees by group ID. They activate their own account on first login.",
       "new": "New employee",
       "newSubtitle": "Issue a group ID. The employee fills in their name, email, phone and password on first login.",
+      "edit": "Edit employee",
+      "search": {
+        "placeholder": "Search by group ID, name, email, or phone…",
+        "search": "Search",
+        "clear": "Clear",
+        "empty": "No users match the search."
+      },
       "fields": {
         "groupId": "Group ID",
         "role": "Role",
         "businessLine": "Business line",
-        "manager": "Manager"
+        "manager": "Manager",
+        "capabilities": "Capabilities",
+        "capabilitiesHelp": "Per-user grants on top of the role. Administrators always have these implicitly.",
+        "canEditProducts": "Edit products",
+        "canEditProductsHelp": "Create, update, or deactivate any product across all business lines.",
+        "canEditCatalog": "Edit categories & product variables",
+        "canEditCatalogHelp": "Manage product categories and the informational variables shown on each product."
+      },
+      "resetPassword": {
+        "title": "Issue password reset link",
+        "subtitle": "Generates a single-use reset link valid for 30 minutes. Use when the user can't receive the self-serve link via email or WhatsApp.",
+        "issue": "Generate reset link",
+        "reissue": "Generate a new link",
+        "issuing": "Generating…",
+        "issuedTitle": "Reset link ready.",
+        "issuedBody": "Share this link with the user via a secure channel. It expires in 30 minutes and can be used only once.",
+        "copy": "Copy",
+        "copied": "Copied"
       }
     },
     "products": {
@@ -226,6 +807,15 @@
       "new": "New product",
       "edit": "Edit product",
       "deleteConfirm": "Are you sure you want to deactivate this product?",
+      "bulk": {
+        "title": "Bulk edit via CSV",
+        "subtitle": "Download the current products, edit in Excel, upload to apply. Rows with a blank id are created as new products.",
+        "download": "Download CSV",
+        "upload": "Upload",
+        "summary": "{created} created · {updated} updated.",
+        "errorsToggle": "Show row errors",
+        "rowPrefix": "Row {row}"
+      },
       "sections": {
         "basics": "Basics",
         "descriptions": "Descriptions",
@@ -233,13 +823,13 @@
         "rates": "Interest rates",
         "fees": "Admin fee",
         "policy": "Policy lines",
-        "variables": "Variables (informational attributes)",
+        "customAttributes": "Custom attributes",
         "media": "Media"
       },
       "fields": {
         "businessLine": "Business line",
         "category": "Category",
-        "type": "Product type",
+        "company": "Company",
         "nameEn": "Name (English)",
         "nameAr": "Name (Arabic)",
         "shortDescEn": "Short description (English)",
@@ -252,16 +842,22 @@
         "documentsAr": "Required documents (Arabic) — comma-separated",
         "amountMinEgp": "Minimum amount (EGP)",
         "amountMaxEgp": "Maximum amount (EGP)",
-        "tenureMinMonths": "Minimum tenure (months)",
-        "tenureMaxMonths": "Maximum tenure (months)",
-        "flatInterestRateBps": "Flat interest rate (basis points)",
-        "decliningInterestRateBps": "Declining interest rate (basis points)",
-        "adminFeeBps": "Admin fee percentage (basis points)",
+        "tenureMinMonths": "Minimum tenor (months)",
+        "tenureMaxMonths": "Maximum tenor (months)",
+        "installmentPeriod": "Installment period",
+        "installmentPeriodHint": "How often the customer pays. The calculator uses this to compute the per-period installment.",
+        "periodMonthly": "Monthly",
+        "periodQuarterly": "Quarterly",
+        "periodAnnually": "Annually",
+        "flatInterestRateBps": "Flat interest rate (%)",
+        "decliningInterestRateBps": "Declining interest rate (%)",
+        "adminFeeBps": "Admin fee (%)",
         "adminFeeMinEgp": "Admin fee minimum (EGP)",
         "adminFeeMaxEgp": "Admin fee maximum (EGP)",
         "insuranceRequired": "Insurance required",
-        "earlySettlementFeeBps": "Early settlement fee (basis points)",
-        "latePaymentFeeBps": "Late payment fee (basis points)",
+        "minDownPaymentBps": "Minimum down payment (%)",
+        "earlySettlementFeeBps": "Early settlement fee (%)",
+        "latePaymentFeeBps": "Late payment fee (%)",
         "heroImageUrl": "Hero image",
         "isFeatured": "Featured",
         "isActive": "Active"
@@ -278,7 +874,7 @@
       "uploadImage": "Upload image",
       "uploadingImage": "Uploading…",
       "uploadFailed": "Image upload failed",
-      "rateHelp": "Basis points: 1850 = 18.50%."
+      "uploadDisabled": "Image uploads are disabled in this environment."
     }
   },
   "productTypes": {
@@ -294,7 +890,293 @@
   },
   "public": {
     "leadCapture": {
-      "comingSoon": "Public lead capture page — implemented in Phase 4."
+      "comingSoon": "Public lead capture page.",
+      "referredBy": "Referred by",
+      "intro": "Leave your details and a Contact Financial representative will reach out shortly.",
+      "submit": "Submit enquiry",
+      "submitting": "Submitting…",
+      "thanks": "Thanks — we've got your details and someone will be in touch shortly."
+    },
+    "ambassadorSignup": {
+      "intro": "Join Contact Financial as an ambassador. You'll get your own referral link to share with prospective customers.",
+      "nameEn": "Full name (English)",
+      "nameAr": "Full name (Arabic)",
+      "email": "Email",
+      "phone": "Phone",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "consent": "I agree to Contact Financial's ambassador terms.",
+      "submit": "Become an ambassador",
+      "submitting": "Creating your account…",
+      "thanks": "Welcome aboard — your account is ready."
+    },
+    "ambassadorApplication": {
+      "intro": "Apply to become a Contact Financial ambassador. Our team will review and contact you.",
+      "name": "Full name",
+      "phone": "Phone",
+      "nationalIdImage": "National ID photo",
+      "nationalIdImageHint": "PNG / JPEG / WEBP / GIF, up to 5 MB.",
+      "submit": "Submit application",
+      "submitting": "Submitting…",
+      "thanks": "Thanks — your application is in. We'll be in touch shortly."
+    },
+    "ambassadorInvite": {
+      "title": "Set up your ambassador account",
+      "subtitle": "Confirm your phone and choose a password to finish.",
+      "intro": "You were approved as a Contact Financial ambassador. Set a password to get started.",
+      "phone": "Phone",
+      "phoneHint": "Enter the same phone number you used in your application.",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "submit": "Activate my account",
+      "submitting": "Activating…"
+    },
+    "passwordReset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password to sign back in.",
+      "password": "New password",
+      "passwordHint": "At least 8 characters.",
+      "passwordConfirm": "Confirm password",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "doneTitle": "Password updated.",
+      "doneBody": "Your new password is active. Sign in to continue.",
+      "toLogin": "Go to sign in"
+    },
+    "leadIdUpload": {
+      "title": "Upload your national ID",
+      "subtitle": "Please upload clear photos of the front and back of your national ID. The link expires in 24 hours and can only be used once.",
+      "front": "Front side",
+      "back": "Back side",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF, up to 5 MB each.",
+      "submit": "Submit",
+      "submitting": "Submitting…",
+      "doneTitle": "Thanks — we've received your ID.",
+      "doneBody": "Your Contact Financial representative will follow up shortly."
+    }
+  },
+  "qrTemplates": {
+    "title": "QR Landing Templates",
+    "subtitle": "Reusable header, title, subtitle, and body content for QR landing pages.",
+    "new": "New template",
+    "edit": "Edit template",
+    "empty": "No templates yet. Create one to let admins pick it when setting up a campaign.",
+    "listTitle": "Templates",
+    "active": "Active",
+    "inactive": "Inactive",
+    "table": {
+      "name": "Name",
+      "status": "Status"
+    },
+    "form": {
+      "name": "Template name",
+      "kind": "Template type",
+      "kindLeadCapture": "Lead capture",
+      "kindAmbassadorInvite": "Ambassador application",
+      "kindHint": "Choose what the public landing page collects: a lead enquiry or an ambassador application.",
+      "headerImageUrl": "Header image URL",
+      "titleEn": "Title (English)",
+      "titleAr": "Title (Arabic)",
+      "subtitleEn": "Subtitle (English)",
+      "subtitleAr": "Subtitle (Arabic)",
+      "bodyEn": "Body (English) — Markdown",
+      "bodyAr": "Body (Arabic) — Markdown"
+    }
+  },
+  "qr": {
+    "title": "QR Campaigns",
+    "subtitle": "Track scans and leads from campaign-specific QR codes.",
+    "newCampaign": "New campaign",
+    "close": "Cancel",
+    "edit": "Edit campaign",
+    "empty": "No campaigns yet.",
+    "shareUrl": "Share URL",
+    "scans": "Scans",
+    "leads": "Leads",
+    "conversion": "Conversion",
+    "downloadPng": "Download QR PNG",
+    "inactive": "Inactive",
+    "browseTemplates": "Browse templates",
+    "useTemplate": "Use this template",
+    "range": {
+      "label": "Range",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "all": "All time",
+      "from": "From",
+      "to": "To"
+    },
+    "gallery": {
+      "title": "Campaign templates",
+      "subtitle": "Pick a template to create your own campaign with a unique share link and QR code.",
+      "empty": "No templates available yet."
+    },
+    "form": {
+      "name": "Campaign name",
+      "employee": "Owner (employee)",
+      "kind": "Campaign type",
+      "kindLeadCapture": "Lead capture",
+      "kindAmbassadorInvite": "Ambassador invite",
+      "kindHintLead": "Customers landing here submit a lead.",
+      "kindHintAmbassador": "People landing here join as ambassadors under your account.",
+      "product": "Linked product (optional)",
+      "create": "Create campaign",
+      "created": "Campaign created — slug {slug}",
+      "landingSection": "Public landing page",
+      "headerImageUrl": "Header image URL",
+      "headerImageHint": "Optional. Paste an image URL (HTTPS). Shown full-width at the top.",
+      "template": "Use template",
+      "templatePlaceholder": "— Pick a template to pre-fill —",
+      "templateHint": "Selecting a template overwrites the fields below. You can still edit them per campaign.",
+      "titleEn": "Title (English)",
+      "titleAr": "Title (Arabic)",
+      "subtitleEn": "Subtitle (English)",
+      "subtitleAr": "Subtitle (Arabic)",
+      "bodyEn": "Body (English) — Markdown",
+      "bodyAr": "Body (Arabic) — Markdown",
+      "bodyHint": "Markdown: **bold**, *italic*, [link](https://…), - lists, ## heading. Raw HTML is stripped.",
+      "customFields": {
+        "title": "Custom fields shown on the landing form",
+        "subtitle": "These appear under the built-in name / phone / email block on the public landing page.",
+        "addField": "Add field",
+        "empty": "No custom fields yet. Click 'Add field' to start.",
+        "fieldKey": "Field key (snake_case)",
+        "fieldType": "Type",
+        "labelEn": "Label (English)",
+        "labelAr": "Label (Arabic)",
+        "required": "Required",
+        "options": "Options",
+        "addOption": "Add option",
+        "noOptions": "No options yet. Add at least one for a dropdown.",
+        "optionValue": "Value",
+        "optionLabelEn": "Label (English)",
+        "optionLabelAr": "Label (Arabic)",
+        "copyFrom": "Copy fields from",
+        "copyPlaceholder": "— Copy from another campaign —"
+      }
+    }
+  },
+  "configuration": {
+    "title": "Configuration",
+    "subtitle": "API keys and integrations for outbound channels. Secrets are encrypted at rest.",
+    "whatsapp": {
+      "title": "WhatsApp",
+      "subtitle": "Meta Business Cloud API credentials.",
+      "accessToken": "Access token",
+      "accessTokenHint": "Long-lived token issued by Meta for your WhatsApp Business app.",
+      "phoneNumberId": "Phone number ID",
+      "businessAccountId": "Business account ID (optional)",
+      "isEnabled": "Enabled",
+      "storedSecret": "•••••• stored",
+      "storedSecretHint": "Leave blank to keep the saved token; enter a new value to replace it."
+    },
+    "email": {
+      "title": "Email (SMTP)",
+      "subtitle": "Outbound SMTP relay used for transactional emails.",
+      "smtpHost": "SMTP host",
+      "smtpPort": "Port",
+      "smtpUser": "Username",
+      "smtpPass": "Password",
+      "smtpPassHint": "Stored encrypted. Leave blank to keep the current password.",
+      "smtpSecure": "Use TLS/SSL",
+      "fromAddress": "From address",
+      "fromName": "From name",
+      "isEnabled": "Enabled",
+      "storedSecret": "•••••• stored",
+      "storedSecretHint": "Leave blank to keep the saved password; enter a new value to replace it."
+    }
+  },
+  "commission": {
+    "title": "Commission",
+    "subtitle": {
+      "EMPLOYEE": "Your per-product commission rates.",
+      "AMBASSADOR": "Your per-product commission rates as an ambassador.",
+      "ADMIN": "All per-product commission rates in the system."
+    },
+    "sectionEmployee": "Employee commissions",
+    "sectionAmbassador": "Ambassador commissions",
+    "sectionEarned": "Earned commissions",
+    "earnedSubtitle": "Contracted leads and the commission they generated.",
+    "earnedEmpty": "No commissions earned yet. Commission appears here once a lead reaches CONTRACT with a final loan amount.",
+    "earnedColumns": {
+      "lead": "Lead",
+      "product": "Product",
+      "recipient": "Recipient",
+      "amount": "Loan amount",
+      "commission": "Commission",
+      "closedAt": "Closed",
+      "persona": "Type"
+    },
+    "noMatchingTier": "No matching tier",
+    "empty": "No commission rates published yet.",
+    "noTiers": "No tiers configured.",
+    "columns": {
+      "bracket": "Loan amount",
+      "value": "Commission"
+    }
+  },
+  "ambassadors": {
+    "title": "My ambassadors",
+    "subtitle": "People who joined Contact Financial through your invite campaigns.",
+    "empty": "No ambassadors yet. Create an Ambassador-invite QR campaign to start.",
+    "leads": "Leads brought in",
+    "invitedBy": "Invited by",
+    "viewLeads": "View their leads →",
+    "inactive": "Inactive",
+    "tabs": {
+      "active": "Active ambassadors",
+      "pending": "Pending Ambassadors"
+    },
+    "leads": {
+      "title": "Ambassador leads",
+      "subtitle": "All leads brought in by your {count} ambassador(s).",
+      "empty": "No leads yet from your ambassadors.",
+      "open": "Open →",
+      "columns": {
+        "customer": "Customer",
+        "phone": "Phone",
+        "ambassador": "Ambassador",
+        "businessLine": "Business line",
+        "status": "Status",
+        "createdAt": "Created"
+      }
+    },
+    "profile": {
+      "backToList": "Back to pending ambassadors",
+      "name": "Name",
+      "phone": "Phone",
+      "appliedAt": "Applied",
+      "campaign": "Campaign",
+      "acceptedAt": "Accepted at",
+      "rejectedReason": "Reason for rejection",
+      "nationalId": "National ID photo",
+      "openFullSize": "Open full size →"
+    },
+    "applications": {
+      "empty": "No pending ambassadors.",
+      "statuses": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmReject": "Confirm rejection",
+      "cancel": "Cancel",
+      "approved": "Approved. Share this link with the candidate:",
+      "rejectedConfirmation": "Application rejected.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "e.g. Documents unclear, please resubmit",
+      "copy": "Copy link",
+      "copied": "Copied!",
+      "whatsapp": "Send on WhatsApp",
+      "whatsappMessage": "You've been approved as a Contact Financial ambassador. Set your password here:",
+      "expiresHint": "Link expires in 7 days.",
+      "inviteHidden": "Invite link is hidden after page refresh. Get a fresh one →",
+      "getLink": "Get invite link",
+      "regenerate": "Regenerate link",
+      "submitting": "Working…"
     }
   },
   "errors": {

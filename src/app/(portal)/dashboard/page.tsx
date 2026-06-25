@@ -1,11 +1,35 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/prisma";
+import { announcementRepository } from "@/server/repositories/announcement.repository";
+import { localized } from "@/lib/i18n/localized";
+import type { AppLocale } from "@/lib/i18n/config";
 
 export default async function DashboardPage() {
   const session = await auth();
+  const locale = (await getLocale()) as AppLocale;
   const t = await getTranslations("dashboard");
   const tRoles = await getTranslations("roles");
   const name = session?.user?.name ?? session?.user?.email ?? "";
+
+  // Read referralCode live from DB so a freshly-migrated user (referralCode
+  // mirrors groupId) sees the new value without signing out — the JWT may
+  // still hold the old one.
+  const live = session?.user?.id
+    ? await prisma.user
+        .findUnique({ where: { id: session.user.id }, select: { referralCode: true } })
+        .catch(() => null)
+    : null;
+  const referralCode = live?.referralCode ?? session?.user?.referralCode ?? "";
+
+  const announcements = session?.user
+    ? await announcementRepository
+        .listVisible({
+          role: session.user.role,
+          businessLineId: session.user.businessLineId,
+        })
+        .catch(() => [])
+    : [];
 
   return (
     <div className="space-y-6">
@@ -19,7 +43,7 @@ export default async function DashboardPage() {
           <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("yourReferralCode")}
           </p>
-          <p className="mt-2 font-mono text-xl font-semibold">{session?.user.referralCode}</p>
+          <p className="mt-2 font-mono text-xl font-semibold">{referralCode}</p>
         </div>
         <div className="rounded-lg border bg-card p-5 shadow-soft">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("role")}</p>
@@ -27,7 +51,31 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <p className="max-w-2xl text-sm text-muted-foreground">{t("phaseOne")}</p>
+      {announcements.length > 0 ? (
+        <div className="space-y-3">
+          {announcements.map((a) => (
+            <article key={a.id} className="overflow-hidden rounded-lg border bg-card shadow-soft">
+              {a.imageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={a.imageUrl}
+                  alt=""
+                  className="max-h-48 w-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : null}
+              <div className="space-y-1 p-4">
+                <h2 className="text-base font-semibold">
+                  {localized(locale, a.titleEn, a.titleAr)}
+                </h2>
+                <p className="whitespace-pre-line text-sm text-muted-foreground">
+                  {localized(locale, a.bodyEn, a.bodyAr)}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

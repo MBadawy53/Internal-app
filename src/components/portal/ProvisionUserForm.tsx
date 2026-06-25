@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Role } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -47,11 +48,13 @@ export function ProvisionUserForm({ businessLines }: { businessLines: BL[] }) {
         <div className="space-y-1.5">
           <Label htmlFor="role">{t("role")}</Label>
           <Select id="role" name="role" defaultValue={Role.EMPLOYEE} required>
-            {Object.values(Role).map((r) => (
-              <option key={r} value={r}>
-                {tRoles(r)}
-              </option>
-            ))}
+            {Object.values(Role)
+              .filter((r) => r !== Role.AMBASSADOR)
+              .map((r) => (
+                <option key={r} value={r}>
+                  {tRoles(r)}
+                </option>
+              ))}
           </Select>
         </div>
         <div className="space-y-1.5">
@@ -66,6 +69,29 @@ export function ProvisionUserForm({ businessLines }: { businessLines: BL[] }) {
           </Select>
         </div>
       </div>
+
+      <fieldset className="rounded-md border p-4">
+        <legend className="px-1 text-sm font-medium">{t("capabilities")}</legend>
+        <p className="mb-3 text-xs text-muted-foreground">{t("capabilitiesHelp")}</p>
+        <div className="space-y-2">
+          <label className="flex items-start gap-2 text-sm">
+            <Checkbox name="canEditProducts" className="mt-0.5" />
+            <span>
+              <span className="font-medium">{t("canEditProducts")}</span>
+              <span className="block text-xs text-muted-foreground">
+                {t("canEditProductsHelp")}
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <Checkbox name="canEditCatalog" className="mt-0.5" />
+            <span>
+              <span className="font-medium">{t("canEditCatalog")}</span>
+              <span className="block text-xs text-muted-foreground">{t("canEditCatalogHelp")}</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
 
       {state?.ok === false && state.message ? (
         <p role="alert" className="text-sm text-destructive">

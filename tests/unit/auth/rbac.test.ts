@@ -39,7 +39,13 @@ describe("requirePermission", () => {
   it("throws ForbiddenError when role lacks the permission", () => {
     expect(() =>
       requirePermission(
-        { id: "u1", role: Role.EMPLOYEE, businessLineId: "bl1" },
+        {
+          id: "u1",
+          role: Role.EMPLOYEE,
+          businessLineId: "bl1",
+          canEditProducts: false,
+          canEditCatalog: false,
+        },
         "create",
         "product",
       ),
@@ -48,10 +54,46 @@ describe("requirePermission", () => {
 
   it("returns the granted scope when permitted", () => {
     const scope = requirePermission(
-      { id: "u1", role: Role.TEAM_MANAGER, businessLineId: "bl1" },
+      {
+        id: "u1",
+        role: Role.TEAM_MANAGER,
+        businessLineId: "bl1",
+        canEditProducts: false,
+        canEditCatalog: false,
+      },
       "list",
       "lead",
     );
     expect(scope).toBe("team");
+  });
+
+  it("canEditProducts flag grants 'all' scope on product CRUD regardless of role", () => {
+    const actor = {
+      id: "u1",
+      role: Role.EMPLOYEE,
+      businessLineId: null,
+      canEditProducts: true,
+      canEditCatalog: false,
+    };
+    expect(requirePermission(actor, "create", "product")).toBe("all");
+    expect(requirePermission(actor, "update", "product")).toBe("all");
+    expect(requirePermission(actor, "delete", "product")).toBe("all");
+    // But the flag does NOT grant catalog rights.
+    expect(() => requirePermission(actor, "create", "productCategory")).toThrow(ForbiddenError);
+  });
+
+  it("canEditCatalog flag grants 'all' scope on category and variable CRUD", () => {
+    const actor = {
+      id: "u2",
+      role: Role.EMPLOYEE,
+      businessLineId: null,
+      canEditProducts: false,
+      canEditCatalog: true,
+    };
+    expect(requirePermission(actor, "create", "productCategory")).toBe("all");
+    expect(requirePermission(actor, "update", "productCategory")).toBe("all");
+    expect(requirePermission(actor, "delete", "productCategory")).toBe("all");
+    // But the flag does NOT grant product CRUD.
+    expect(() => requirePermission(actor, "create", "product")).toThrow(ForbiddenError);
   });
 });

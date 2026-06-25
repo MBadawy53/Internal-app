@@ -7,7 +7,7 @@ export const RESOURCES = [
   "catalog",
   "product",
   "productCategory",
-  "productVariable",
+  "productAttribute",
   "calculator",
   "quote",
   "lead",
@@ -43,8 +43,10 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:product": "all",
     "list:productCategory": "all",
     "read:productCategory": "all",
-    "list:productVariable": "all",
-    "read:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -77,8 +79,10 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:product": "all",
     "list:productCategory": "all",
     "read:productCategory": "all",
-    "list:productVariable": "all",
-    "read:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -109,6 +113,8 @@ export const ROLE_MATRIX: RoleMatrix = {
     "read:catalog": "all",
     "list:product": "all",
     "read:product": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
     "create:product": "businessLine",
     "update:product": "businessLine",
     "delete:product": "businessLine",
@@ -120,12 +126,7 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:productCategory": "all",
     "delete:productCategory": "all",
 
-    // Variables piggyback on the product they belong to.
-    "list:productVariable": "all",
-    "read:productVariable": "all",
-    "create:productVariable": "businessLine",
-    "update:productVariable": "businessLine",
-    "delete:productVariable": "businessLine",
+    // Attributes are admin-only at create/update/delete; all roles can read.
 
     "read:calculator": "all",
     "create:quote": "own",
@@ -166,11 +167,11 @@ export const ROLE_MATRIX: RoleMatrix = {
     "update:productCategory": "all",
     "delete:productCategory": "all",
 
-    "list:productVariable": "all",
-    "read:productVariable": "all",
-    "create:productVariable": "all",
-    "update:productVariable": "all",
-    "delete:productVariable": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "create:productAttribute": "all",
+    "update:productAttribute": "all",
+    "delete:productAttribute": "all",
 
     "read:calculator": "all",
     "create:quote": "all",
@@ -220,6 +221,65 @@ export const ROLE_MATRIX: RoleMatrix = {
     "list:messageTemplate": "all",
     "update:messageTemplate": "all",
   },
+
+  AMBASSADOR_MANAGER: {
+    "read:catalog": "all",
+    "list:product": "all",
+    "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
+
+    "read:calculator": "all",
+    "create:quote": "own",
+    "read:quote": "own",
+    "list:quote": "own",
+
+    // Same as EMPLOYEE; the row-level scope is narrowed by the repository to
+    // "ambassador-referred leads in my business line only".
+    "create:lead": "own",
+    "read:lead": "own",
+    "list:lead": "own",
+    "update:lead": "own",
+    "export:lead": "own",
+    "assign:lead": "own",
+
+    "read:notification": "own",
+    "list:notification": "own",
+    "update:notification": "own",
+
+    "read:report": "own",
+  },
+
+  AMBASSADOR: {
+    "read:catalog": "all",
+    "list:product": "all",
+    "read:product": "all",
+    "list:productCategory": "all",
+    "read:productCategory": "all",
+    "list:productAttribute": "all",
+    "read:productAttribute": "all",
+    "list:businessLine": "all",
+    "read:businessLine": "all",
+
+    "create:lead": "own",
+    "read:lead": "own",
+    "list:lead": "own",
+    "update:lead": "own",
+
+    "create:qr": "own",
+    "read:qr": "own",
+    "list:qr": "own",
+    "update:qr": "own",
+    "delete:qr": "own",
+
+    "read:notification": "own",
+    "list:notification": "own",
+    "update:notification": "own",
+  },
 };
 
 /**
@@ -227,9 +287,143 @@ export const ROLE_MATRIX: RoleMatrix = {
  */
 export function scopeFor(role: Role, action: Action, resource: Resource): Scope {
   const key: Permission = `${action}:${resource}`;
-  return ROLE_MATRIX[role][key] ?? "none";
+  return EFFECTIVE_MATRIX[role][key] ?? "none";
 }
 
 export function can(role: Role, action: Action, resource: Resource): boolean {
   return scopeFor(role, action, resource) !== "none";
+}
+
+// ─── Runtime override layer ──────────────────────────────────────────────────
+// The ROLE_MATRIX above is the SAFE DEFAULT. Admins can layer overrides on top
+// (via /admin/permissions). The effective matrix is loaded from the DB lazily,
+// cached for TTL_MS, and refreshed by `ensureEffectiveMatrix()` — which is
+// awaited from `requireActor()` so every authenticated request gets a fresh
+// view bounded by the TTL.
+
+export const FEATURE_KEYS = [
+  "dashboard",
+  "catalog",
+  "calculator",
+  "calculatorProduct",
+  "calculatorAffordability",
+  "leads",
+  "qr",
+  "ambassadors",
+  "notifications",
+  "reports",
+  "products",
+  "categories",
+  "commission",
+  "configuration",
+  "suggestions",
+] as const;
+export type FeatureKey = (typeof FEATURE_KEYS)[number];
+
+// (action, resource) pairs admins are allowed to toggle in /admin/permissions.
+// Excludes admin-only resources (user, integrationConfig, auditLog,
+// messageTemplate) so admins can't accidentally hand those out.
+export const EDITABLE_PERMS: ReadonlyArray<{ action: Action; resource: Resource }> = [
+  { action: "read", resource: "catalog" },
+  { action: "list", resource: "product" },
+  { action: "read", resource: "product" },
+  { action: "create", resource: "product" },
+  { action: "update", resource: "product" },
+  { action: "delete", resource: "product" },
+  { action: "list", resource: "productCategory" },
+  { action: "read", resource: "productCategory" },
+  { action: "create", resource: "productCategory" },
+  { action: "update", resource: "productCategory" },
+  { action: "delete", resource: "productCategory" },
+  { action: "list", resource: "productAttribute" },
+  { action: "read", resource: "productAttribute" },
+  { action: "list", resource: "businessLine" },
+  { action: "read", resource: "businessLine" },
+  { action: "read", resource: "calculator" },
+  { action: "create", resource: "quote" },
+  { action: "read", resource: "quote" },
+  { action: "list", resource: "quote" },
+  { action: "create", resource: "lead" },
+  { action: "read", resource: "lead" },
+  { action: "list", resource: "lead" },
+  { action: "update", resource: "lead" },
+  { action: "delete", resource: "lead" },
+  { action: "export", resource: "lead" },
+  { action: "assign", resource: "lead" },
+  { action: "create", resource: "qr" },
+  { action: "read", resource: "qr" },
+  { action: "list", resource: "qr" },
+  { action: "update", resource: "qr" },
+  { action: "delete", resource: "qr" },
+  { action: "read", resource: "notification" },
+  { action: "list", resource: "notification" },
+  { action: "update", resource: "notification" },
+  { action: "read", resource: "report" },
+];
+
+let EFFECTIVE_MATRIX: RoleMatrix = structuredClone(ROLE_MATRIX);
+let VISIBILITY: Partial<Record<Role, Partial<Record<FeatureKey, boolean>>>> = {};
+let LOADED_AT = 0;
+const TTL_MS = 30_000;
+
+/** Bust the cache so the next ensure() call reloads from DB. */
+export function invalidateEffectiveMatrix(): void {
+  LOADED_AT = 0;
+}
+
+/**
+ * Refresh the in-memory effective matrix + feature visibility from the DB if
+ * the cache has expired. Safe to call on every authenticated request.
+ */
+export async function ensureEffectiveMatrix(): Promise<void> {
+  const now = Date.now();
+  if (now - LOADED_AT < TTL_MS) return;
+  // Lazy-import prisma so this module stays usable in places that import
+  // RBAC types without dragging the client in (e.g. edge runtime).
+  const { prisma } = await import("@/lib/prisma");
+  try {
+    const [perms, visRows] = await Promise.all([
+      prisma.rolePermission.findMany(),
+      prisma.roleFeatureAccess.findMany(),
+    ]);
+    const fresh = structuredClone(ROLE_MATRIX);
+    for (const p of perms) {
+      if (p.role === "ADMIN") continue;
+      const key = `${p.action}:${p.resource}` as Permission;
+      if (p.enabled) {
+        // Grant with hardcoded scope if present, else 'own' as a conservative default.
+        fresh[p.role][key] = fresh[p.role][key] ?? "own";
+      } else {
+        delete fresh[p.role][key];
+      }
+    }
+    const visibility: typeof VISIBILITY = {};
+    for (const v of visRows) {
+      if (v.role === "ADMIN") continue;
+      const r = (visibility[v.role] ??= {});
+      r[v.feature as FeatureKey] = v.visible;
+    }
+    EFFECTIVE_MATRIX = fresh;
+    VISIBILITY = visibility;
+    LOADED_AT = now;
+  } catch {
+    // DB unreachable or tables missing (pre-migration). Fall back to defaults.
+    LOADED_AT = now;
+  }
+}
+
+/**
+ * Is the given feature visible (in the sidebar / page guard) for this role?
+ * ADMIN always sees everything. For non-admin roles, an explicit DB row wins;
+ * otherwise the default is `true` for every feature.
+ */
+export function isFeatureVisible(role: Role, feature: FeatureKey): boolean {
+  if (role === "ADMIN") return true;
+  const override = VISIBILITY[role]?.[feature];
+  return override ?? true;
+}
+
+/** Snapshot of every visible feature for a role (used to hydrate the sidebar). */
+export function visibleFeaturesFor(role: Role): FeatureKey[] {
+  return FEATURE_KEYS.filter((f) => isFeatureVisible(role, f));
 }

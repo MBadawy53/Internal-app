@@ -29,17 +29,32 @@
     "lightMode": "الوضع النهاري",
     "saving": "جارٍ الحفظ…",
     "deleting": "جارٍ الحذف…",
+    "savedSuccess": "تم حفظ التعديلات",
     "confirm": "تأكيد",
-    "print": "طباعة"
+    "print": "طباعة",
+    "delete": {
+      "delete": "حذف",
+      "confirm": "متأكد؟",
+      "yes": "نعم، احذف",
+      "cancel": "إلغاء",
+      "deleting": "جارٍ الحذف…",
+      "doneHard": "تم الحذف ✓",
+      "doneSoft": "تم التعطيل ✓",
+      "failed": "تعذّر الحذف."
+    }
   },
   "auth": {
     "login": {
       "title": "تسجيل الدخول إلى حسابك",
-      "subtitle": "مرحبًا بعودتك. استخدم بيانات اعتماد كونتكت المالية الخاصة بك.",
+      "subtitle": "أهلاً بعودتك. ادخل ببيانات كونتكت المالية بتاعتك.",
       "identifier": "رقم المجموعة",
       "identifierPlaceholder": "C0001C",
-      "identifierHint": "استخدم رقم مجموعتك (مثال: C0001C). يمكن للمسؤولين أيضًا تسجيل الدخول بالبريد الإلكتروني.",
-      "email": "البريد الإلكتروني",
+      "identifierPlaceholderAmbassador": "R0001R",
+      "identifierHint": "استخدم رقم مجموعتك (مثلاً C0001C). الأدمن كمان يقدر يدخل بالإيميل.",
+      "identifierHintAmbassador": "استخدم رقم السفير (مثال: R0001R).",
+      "personaEmployee": "موظف",
+      "personaAmbassador": "سفير",
+      "email": "الإيميل",
       "emailPlaceholder": "you@contact.eg",
       "password": "كلمة المرور",
       "passwordPlaceholder": "كلمة المرور الخاصة بك",
@@ -55,17 +70,29 @@
         "unknown": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
       }
     },
+    "forgot": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "اكتب رقم المجموعة أو الإيميل، ولو الحساب موجود هنبعتلك لينك لإعادة الضبط.",
+      "identifier": "رقم المجموعة أو الإيميل",
+      "identifierPlaceholder": "C0001C أو you@contact.eg",
+      "identifierHint": "الموظفون يستخدمون رقم المجموعة (مثلاً C0001C). السفراء يستخدمون رقم السفير (مثلاً R0001R).",
+      "submit": "ابعت اللينك",
+      "submitting": "جارٍ الإرسال…",
+      "sentTitle": "افتح الإيميل أو الواتساب.",
+      "sentBody": "لو الحساب موجود هتستلم لينك إعادة الضبط بعد دقايق. اللينك صالح لمدة 30 دقيقة. لو ما لاقيتش أي رسالة، كلّم الأدمن يصدرلك لينك يدوي.",
+      "backToLogin": "ارجع لتسجيل الدخول"
+    },
     "onboard": {
       "title": "تفعيل الحساب",
       "subtitle": "أول مرة تسجل الدخول؟ أكمل ملفك الشخصي أدناه.",
-      "lookupTitle": "أدخل رقم مجموعتك",
+      "lookupTitle": "ادخل رقم مجموعتك",
       "lookupSubtitle": "سنوجهك لباقي الخطوات.",
       "groupId": "رقم المجموعة",
       "groupIdPlaceholder": "C0001C",
       "lookupSubmit": "متابعة",
       "nameEn": "الاسم بالكامل (إنجليزي)",
       "nameAr": "الاسم بالكامل (عربي)",
-      "emailLabel": "البريد الإلكتروني للعمل",
+      "emailLabel": "إيميل الشغل",
       "phone": "رقم الجوال",
       "phonePlaceholder": "+20 100 000 0000",
       "password": "إنشاء كلمة المرور",
@@ -75,10 +102,10 @@
       "submitting": "جارٍ التفعيل…",
       "errors": {
         "groupIdNotFound": "رقم المجموعة غير موجود. يرجى التواصل مع المسؤول.",
-        "alreadyActivated": "هذا الحساب مفعّل بالفعل. يرجى تسجيل الدخول.",
+        "alreadyActivated": "الحساب ده متفعّل قبل كده. ادخل من تسجيل الدخول.",
         "passwordsDontMatch": "كلمتا المرور غير متطابقتين.",
-        "emailInUse": "البريد الإلكتروني مستخدم بالفعل.",
-        "phoneInUse": "رقم الهاتف مستخدم بالفعل.",
+        "emailInUse": "الإيميل ده مستخدم قبل كده.",
+        "phoneInUse": "الموبايل ده مستخدم قبل كده.",
         "unknown": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
       }
     }
@@ -89,23 +116,121 @@
     "calculator": "حاسبة التمويل",
     "leads": "العملاء المحتملون",
     "qr": "رموز الـ QR الخاصة بي",
+    "ambassadors": "السفراء",
+    "commission": "العمولات",
     "notifications": "الإشعارات",
+    "suggestions": "الاقتراحات",
     "reports": "التقارير",
+    "configuration": "الإعدادات",
     "admin": "الإدارة",
     "adminCategories": "الفئات",
-    "adminProducts": "المنتجات"
+    "adminProducts": "المنتجات",
+    "profile": "حسابي"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "تحديثات حول العملاء وحسابك.",
+    "empty": "لا توجد إشعارات بعد.",
+    "count": "{total} إجمالاً · {unread} غير مقروء",
+    "markAllRead": "تحديد الكل كمقروء",
+    "markRead": "تحديد كمقروء",
+    "view": "عرض",
+    "types": {
+      "NEW_LEAD_FROM_QR": "عميل جديد (QR)",
+      "NEW_LEAD_MANUAL": "عميل جديد",
+      "LEAD_ASSIGNED": "تم تعيين عميل",
+      "LEAD_STATUS_CHANGED": "تغيّرت الحالة",
+      "LEAD_REFERRED": "وصل عميل بدعوة",
+      "LEAD_ID_UPLOADED": "تم رفع الرقم القومي",
+      "SUGGESTION_UPDATED": "تحديث اقتراح",
+      "SYSTEM": "النظام"
+    },
+    "summaries": {
+      "newLeadFromQr": "عميل جديد عبر QR: {name}",
+      "newLeadManual": "تم إضافة عميل جديد: {name}",
+      "statusChanged": "{name}: {from} → {to}",
+      "referred": "وصلك عميل بدعوة: {name}",
+      "assigned": "تم تعيين عميل لك: {name}",
+      "leadIdUploaded": "{name} رفع صور الرقم القومي.",
+      "suggestionUpdated": "اقتراحك '{title}' بقى {status}"
+    }
+  },
+  "suggestions": {
+    "title": "الاقتراحات",
+    "subtitle": "شارك فكرة، أبلِغ عن مشكلة، أو ابعت ملاحظة. الأدمن بيراجع كل المقترحات.",
+    "subtitleAdmin": "كل المقترحات المقدمة من الموظفين والسفراء.",
+    "new": "اقتراح جديد",
+    "edit": "تعديل",
+    "editTitle": "تعديل الاقتراح",
+    "empty": "لا توجد مقترحات حتى الآن.",
+    "adminResponse": "رد الأدمن",
+    "adminPanel": "تحديث الحالة",
+    "backToList": "العودة إلى القائمة",
+    "categories": {
+      "IDEA": "فكرة",
+      "BUG": "مشكلة فنية",
+      "COMPLAINT": "شكوى",
+      "OTHER": "أخرى"
+    },
+    "statuses": {
+      "NEW": "جديد",
+      "UNDER_REVIEW": "قيد المراجعة",
+      "ACCEPTED": "مقبول",
+      "IMPLEMENTED": "تم تنفيذه",
+      "REJECTED": "مرفوض"
+    },
+    "form": {
+      "title": "العنوان",
+      "category": "الفئة",
+      "body": "التفاصيل",
+      "bodyHint": "وضّح الفكرة أو المشكلة بشكل محدد.",
+      "attachment": "صورة (اختيارية)",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF، حتى 5 ميجا.",
+      "submit": "إرسال",
+      "status": "الحالة",
+      "response": "رد للمقدّم (اختياري)",
+      "responseHint": "بيظهر للمقدّم. هتوصله نوتيفيكيشن لما يتغير."
+    }
+  },
+  "profile": {
+    "title": "حسابي",
+    "subtitle": "تحديث إعدادات حسابك.",
+    "info": {
+      "title": "الملف الشخصي",
+      "hint": "حدّث البيانات اللي دخلتها لما فعّلت حسابك.",
+      "groupId": "رقم المجموعة",
+      "role": "الدور",
+      "businessLine": "خط العمل",
+      "referralCode": "كود الدعوة",
+      "nameEn": "الاسم الكامل (إنجليزي)",
+      "nameAr": "الاسم الكامل (عربي)",
+      "email": "الإيميل",
+      "phone": "الموبايل",
+      "submit": "حفظ التغييرات",
+      "success": "تم تحديث الملف الشخصي."
+    },
+    "password": {
+      "title": "تغيير كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "hint": "8 أحرف على الأقل. يجب أن تختلف عن كلمة المرور الحالية.",
+      "submit": "تحديث كلمة المرور",
+      "success": "تم تحديث كلمة المرور."
+    }
   },
   "dashboard": {
     "title": "مرحبًا، {name}",
-    "phaseOne": "المرحلة الأولى جاهزة. الكتالوج والحاسبة تعملان الآن؛ تأتي وحدات العملاء المحتملين وأكواد QR والإشعارات والتقارير في المراحل التالية.",
-    "yourReferralCode": "كود الإحالة الخاص بك",
+    "yourReferralCode": "كود الدعوة بتاعك",
     "role": "الدور"
   },
   "roles": {
     "EMPLOYEE": "موظف",
     "TEAM_MANAGER": "مدير فريق",
     "BUSINESS_LINE_OWNER": "مسؤول قطاع",
-    "ADMIN": "مسؤول النظام"
+    "ADMIN": "مسؤول النظام",
+    "AMBASSADOR": "سفير",
+    "AMBASSADOR_MANAGER": "مسؤول السفراء"
   },
   "catalog": {
     "title": "كتالوج المنتجات",
@@ -113,7 +238,7 @@
     "filters": {
       "businessLine": "قطاع الأعمال",
       "category": "الفئة",
-      "type": "نوع المنتج",
+      "company": "الشركة",
       "amountRange": "نطاق المبلغ (ج.م.)",
       "tenureRange": "المدة (شهر)",
       "search": "ابحث في المنتجات",
@@ -152,7 +277,51 @@
   "calculator": {
     "title": "حاسبة التمويل",
     "subtitle": "احسب القسط الشهري والرسوم الإدارية وجدول الإطفاء لأي منتج.",
+    "mode": {
+      "product": "حاسبة المنتج",
+      "affordability": "فحص القدرة على التحمل"
+    },
+    "affordability": {
+      "title": "ما الذي يستطيع العميل تحمّله؟",
+      "income": "صافي الدخل الشهري (ج.م.)",
+      "dbrHint": "نضع حدًا للقسط عند {pct}% من صافي الدخل (نسبة عبء الدين).",
+      "creditCardLimit": "إجمالي حدود بطاقات الائتمان (ج.م.)",
+      "creditCardHint": "نخصم {pct}% من الحد كالتزام شهري مفترض.",
+      "existingInstallments": "الأقساط الشهرية الحالية (ج.م.)",
+      "existingInstallmentsHint": "أقساط تمويل استهلاكي يدفعها العميل بالفعل.",
+      "grossIncome": "صافي الدخل",
+      "creditCardCut": "خصم بطاقات الائتمان ({pct}% من الحد)",
+      "existingInstallmentsCut": "الأقساط الحالية",
+      "netIncome": "صافي الدخل",
+      "maxMonthly": "أقصى قسط شهري",
+      "maxMonthlyExplain": "50% من صافي الدخل وفقًا لنسبة عبء الدين القياسية.",
+      "empty": "لا توجد منتجات تتناسب مع دخل العميل والمدة.",
+      "offerLoan": "أقصى تمويل",
+      "offerMonthly": "القسط الشهري",
+      "range": "نطاق المنتج",
+      "openInCalculator": "استخدم هذا المنتج",
+      "applyForLead": "تقديم طلب جديد",
+      "filtersTitle": "عوامل التصفية",
+      "any": "الكل",
+      "businessLine": "قطاع الأعمال",
+      "category": "الفئة",
+      "company": "الشركة",
+      "maxAdminFeePct": "الحد الأقصى لرسوم الإدارة (٪)",
+      "maxAdminFeePctPlaceholder": "مثال: 2.5",
+      "insuranceRequiredFilter": "المنتجات التي تتطلب تأمينًا فقط"
+    },
     "selectProduct": "اختر منتجًا",
+    "installmentPeriod": "دورية القسط",
+    "installmentPeriodHint": "تُحدّد من المنتج. تتحكم في وحدة المدة أدناه.",
+    "periodMonthly": "شهري",
+    "periodQuarterly": "ربع سنوي",
+    "periodAnnually": "سنوي",
+    "tenureMonths": "المدة (شهر)",
+    "tenureQuarters": "المدة (ربع سنة)",
+    "tenureYears": "المدة (سنة)",
+    "invoiceValue": "قيمة الفاتورة (ج.م.)",
+    "downPaymentPercent": "الدفعة المقدمة (%)",
+    "minDownPaymentHint": "الحد الأدنى {min}%",
     "principal": "قيمة التمويل (ج.م.)",
     "tenure": "المدة (شهر)",
     "calculate": "احسب",
@@ -162,6 +331,8 @@
     "copied": "تم النسخ!",
     "result": {
       "monthlyInstallment": "القسط الشهري",
+      "loanAmount": "قيمة التمويل",
+      "downPayment": "الدفعة المقدمة",
       "adminFee": "الرسوم الإدارية",
       "totalInterest": "إجمالي الفوائد",
       "totalPayable": "إجمالي المبلغ المستحق",
@@ -185,11 +356,326 @@
       "tenure_above_max": "المدة تتجاوز الحد الأقصى للمنتج.",
       "tenure_non_integer": "يجب أن تكون المدة عددًا صحيحًا.",
       "tenure_non_positive": "يجب أن تكون المدة أكبر من صفر.",
-      "selectProduct": "يرجى اختيار منتج أولاً."
+      "selectProduct": "يرجى اختيار منتج أولاً.",
+      "dp_below_min": "يجب ألا تقل الدفعة المقدمة عن {min}%."
+    }
+  },
+  "leads": {
+    "title": "العملاء المحتملون",
+    "subtitle": "إدارة العملاء المحتملين خلال مراحل البيع.",
+    "new": "عميل جديد",
+    "export": "تصدير CSV",
+    "empty": "لا توجد عملاء مطابقون للمرشحات الحالية.",
+    "count": "{n, plural, zero {لا يوجد عملاء} one {عميل واحد} two {عميلان} few {# عملاء} many {# عميلًا} other {# عميل}}",
+    "filters": {
+      "search": "ابحث بالاسم أو الهاتف",
+      "status": "الحالة",
+      "source": "المصدر",
+      "from": "من",
+      "to": "إلى",
+      "apply": "تطبيق",
+      "clear": "مسح"
+    },
+    "table": {
+      "customer": "العميل",
+      "phone": "الموبايل",
+      "businessLine": "قطاع الأعمال",
+      "status": "الحالة",
+      "source": "المصدر",
+      "owner": "المسؤول",
+      "created": "تاريخ الإنشاء"
+    },
+    "claim": {
+      "claim": "إسناده إليّ",
+      "claiming": "جارٍ الإسناد…"
+    },
+    "idUpload": {
+      "title": "ابعت لينك رفع الرقم القومي",
+      "subtitle": "اللينك ده بيقدر يبعته بس المسؤول عن العميل. العميل بيفتحه ويرفع صورة الوش والضهر. اللينك بيتستخدم مرة واحدة وبيخلص بعد 24 ساعة.",
+      "generate": "أنشئ لينك",
+      "generating": "جارٍ الإنشاء…",
+      "regenerate": "أنشئ لينك جديد",
+      "issuedTitle": "اللينك جاهز.",
+      "issuedBody": "بيخلص {expires}. شاركه على واتساب أو انسخ اللينك.",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "whatsapp": "واتساب",
+      "whatsappMessage": "من فضلك ارفع صورة الوش والضهر من الرقم القومي عبر اللينك ده:"
+    },
+    "detail": {
+      "claimUnassigned": "هذا العميل بدون مسؤول. خذه.",
+      "claimNewStage": "ما زال هذا العميل في حالة \"جديد\". يمكنك توليه.",
+      "info": "بيانات العميل",
+      "phone": "الموبايل",
+      "email": "الإيميل",
+      "nationalId": "الرقم القومي",
+      "owner": "المسؤول",
+      "referredBy": "دعوة",
+      "product": "المنتج",
+      "preferredTime": "وقت التواصل المفضل",
+      "createdAt": "تاريخ الإنشاء",
+      "note": "ملاحظة العميل",
+      "status": "الحالة",
+      "editProductTitle": "قطاع الأعمال والمنتج",
+      "timeline": "سجل النشاط",
+      "history": "تاريخ الحالات",
+      "addActivity": "إضافة نشاط",
+      "noActivities": "لا توجد أنشطة بعد.",
+      "noHistory": "لا توجد تغييرات حالة بعد.",
+      "customFields": "بيانات إضافية",
+      "yes": "نعم",
+      "no": "لا",
+      "nationalIdImages": "صور الرقم القومي",
+      "nationalIdFront": "الوش",
+      "nationalIdBack": "الضهر",
+      "backToList": "العودة إلى القائمة"
+    },
+    "productEdit": {
+      "businessLine": "قطاع الأعمال",
+      "product": "المنتج",
+      "noProduct": "— (بدون منتج)",
+      "saved": "تم الحفظ"
+    },
+    "status": {
+      "changeTo": "تغيير الحالة إلى",
+      "track": "المسار",
+      "trackUnset": "— (غير محدد)",
+      "reason": "السبب",
+      "note": "ملاحظة",
+      "update": "تحديث الحالة",
+      "updating": "جارٍ التحديث…",
+      "terminal": "وصل هذا العميل إلى حالة نهائية.",
+      "finalLoanAmount": "قيمة القرض النهائية المعتمدة (جنيه)",
+      "finalLoanAmountHint": "مطلوبة لإغلاق التعاقد. تُستخدم لحساب العمولة، وسيتم التحقق منها مقابل نظام القروض."
+    },
+    "commissionCard": {
+      "title": "العمولة",
+      "recipient": "الحاصل عليها",
+      "loanAmount": "قيمة القرض",
+      "tier": "الشريحة",
+      "commission": "العمولة",
+      "disclaimer": "محسوبة من جدول الشرائح الحالي للمنتج. القيمة النهائية تعتمد على تسوية نظام القروض.",
+      "persona": {
+        "EMPLOYEE": "موظف",
+        "AMBASSADOR": "سفير"
+      },
+      "reason": {
+        "NO_AMOUNT": "قيمة القرض النهائية غير مُسجَّلة.",
+        "NO_PRODUCT": "هذا العميل ليس مرتبطًا بمنتج. اختَر منتجًا لحساب العمولة.",
+        "NO_RECIPIENT": "لا يوجد موظف أو سفير مرتبط بهذا العميل، فلا يوجد من يحصل على العمولة.",
+        "NO_SCHEDULE": "لا يوجد جدول عمولات مُعد لهذا المنتج. اطلب من المسؤول إعداده من إعدادات العمولات.",
+        "NO_TIER": "لا توجد شريحة عمولة تغطي قيمة هذا القرض. اطلب من المسؤول إضافة شريحة لها."
+      }
+    },
+    "activity": {
+      "type": "النوع",
+      "content": "المحتوى",
+      "add": "إضافة",
+      "adding": "جارٍ الإضافة…"
+    },
+    "form": {
+      "customerName": "اسم العميل",
+      "customerPhone": "هاتف العميل",
+      "customerEmail": "بريد العميل الإلكتروني",
+      "nationalId": "الرقم القومي",
+      "nationalIdFront": "الرقم القومي — الوجه الأمامي",
+      "nationalIdBack": "الرقم القومي — الوجه الخلفي",
+      "nationalIdImageHint": "PNG / JPEG / WEBP / GIF، حتى 5 ميجابايت.",
+      "businessLine": "قطاع الأعمال",
+      "product": "المنتج (اختياري)",
+      "owner": "تعيين المسؤول",
+      "preferredContactTime": "وقت التواصل المفضل",
+      "preferredContactTimeAny": "— أي وقت —",
+      "preferredContactTimeSlots": {
+        "morning": "10 ص – 2 م",
+        "afternoon": "2 م – 6 م",
+        "evening": "6 م – 10 م"
+      },
+      "customerNote": "ملاحظة العميل",
+      "employmentType": "نوع الوظيفة",
+      "branch": "فرع كونتكت",
+      "productPrice": "سعر المنتج (ج.م.)",
+      "downpayment": "الدفعة المقدمة (ج.م.)",
+      "downpaymentPctHint": "{pct}% من سعر المنتج.",
+      "consent": "وافق العميل على التواصل بشأن هذا الطلب."
+    },
+    "employmentTypes": {
+      "EMPLOYEE": "موظف",
+      "SELF_EMPLOYED": "يعمل لحسابه",
+      "BUSINESS_OWNER": "صاحب عمل"
+    },
+    "appStatuses": {
+      "CREDIT_RISK": "تقييم ائتماني أولي",
+      "INCOMPLETE": "بيانات ناقصة",
+      "INVESTIGATION": "تحت الدراسة",
+      "SALES": "مستندات إضافية",
+      "APPROVAL": "قرار نهائي",
+      "APPROVED_CLIENT": "عميل تمت الموافقة",
+      "DENIED": "مرفوض",
+      "HOLD": "موقوف"
+    },
+    "productStatuses": {
+      "P_INITIATE": "بدء الطلب",
+      "PRE_EXECUTION": "قبل التنفيذ",
+      "EXECUTION": "قيد التنفيذ",
+      "P_REGISTER": "بانتظار التسجيل",
+      "CONTRACT": "تم التعاقد",
+      "HOLD": "موقوف",
+      "SALES": "بانتظار العميل"
+    },
+    "tracks": {
+      "FAST_TRACK": "مسار سريع",
+      "NORMAL_TRACK": "مسار عادي"
+    },
+    "sources": {
+      "QR_CODE": "رمز QR",
+      "MANUAL_ENTRY": "إدخال يدوي",
+      "REFERRAL": "دعوة",
+      "IMPORT": "استيراد"
+    },
+    "activityTypes": {
+      "CALL": "اتصال",
+      "NOTE": "ملاحظة",
+      "EMAIL": "بريد إلكتروني",
+      "WHATSAPP": "واتساب",
+      "SMS": "رسالة نصية",
+      "FILE": "ملف",
+      "STATUS_CHANGE": "تغيير الحالة"
     }
   },
   "admin": {
     "title": "الإدارة",
+    "leadForm": {
+      "types": {
+        "TEXT": "نص قصير",
+        "TEXTAREA": "نص طويل",
+        "NUMBER": "رقم",
+        "SELECT": "قائمة منسدلة",
+        "BOOLEAN": "نعم / لا",
+        "DATE": "تاريخ"
+      }
+    },
+    "commission": {
+      "title": "جداول العمولات",
+      "subtitle": "حدّد نسب العمولة لكل منتج التي يراها الموظفون والسفراء في حساباتهم.",
+      "edit": "تعديل",
+      "personaEmployee": "موظف",
+      "personaAmbassador": "سفير",
+      "emptyProducts": "لا توجد منتجات بعد.",
+      "editTitle": "تعديل العمولة",
+      "editor": {
+        "isActive": "ظاهر لهذا الدور",
+        "from": "من (ج.م.)",
+        "to": "إلى (ج.م.)",
+        "openEnded": "∞ (مفتوح)",
+        "valueType": "النوع",
+        "valueAmount": "القيمة",
+        "label": "تسمية (اختياري)",
+        "percent": "نسبة (%)",
+        "flat": "مبلغ ثابت (ج.م.)",
+        "remove": "حذف",
+        "addRow": "إضافة شريحة",
+        "notes": "ملاحظات (اختياري)"
+      }
+    },
+    "branches": {
+      "title": "الفروع",
+      "subtitle": "فروع كونتكت التي يختارها العميل أو الموظف في نموذج العميل المحتمل.",
+      "newTitle": "إضافة فرع",
+      "create": "إنشاء فرع",
+      "empty": "لا توجد فروع بعد — أضف الأول من النموذج أعلاه.",
+      "deleteConfirm": "هل تريد حذف هذا الفرع؟",
+      "fields": {
+        "slug": "المعرّف",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "city": "المدينة",
+        "governorate": "المحافظة",
+        "address": "العنوان",
+        "phone": "الهاتف",
+        "isActive": "نشط",
+        "sortOrder": "ترتيب العرض"
+      }
+    },
+    "announcements": {
+      "title": "الإعلانات",
+      "subtitle": "لوحات تظهر أعلى لوحة التحكم لجميع المستخدمين المستهدفين.",
+      "new": "إعلان جديد",
+      "edit": "تعديل الإعلان",
+      "empty": "لا توجد إعلانات بعد.",
+      "inactive": "غير نشط",
+      "allRoles": "جميع الأدوار",
+      "deactivate": "إيقاف",
+      "activate": "تفعيل",
+      "delete": "حذف",
+      "form": {
+        "titleEn": "العنوان (إنجليزي)",
+        "titleAr": "العنوان (عربي)",
+        "bodyEn": "النص (إنجليزي)",
+        "bodyAr": "النص (عربي)",
+        "image": "الصورة",
+        "imageHint": "PNG / JPEG / WEBP / GIF حتى 5 ميجابايت.",
+        "clearImage": "إزالة الصورة",
+        "targetRoles": "الأدوار المستهدفة",
+        "targetRolesHint": "اتركها فارغة لاستهداف جميع الأدوار.",
+        "targetBusinessLines": "خطوط العمل المستهدفة",
+        "targetBusinessLinesHint": "اتركها فارغة لاستهداف كل خطوط العمل.",
+        "startsAt": "يبدأ في",
+        "endsAt": "ينتهي في",
+        "isActive": "نشط",
+        "sendNotification": "إرسال إشعار داخل التطبيق للمستخدمين المستهدفين",
+        "alreadySent": "تم الإرسال بالفعل",
+        "create": "إنشاء الإعلان"
+      }
+    },
+    "permissions": {
+      "title": "صلاحيات الأدوار",
+      "subtitle": "اختر الدور ثم حدد الميزات والإجراءات التي يمكنه الوصول إليها.",
+      "selectRole": "الدور",
+      "hint": "تسري التغييرات خلال ~30 ثانية في كافة التطبيق.",
+      "featuresHeading": "الميزات (الشريط الجانبي)",
+      "actionsHeading": "الإجراءات",
+      "save": "حفظ التغييرات",
+      "saved": "تم الحفظ.",
+      "features": {
+        "dashboard": "لوحة التحكم",
+        "catalog": "كتالوج المنتجات",
+        "calculator": "الحاسبة (الصفحة)",
+        "calculatorProduct": "الحاسبة — وضع القسط",
+        "calculatorAffordability": "الحاسبة — وضع القدرة على التحمل",
+        "leads": "العملاء المحتملون",
+        "qr": "حملات QR",
+        "ambassadors": "السفراء",
+        "commission": "العمولات",
+        "notifications": "الإشعارات",
+        "reports": "التقارير",
+        "configuration": "الإعدادات",
+        "products": "الإدارة — المنتجات",
+        "categories": "الإدارة — الفئات"
+      },
+      "resources": {
+        "catalog": "الكتالوج",
+        "product": "المنتجات",
+        "productCategory": "الفئات",
+        "productAttribute": "الخصائص",
+        "businessLine": "خطوط العمل",
+        "calculator": "الحاسبة",
+        "quote": "العروض",
+        "lead": "العملاء المحتملون",
+        "qr": "حملات QR",
+        "notification": "الإشعارات",
+        "report": "التقارير"
+      },
+      "actions": {
+        "create": "إنشاء",
+        "read": "عرض",
+        "update": "تعديل",
+        "delete": "حذف",
+        "list": "قائمة",
+        "export": "تصدير",
+        "assign": "تعيين"
+      }
+    },
     "categories": {
       "title": "الفئات",
       "subtitle": "اجمع المنتجات في فئات تحت كل قطاع.",
@@ -205,19 +691,114 @@
         "sortOrder": "ترتيب العرض",
         "isActive": "نشط"
       },
+      "attributes": {
+        "title": "خصائص المنتج",
+        "help": "اختر الخصائص التي تظهر للمنتجات في هذه الفئة، وأيها إجباري.",
+        "attribute": "الخاصية",
+        "visible": "ظاهرة",
+        "required": "إجباري",
+        "labels": {
+          "amountRange": "نطاق قيمة التمويل (الأدنى / الأقصى)",
+          "tenureRange": "نطاق المدة (شهر)",
+          "flatRate": "نسبة الفائدة الثابتة",
+          "decliningRate": "نسبة الفائدة المتناقصة",
+          "adminFee": "الرسوم الإدارية (% + الأدنى / الأقصى)",
+          "insurance": "التأمين",
+          "earlySettlement": "رسوم السداد المبكر",
+          "latePayment": "رسوم التأخير",
+          "eligibility": "نص شروط الأهلية",
+          "documents": "قائمة المستندات المطلوبة"
+        }
+      },
+      "customAttributes": {
+        "title": "الخصائص المخصصة لهذه الفئة",
+        "help": "اختر خصائص من السجل العام وحدد قيمها. ستظهر على كل منتج في هذه الفئة.",
+        "noneDefined": "لم يتم تعريف أي خصائص بعد. انتقل إلى الإدارة ← الخصائص لإنشاء أول خاصية.",
+        "notSelected": "غير مضمَّنة في هذه الفئة."
+      },
       "deleteConfirm": "هل أنت متأكد من إلغاء تنشيط هذه الفئة؟",
-      "empty": "لا توجد فئات بعد. أنشئ واحدة للبدء."
+      "empty": "لا توجد فئات بعد. أنشئ واحدة للبدء.",
+      "bulk": {
+        "title": "إنشاء / تعديل جماعي عن طريق CSV",
+        "subtitle": "نزّل الفئات الحالية، عدّلها في إكسل، وارفع الملف للتطبيق. الصفوف اللي معرّفها موجود بتتعدّل، والمعرّفات الجديدة بتتعمل. الرفع الجماعي لا يغيّر ربط الخصائص.",
+        "download": "تنزيل CSV",
+        "upload": "رفع",
+        "summary": "{created} اتعمل · {updated} اتعدّل.",
+        "errorsToggle": "إظهار أخطاء الصفوف",
+        "rowPrefix": "صف {row}",
+        "purge": "حذف نهائي للفئات غير النشطة",
+        "purgeConfirm": "هل تريد حذف كل فئة غير نشطة لا تحتوي على منتجات بشكل نهائي؟ لا يمكن التراجع.",
+        "purgeSummary": "{deleted} اتمسحت نهائيًا · {skipped} اتجاهلت (لسه فيها منتجات).",
+        "purgeSkippedToggle": "إظهار الفئات اللي اتجاهلت",
+        "purgeSkippedReason": "لسه {count} منتجات مربوطة بالفئة دي"
+      }
+    },
+    "attributes": {
+      "title": "الخصائص",
+      "subtitle": "سجل عام للخصائص المخصصة للمنتج. تختار الفئات أيها يطبق وتحدد القيم.",
+      "new": "خاصية جديدة",
+      "edit": "تعديل الخاصية",
+      "empty": "لا توجد خصائص بعد. أنشئ واحدة للبدء.",
+      "fields": {
+        "key": "المعرّف",
+        "keyHelp": "معرّف ثابت بصيغة kebab-case (مثلاً \"vehicle-make\"). يستخدم داخليًا ولا يمكن تكراره.",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
+        "helpEn": "نص توضيحي (إنجليزي)",
+        "helpAr": "نص توضيحي (عربي)",
+        "type": "النوع",
+        "sortOrder": "ترتيب العرض",
+        "isActive": "نشط",
+        "optionsTitle": "خيارات الاختيار",
+        "optionsHelp": "اذكر الخيارات التي يمكن للفئة اختيار قيمتها.",
+        "optionsEmpty": "لا توجد خيارات بعد. أضف خيارًا واحدًا على الأقل.",
+        "optionValue": "القيمة",
+        "optionLabelEn": "الوسم (إنجليزي)",
+        "optionLabelAr": "الوسم (عربي)",
+        "optionAdd": "إضافة خيار",
+        "optionRemove": "حذف"
+      },
+      "types": {
+        "TEXT": "نص",
+        "NUMBER": "رقم",
+        "BOOLEAN": "نعم / لا",
+        "SELECT": "اختيار"
+      }
     },
     "users": {
       "title": "المستخدمون",
       "subtitle": "أنشئ موظفين جدد عبر رقم المجموعة. يقوم الموظف بتفعيل حسابه عند أول تسجيل دخول.",
       "new": "موظف جديد",
       "newSubtitle": "أصدر رقم مجموعة. يكمل الموظف اسمه وبريده وهاتفه وكلمة مروره عند أول تسجيل دخول.",
+      "edit": "تعديل بيانات الموظف",
+      "search": {
+        "placeholder": "ابحث برقم المجموعة أو الاسم أو البريد أو الهاتف…",
+        "search": "بحث",
+        "clear": "مسح",
+        "empty": "لا يوجد مستخدمون مطابقون للبحث."
+      },
       "fields": {
         "groupId": "رقم المجموعة",
         "role": "الدور",
         "businessLine": "قطاع الأعمال",
-        "manager": "المدير"
+        "manager": "المدير",
+        "capabilities": "الصلاحيات",
+        "capabilitiesHelp": "صلاحيات إضافية على مستوى المستخدم بجانب الدور. المسؤول يحصل عليها ضمنيًا.",
+        "canEditProducts": "تعديل المنتجات",
+        "canEditProductsHelp": "إنشاء أو تعديل أو إيقاف أي منتج عبر جميع قطاعات الأعمال.",
+        "canEditCatalog": "تعديل الفئات والمتغيرات",
+        "canEditCatalogHelp": "إدارة فئات المنتجات والمتغيرات الإعلامية المعروضة لكل منتج."
+      },
+      "resetPassword": {
+        "title": "إصدار لينك إعادة ضبط كلمة المرور",
+        "subtitle": "بيولد لينك يُستخدم مرة واحدة وصالح لمدة 30 دقيقة. استخدمه لما المستخدم ما يقدرش يستلم اللينك عبر الإيميل أو الواتساب.",
+        "issue": "أصدر لينك إعادة الضبط",
+        "reissue": "أصدر لينك جديد",
+        "issuing": "جارٍ الإصدار…",
+        "issuedTitle": "اللينك جاهز.",
+        "issuedBody": "شارك اللينك مع المستخدم من خلال قناة آمنة. اللينك بيخلص بعد 30 دقيقة وما يتستخدمش غير مرة واحدة.",
+        "copy": "نسخ",
+        "copied": "تم النسخ"
       }
     },
     "products": {
@@ -226,6 +807,15 @@
       "new": "منتج جديد",
       "edit": "تعديل المنتج",
       "deleteConfirm": "هل أنت متأكد من إلغاء تنشيط هذا المنتج؟",
+      "bulk": {
+        "title": "تعديل جماعي عن طريق CSV",
+        "subtitle": "نزّل المنتجات الحالية، عدّلها في إكسل، وارفع الملف للتطبيق. الصفوف اللي بدون id بتتعمل كمنتجات جديدة.",
+        "download": "تنزيل CSV",
+        "upload": "رفع",
+        "summary": "{created} اتعمل · {updated} اتعدّل.",
+        "errorsToggle": "إظهار أخطاء الصفوف",
+        "rowPrefix": "صف {row}"
+      },
       "sections": {
         "basics": "الأساسيات",
         "descriptions": "الأوصاف",
@@ -233,13 +823,13 @@
         "rates": "نسب الفائدة",
         "fees": "الرسوم الإدارية",
         "policy": "بنود السياسة",
-        "variables": "المتغيرات (سمات إعلامية)",
+        "customAttributes": "الخصائص المخصصة",
         "media": "الوسائط"
       },
       "fields": {
         "businessLine": "قطاع الأعمال",
         "category": "الفئة",
-        "type": "نوع المنتج",
+        "company": "الشركة",
         "nameEn": "الاسم (إنجليزي)",
         "nameAr": "الاسم (عربي)",
         "shortDescEn": "وصف مختصر (إنجليزي)",
@@ -254,14 +844,20 @@
         "amountMaxEgp": "الحد الأقصى للمبلغ (ج.م.)",
         "tenureMinMonths": "الحد الأدنى للمدة (شهر)",
         "tenureMaxMonths": "الحد الأقصى للمدة (شهر)",
-        "flatInterestRateBps": "نسبة الفائدة الثابتة (نقطة أساس)",
-        "decliningInterestRateBps": "نسبة الفائدة المتناقصة (نقطة أساس)",
-        "adminFeeBps": "نسبة الرسوم الإدارية (نقطة أساس)",
+        "installmentPeriod": "دورية القسط",
+        "installmentPeriodHint": "مدى تكرار سداد العميل. تُستخدم لحساب القسط في كل دورة.",
+        "periodMonthly": "شهري",
+        "periodQuarterly": "ربع سنوي",
+        "periodAnnually": "سنوي",
+        "flatInterestRateBps": "نسبة الفائدة الثابتة (%)",
+        "decliningInterestRateBps": "نسبة الفائدة المتناقصة (%)",
+        "adminFeeBps": "الرسوم الإدارية (%)",
         "adminFeeMinEgp": "الحد الأدنى للرسوم الإدارية (ج.م.)",
         "adminFeeMaxEgp": "الحد الأقصى للرسوم الإدارية (ج.م.)",
         "insuranceRequired": "التأمين إجباري",
-        "earlySettlementFeeBps": "رسوم السداد المبكر (نقطة أساس)",
-        "latePaymentFeeBps": "رسوم التأخير (نقطة أساس)",
+        "minDownPaymentBps": "الحد الأدنى للدفعة المقدمة (%)",
+        "earlySettlementFeeBps": "رسوم السداد المبكر (%)",
+        "latePaymentFeeBps": "رسوم التأخير (%)",
         "heroImageUrl": "الصورة الرئيسية",
         "isFeatured": "مميز",
         "isActive": "نشط"
@@ -278,7 +874,7 @@
       "uploadImage": "رفع صورة",
       "uploadingImage": "جارٍ الرفع…",
       "uploadFailed": "فشل رفع الصورة",
-      "rateHelp": "نقطة أساس: 1850 = 18.50%."
+      "uploadDisabled": "رفع الصور غير مفعّل في هذه البيئة."
     }
   },
   "productTypes": {
@@ -294,7 +890,293 @@
   },
   "public": {
     "leadCapture": {
-      "comingSoon": "صفحة تسجيل العملاء المحتملين العامة — تُنفَّذ في المرحلة الرابعة."
+      "comingSoon": "صفحة تسجيل العملاء المحتملين العامة.",
+      "referredBy": "دعوة",
+      "intro": "اترك بياناتك وسيتواصل معك ممثل من كونتكت المالية قريبًا.",
+      "submit": "إرسال الطلب",
+      "submitting": "جارٍ الإرسال…",
+      "thanks": "شكرًا — وصلتنا بياناتك وسنتواصل معك قريبًا."
+    },
+    "ambassadorSignup": {
+      "intro": "انضم لكونتكت المالية كسفير وهتاخد لينك دعوة خاص بيك تشاركه مع العملاء.",
+      "nameEn": "الاسم الكامل (إنجليزي)",
+      "nameAr": "الاسم الكامل (عربي)",
+      "email": "الإيميل",
+      "phone": "الموبايل",
+      "password": "كلمة المرور",
+      "passwordConfirm": "تأكيد كلمة المرور",
+      "consent": "أوافق على شروط برنامج السفراء لكونتكت المالية.",
+      "submit": "أصبح سفيرًا",
+      "submitting": "جارٍ إنشاء حسابك…",
+      "thanks": "أهلاً بك — تم تجهيز حسابك."
+    },
+    "ambassadorApplication": {
+      "intro": "قدّم طلبًا للانضمام كسفير لكونتكت المالية. سيراجع فريقنا طلبك ويتواصل معك.",
+      "name": "الاسم الكامل",
+      "phone": "الموبايل",
+      "nationalIdImage": "صورة الرقم القومي",
+      "nationalIdImageHint": "PNG / JPEG / WEBP / GIF حتى 5 ميجابايت.",
+      "submit": "إرسال الطلب",
+      "submitting": "جارٍ الإرسال…",
+      "thanks": "شكرًا — وصلنا طلبك وسنتواصل معك قريبًا."
+    },
+    "ambassadorInvite": {
+      "title": "إعداد حساب السفير",
+      "subtitle": "أكّد رقم هاتفك واختر كلمة مرور لإكمال التسجيل.",
+      "intro": "تمت الموافقة على طلبك كسفير لكونتكت المالية. اختر كلمة مرور للبدء.",
+      "phone": "الموبايل",
+      "phoneHint": "ادخل نفس رقم الموبايل اللي استخدمته في الطلب.",
+      "password": "كلمة المرور",
+      "passwordConfirm": "تأكيد كلمة المرور",
+      "submit": "تفعيل الحساب",
+      "submitting": "جارٍ التفعيل…"
+    },
+    "passwordReset": {
+      "title": "تعيين كلمة مرور جديدة",
+      "subtitle": "اختر كلمة مرور جديدة عشان ترجع تدخل.",
+      "password": "كلمة المرور الجديدة",
+      "passwordHint": "٨ أحرف على الأقل.",
+      "passwordConfirm": "تأكيد كلمة المرور",
+      "submit": "تحديث كلمة المرور",
+      "submitting": "جارٍ التحديث…",
+      "doneTitle": "تم تحديث كلمة المرور.",
+      "doneBody": "كلمة المرور الجديدة شغّالة. سجّل دخول وكمّل.",
+      "toLogin": "روح صفحة الدخول"
+    },
+    "leadIdUpload": {
+      "title": "ارفع الرقم القومي",
+      "subtitle": "من فضلك ارفع صور واضحة لوجه وضهر الرقم القومي. اللينك بيخلص بعد 24 ساعة وبيتستخدم مرة واحدة بس.",
+      "front": "الوش",
+      "back": "الضهر",
+      "attachmentHint": "PNG / JPEG / WEBP / GIF، حتى 5 ميجا لكل صورة.",
+      "submit": "إرسال",
+      "submitting": "جارٍ الإرسال…",
+      "doneTitle": "تم استلام الصور — شكراً.",
+      "doneBody": "هيتواصل معاك ممثل كونتكت المالية قريباً."
+    }
+  },
+  "qrTemplates": {
+    "title": "قوالب صفحات هبوط QR",
+    "subtitle": "محتوى قابل لإعادة الاستخدام للترويسة والعناوين والنص لصفحات الهبوط.",
+    "new": "قالب جديد",
+    "edit": "تعديل القالب",
+    "empty": "لا توجد قوالب بعد. أنشئ قالبًا ليستخدمه المسؤولون عند إعداد حملة.",
+    "listTitle": "القوالب",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "table": {
+      "name": "الاسم",
+      "status": "الحالة"
+    },
+    "form": {
+      "name": "اسم القالب",
+      "kind": "نوع القالب",
+      "kindLeadCapture": "جذب عملاء",
+      "kindAmbassadorInvite": "طلب سفير",
+      "kindHint": "اختر ما تجمعه صفحة الهبوط: طلب عميل محتمل أو طلب انضمام سفير.",
+      "headerImageUrl": "رابط صورة الترويسة",
+      "titleEn": "العنوان (إنجليزي)",
+      "titleAr": "العنوان (عربي)",
+      "subtitleEn": "العنوان الفرعي (إنجليزي)",
+      "subtitleAr": "العنوان الفرعي (عربي)",
+      "bodyEn": "النص الأساسي (إنجليزي) — Markdown",
+      "bodyAr": "النص الأساسي (عربي) — Markdown"
+    }
+  },
+  "qr": {
+    "title": "حملات الـ QR",
+    "subtitle": "تتبع المسحات والعملاء المحتملين من أكواد QR لكل حملة.",
+    "newCampaign": "حملة جديدة",
+    "close": "إلغاء",
+    "edit": "تعديل الحملة",
+    "empty": "لا توجد حملات بعد.",
+    "shareUrl": "رابط المشاركة",
+    "scans": "المسحات",
+    "leads": "العملاء",
+    "conversion": "نسبة التحويل",
+    "downloadPng": "تنزيل صورة QR",
+    "inactive": "غير نشطة",
+    "browseTemplates": "تصفح القوالب",
+    "useTemplate": "استخدم هذا القالب",
+    "range": {
+      "label": "الفترة",
+      "7d": "آخر 7 أيام",
+      "30d": "آخر 30 يومًا",
+      "90d": "آخر 90 يومًا",
+      "all": "كل الوقت",
+      "from": "من",
+      "to": "إلى"
+    },
+    "gallery": {
+      "title": "قوالب الحملات",
+      "subtitle": "اختر قالبًا لإنشاء حملتك الخاصة برابط مشاركة وكود QR فريدين.",
+      "empty": "لا توجد قوالب متاحة بعد."
+    },
+    "form": {
+      "name": "اسم الحملة",
+      "employee": "المسؤول (الموظف)",
+      "kind": "نوع الحملة",
+      "kindLeadCapture": "جذب عملاء",
+      "kindAmbassadorInvite": "دعوة سفراء",
+      "kindHintLead": "يقدم زائرو هذه الصفحة طلب عميل محتمل.",
+      "kindHintAmbassador": "ينضم زائرو هذه الصفحة كسفراء تحت حسابك.",
+      "product": "المنتج المرتبط (اختياري)",
+      "create": "إنشاء الحملة",
+      "created": "تم إنشاء الحملة — المعرّف {slug}",
+      "landingSection": "صفحة الهبوط العامة",
+      "headerImageUrl": "رابط صورة الترويسة",
+      "headerImageHint": "اختياري. ألصق رابط صورة (HTTPS). تظهر بعرض كامل في الأعلى.",
+      "template": "استخدام قالب",
+      "templatePlaceholder": "— اختر قالبًا لملء الحقول —",
+      "templateHint": "اختيار قالب يستبدل الحقول أدناه. يمكنك تعديلها لكل حملة بعد ذلك.",
+      "titleEn": "العنوان (إنجليزي)",
+      "titleAr": "العنوان (عربي)",
+      "subtitleEn": "العنوان الفرعي (إنجليزي)",
+      "subtitleAr": "العنوان الفرعي (عربي)",
+      "bodyEn": "النص الأساسي (إنجليزي) — Markdown",
+      "bodyAr": "النص الأساسي (عربي) — Markdown",
+      "bodyHint": "Markdown: **عريض**، *مائل*، [رابط](https://…)، - قوائم، ## عنوان. أي HTML يُحذف.",
+      "customFields": {
+        "title": "الحقول المخصصة في نموذج الهبوط",
+        "subtitle": "بتظهر تحت بلوك الاسم / الموبايل / الإيميل في صفحة الهبوط العامة.",
+        "addField": "إضافة حقل",
+        "empty": "لا توجد حقول مخصصة بعد. اضغط 'إضافة حقل' للبدء.",
+        "fieldKey": "مفتاح الحقل (snake_case)",
+        "fieldType": "النوع",
+        "labelEn": "التسمية (إنجليزي)",
+        "labelAr": "التسمية (عربي)",
+        "required": "إلزامي",
+        "options": "الخيارات",
+        "addOption": "إضافة خيار",
+        "noOptions": "لا توجد خيارات بعد. ضيف خيار واحد على الأقل للقائمة المنسدلة.",
+        "optionValue": "القيمة",
+        "optionLabelEn": "التسمية (إنجليزي)",
+        "optionLabelAr": "التسمية (عربي)",
+        "copyFrom": "انسخ الحقول من",
+        "copyPlaceholder": "— انسخ من حملة تانية —"
+      }
+    }
+  },
+  "configuration": {
+    "title": "الإعدادات",
+    "subtitle": "مفاتيح الـAPI والربط بالقنوات الخارجية. كل البيانات الحساسة مخزنة مشفّرة.",
+    "whatsapp": {
+      "title": "واتساب",
+      "subtitle": "بيانات Meta WhatsApp Business Cloud API.",
+      "accessToken": "Access token",
+      "accessTokenHint": "التوكن طويل المدى الصادر من Meta لتطبيق الواتساب بتاعك.",
+      "phoneNumberId": "Phone number ID",
+      "businessAccountId": "Business account ID (اختياري)",
+      "isEnabled": "مفعّل",
+      "storedSecret": "•••••• محفوظ",
+      "storedSecretHint": "اتركه فاضي عشان يفضل التوكن المحفوظ، أو دخّل قيمة جديدة عشان تستبدله."
+    },
+    "email": {
+      "title": "الإيميل (SMTP)",
+      "subtitle": "سيرفر SMTP لإرسال الإيميلات.",
+      "smtpHost": "SMTP host",
+      "smtpPort": "Port",
+      "smtpUser": "اسم المستخدم",
+      "smtpPass": "كلمة المرور",
+      "smtpPassHint": "محفوظة مشفّرة. اتركها فاضية عشان تفضل القديمة.",
+      "smtpSecure": "استخدم TLS/SSL",
+      "fromAddress": "إيميل المرسِل",
+      "fromName": "اسم المرسِل",
+      "isEnabled": "مفعّل",
+      "storedSecret": "•••••• محفوظ",
+      "storedSecretHint": "اتركها فاضية عشان تفضل المحفوظة، أو دخّل قيمة جديدة عشان تستبدلها."
+    }
+  },
+  "commission": {
+    "title": "العمولات",
+    "subtitle": {
+      "EMPLOYEE": "نسب العمولة الخاصة بك لكل منتج.",
+      "AMBASSADOR": "نسب العمولة الخاصة بك كسفير لكل منتج.",
+      "ADMIN": "كل نسب العمولات لكل المنتجات في النظام."
+    },
+    "sectionEmployee": "عمولات الموظفين",
+    "sectionAmbassador": "عمولات السفراء",
+    "sectionEarned": "العمولات المُكتسبة",
+    "earnedSubtitle": "العملاء الذين وصلوا لمرحلة التعاقد والعمولات الناتجة عنهم.",
+    "earnedEmpty": "لا توجد عمولات مكتسبة بعد. تظهر هنا بمجرد وصول عميل إلى حالة CONTRACT بقيمة قرض نهائية.",
+    "earnedColumns": {
+      "lead": "العميل",
+      "product": "المنتج",
+      "recipient": "الحاصل عليها",
+      "amount": "قيمة القرض",
+      "commission": "العمولة",
+      "closedAt": "تاريخ الإغلاق",
+      "persona": "النوع"
+    },
+    "noMatchingTier": "لا توجد شريحة مطابقة",
+    "empty": "لم يتم نشر أي نسب عمولة بعد.",
+    "noTiers": "لا توجد شرائح محددة.",
+    "columns": {
+      "bracket": "قيمة التمويل",
+      "value": "العمولة"
+    }
+  },
+  "ambassadors": {
+    "title": "سفرائي",
+    "subtitle": "الأشخاص الذين انضموا إلى كونتكت المالية عبر حملات الدعوة الخاصة بك.",
+    "empty": "لا يوجد سفراء بعد. أنشئ حملة QR من نوع \"دعوة سفراء\" للبدء.",
+    "leads": "عدد العملاء المُحالين",
+    "invitedBy": "دعوة",
+    "viewLeads": "عرض عملائه ←",
+    "inactive": "غير نشط",
+    "tabs": {
+      "active": "السفراء النشطون",
+      "pending": "السفراء قيد المراجعة"
+    },
+    "leads": {
+      "title": "عملاء السفراء",
+      "subtitle": "جميع العملاء الذين جلبهم {count} من سفرائك.",
+      "empty": "لا يوجد عملاء من سفرائك حتى الآن.",
+      "open": "فتح ←",
+      "columns": {
+        "customer": "العميل",
+        "phone": "الموبايل",
+        "ambassador": "السفير",
+        "businessLine": "خط العمل",
+        "status": "الحالة",
+        "createdAt": "تاريخ الإنشاء"
+      }
+    },
+    "profile": {
+      "backToList": "العودة إلى السفراء قيد المراجعة",
+      "name": "الاسم",
+      "phone": "الموبايل",
+      "appliedAt": "تاريخ التقديم",
+      "campaign": "الحملة",
+      "acceptedAt": "تاريخ القبول",
+      "rejectedReason": "سبب الرفض",
+      "nationalId": "صورة الرقم القومي",
+      "openFullSize": "فتح الحجم الكامل ←"
+    },
+    "applications": {
+      "empty": "لا يوجد سفراء قيد المراجعة.",
+      "statuses": {
+        "PENDING": "قيد المراجعة",
+        "APPROVED": "تمت الموافقة",
+        "REJECTED": "مرفوض"
+      },
+      "approve": "موافقة",
+      "reject": "رفض",
+      "confirmReject": "تأكيد الرفض",
+      "cancel": "إلغاء",
+      "approved": "تمت الموافقة. شارك الرابط مع المتقدم:",
+      "rejectedConfirmation": "تم رفض الطلب.",
+      "reasonLabel": "السبب (اختياري)",
+      "reasonPlaceholder": "مثلاً: المستندات غير واضحة، يرجى إعادة الإرسال",
+      "copy": "نسخ الرابط",
+      "copied": "تم النسخ!",
+      "whatsapp": "إرسال على واتساب",
+      "whatsappMessage": "تمت الموافقة على انضمامك كسفير لكونتكت المالية. اضبط كلمة المرور هنا:",
+      "expiresHint": "ينتهي الرابط خلال 7 أيام.",
+      "inviteHidden": "رابط الدعوة مخفي بعد تحديث الصفحة. احصل على رابط جديد ←",
+      "getLink": "احصل على رابط الدعوة",
+      "regenerate": "إعادة توليد الرابط",
+      "submitting": "جارٍ التنفيذ…"
     }
   },
   "errors": {

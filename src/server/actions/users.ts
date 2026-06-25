@@ -4,30 +4,28 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
-import { randomBytes } from "node:crypto";
-import { GROUP_ID_REGEX } from "@/lib/auth/config";
+import { EMPLOYEE_ID_REGEX } from "@/lib/auth/config";
 import { requirePermission } from "@/lib/auth/permissions";
 import { requireActor } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import { userAdminRepository } from "@/server/repositories/userAdmin.repository";
+import { prisma } from "@/lib/prisma";
+import { smartDelete, type SmartDeleteResult } from "@/server/lib/smart-delete";
 
 const ProvisionSchema = z.object({
-  groupId: z.string().regex(GROUP_ID_REGEX, "Group ID must match C0001C–C9999C"),
-  role: z.nativeEnum(Role),
+  groupId: z.string().regex(EMPLOYEE_ID_REGEX, "Group ID must match C0001C–C9999C"),
+  role: z.nativeEnum(Role).refine((r) => r !== Role.AMBASSADOR, {
+    message: "Ambassadors are created via QR-campaign invites, not the admin panel.",
+  }),
   businessLineId: z.string().min(1).optional().nullable(),
   managerId: z.string().min(1).optional().nullable(),
+  canEditProducts: z.coerce.boolean().default(false),
+  canEditCatalog: z.coerce.boolean().default(false),
 });
 
 export type ProvisionUserState =
   | { ok: true; id: string }
   | { ok: false; fieldErrors?: Record<string, string[]>; message?: string };
-
-function makeReferralCode(prefix = "EM"): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  for (const b of randomBytes(6)) out += alphabet[b % alphabet.length];
-  return `${prefix}-${out}`;
-}
 
 export async function provisionUserAction(
   _prev: ProvisionUserState | null,
@@ -41,11 +39,13 @@ export async function provisionUserAction(
     role: formData.get("role"),
     businessLineId: formData.get("businessLineId")?.toString() || null,
     managerId: formData.get("managerId")?.toString() || null,
+    canEditProducts: formData.get("canEditProducts") === "on",
+    canEditCatalog: formData.get("canEditCatalog") === "on",
   });
   if (!parsed.success) {
     return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
   }
-  const { groupId, role, businessLineId, managerId } = parsed.data;
+  const { groupId, role, businessLineId, managerId, canEditProducts, canEditCatalog } = parsed.data;
 
   const existing = await userAdminRepository.findByGroupId(groupId);
   if (existing) {
@@ -58,7 +58,9 @@ export async function provisionUserAction(
       role,
       businessLineId: businessLineId ?? null,
       managerId: managerId ?? null,
-      referralCode: makeReferralCode(),
+      referralCode: groupId,
+      canEditProducts,
+      canEditCatalog,
     });
     revalidatePath("/admin/users");
     redirect("/admin/users");
@@ -68,6 +70,49 @@ export async function provisionUserAction(
     if ((err as { code?: string }).code === "P2002") {
       return { ok: false, fieldErrors: { groupId: ["Group ID is already in use"] } };
     }
+    throw err;
+  }
+}
+
+const UpdateUserSchema = z.object({
+  role: z.nativeEnum(Role),
+  businessLineId: z.string().min(1).optional().nullable(),
+  managerId: z.string().min(1).optional().nullable(),
+  canEditProducts: z.coerce.boolean().default(false),
+  canEditCatalog: z.coerce.boolean().default(false),
+});
+
+export async function updateUserAction(
+  id: string,
+  _prev: ProvisionUserState | null,
+  formData: FormData,
+): Promise<ProvisionUserState> {
+  const actor = await requireActor();
+  requirePermission(actor, "update", "user");
+
+  const parsed = UpdateUserSchema.safeParse({
+    role: formData.get("role"),
+    businessLineId: formData.get("businessLineId")?.toString() || null,
+    managerId: formData.get("managerId")?.toString() || null,
+    canEditProducts: formData.get("canEditProducts") === "on",
+    canEditCatalog: formData.get("canEditCatalog") === "on",
+  });
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+  try {
+    await userAdminRepository.updateCapabilities(id, {
+      role: parsed.data.role,
+      businessLineId: parsed.data.businessLineId ?? null,
+      managerId: parsed.data.managerId ?? null,
+      canEditProducts: parsed.data.canEditProducts,
+      canEditCatalog: parsed.data.canEditCatalog,
+    });
+    revalidatePath("/admin/users");
+    redirect("/admin/users");
+    return { ok: true, id };
+  } catch (err) {
+    logger.error({ err, id }, "user.update_failed");
     throw err;
   }
 }
@@ -84,4 +129,21 @@ export async function reactivateUserAction(id: string): Promise<void> {
   requirePermission(actor, "update", "user");
   await userAdminRepository.setActive(id, true);
   revalidatePath("/admin/users");
+}
+
+export async function deleteUserSafeAction(id: string): Promise<SmartDeleteResult> {
+  const actor = await requireActor();
+  if (actor.role !== Role.ADMIN) return { ok: false, message: "Forbidden" };
+  if (!id) return { ok: false, message: "Missing id" };
+  if (id === actor.id) return { ok: false, message: "You can't delete your own account." };
+  const result = await smartDelete({
+    label: "user",
+    id,
+    hard: () => prisma.user.delete({ where: { id } }),
+    soft: () => userAdminRepository.setActive(id, false),
+  });
+  if (result.ok) {
+    revalidatePath("/admin/users");
+  }
+  return result;
 }

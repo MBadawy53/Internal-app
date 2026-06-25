@@ -19,6 +19,16 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 
 export async function POST(req: Request): Promise<Response> {
+  // Image uploads write to the local filesystem, which doesn't work on
+  // Vercel's read-only serverless runtime. Disable the endpoint there
+  // until proper object storage (Vercel Blob / S3) is wired up.
+  if (process.env.VERCEL) {
+    return NextResponse.json(
+      { error: "Image uploads are disabled in this environment." },
+      { status: 501 },
+    );
+  }
+
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

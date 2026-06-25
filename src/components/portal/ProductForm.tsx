@@ -3,9 +3,13 @@
 import { useActionState, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import type { ProductType } from "@prisma/client";
+import type { Company } from "@prisma/client";
+import type { ProductAttributeKey } from "@/lib/catalog/attributes";
+import { AttributeType } from "@prisma/client";
+import type { AttributeSelectOption } from "@/lib/catalog/attribute-values";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,19 +29,30 @@ interface Cat {
   id: string;
   name: string;
   businessLineId: string;
+  enabledAttributes: ProductAttributeKey[];
+  requiredAttributes: ProductAttributeKey[];
+  attributes: AttributeRef[];
 }
-interface Variable {
+
+export interface AttributeRef {
+  id: string;
+  key: string;
   nameEn: string;
   nameAr: string;
-  descriptionEn?: string | null;
-  descriptionAr?: string | null;
+  type: AttributeType;
+  options?: AttributeSelectOption[];
+}
+
+export interface AttributeValueRow {
+  attributeId: string;
+  value: string;
 }
 
 interface InitialProduct {
   id?: string;
   businessLineId?: string;
   categoryId?: string;
-  type?: ProductType;
+  company?: Company | null;
   nameEn?: string;
   nameAr?: string;
   shortDescEn?: string;
@@ -52,32 +67,40 @@ interface InitialProduct {
   amountMaxEgp?: number;
   tenureMinMonths?: number;
   tenureMaxMonths?: number;
+  installmentPeriod?: "MONTHLY" | "QUARTERLY" | "ANNUALLY";
   flatInterestRateBps?: number;
   decliningInterestRateBps?: number;
   adminFeeBps?: number;
   adminFeeMinEgp?: number;
   adminFeeMaxEgp?: number;
   insuranceRequired?: boolean;
+  minDownPaymentBps?: number;
   earlySettlementFeeBps?: number;
   latePaymentFeeBps?: number;
   heroImageUrl?: string | null;
   isFeatured?: boolean;
   isActive?: boolean;
-  variables?: Variable[];
+  attributeValues?: AttributeValueRow[];
 }
 
 interface Props {
   businessLines: BL[];
   categories: Cat[];
-  productTypes: Array<{ value: string; label: string }>;
+  companies: Array<{ value: string; label: string }>;
   initial?: InitialProduct;
+  uploadsEnabled?: boolean;
 }
 
-export function ProductForm({ businessLines, categories, productTypes, initial }: Props) {
+export function ProductForm({
+  businessLines,
+  categories,
+  companies,
+  initial,
+  uploadsEnabled = true,
+}: Props) {
   const t = useTranslations("admin.products");
   const tFields = useTranslations("admin.products.fields");
   const tSect = useTranslations("admin.products.sections");
-  const tVars = useTranslations("admin.products.variables");
   const tCommon = useTranslations("common");
 
   const action = initial?.id ? updateProductAction.bind(null, initial.id) : createProductAction;
@@ -94,8 +117,33 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
     [categories, businessLineId],
   );
 
-  const [variables, setVariables] = useState<Variable[]>(initial?.variables ?? []);
+  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? "");
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.id === categoryId) ?? null,
+    [categories, categoryId],
+  );
+
+  // Helpers: is this attribute visible/required in the active category?
+  // When no category is picked yet, default to all visible (so admins can see
+  // every field while filling in basics).
+  const isVisible = (key: ProductAttributeKey): boolean =>
+    activeCategory ? activeCategory.enabledAttributes.includes(key) : true;
+  const isRequired = (key: ProductAttributeKey): boolean =>
+    activeCategory ? activeCategory.requiredAttributes.includes(key) : false;
+
   const [heroImageUrl, setHeroImageUrl] = useState(initial?.heroImageUrl ?? "");
+
+  // Per-product attribute values keyed by attribute ID. Initialized from
+  // either the product's saved values or the category's picks.
+  const [attrValues, setAttrValues] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const av of initial?.attributeValues ?? []) map[av.attributeId] = av.value;
+    return map;
+  });
+  const setAttrValue = (id: string, value: string) =>
+    setAttrValues((prev) => ({ ...prev, [id]: value }));
+
+  const [attrSearch, setAttrSearch] = useState("");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [, startTransition] = useTransition();
@@ -157,7 +205,8 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             <Select
               id="categoryId"
               name="categoryId"
-              defaultValue={initial?.categoryId ?? ""}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
               required
             >
               <option value="" disabled>
@@ -171,14 +220,12 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="type">{tFields("type")}</Label>
-            <Select id="type" name="type" defaultValue={initial?.type ?? ""} required>
-              <option value="" disabled>
-                —
-              </option>
-              {productTypes.map((pt) => (
-                <option key={pt.value} value={pt.value}>
-                  {pt.label}
+            <Label htmlFor="company">{tFields("company")}</Label>
+            <Select id="company" name="company" defaultValue={initial?.company ?? ""}>
+              <option value="">—</option>
+              {companies.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
                 </option>
               ))}
             </Select>
@@ -252,249 +299,349 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
               rows={4}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="eligibilityEn">{tFields("eligibilityEn")}</Label>
-            <Textarea
-              id="eligibilityEn"
-              name="eligibilityEn"
-              defaultValue={initial?.eligibilityEn ?? ""}
-              rows={2}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="eligibilityAr">{tFields("eligibilityAr")}</Label>
-            <Textarea
-              id="eligibilityAr"
-              name="eligibilityAr"
-              defaultValue={initial?.eligibilityAr ?? ""}
-              dir="rtl"
-              rows={2}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="documentsEn">{tFields("documentsEn")}</Label>
-            <Input
-              id="documentsEn"
-              name="_documentsEnCsv"
-              defaultValue={(initial?.documentsEn ?? []).join(", ")}
-              onChange={(e) => {
-                // mirror into hidden multi-name fields
-                const items = e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                const form = e.currentTarget.form;
-                if (!form) return;
-                form.querySelectorAll('input[name="documentsEn"]').forEach((n) => n.remove());
-                for (const item of items) {
-                  const i = document.createElement("input");
-                  i.type = "hidden";
-                  i.name = "documentsEn";
-                  i.value = item;
-                  form.appendChild(i);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="documentsAr">{tFields("documentsAr")}</Label>
-            <Input
-              id="documentsAr"
-              name="_documentsArCsv"
-              defaultValue={(initial?.documentsAr ?? []).join(", ")}
-              dir="rtl"
-              onChange={(e) => {
-                const items = e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                const form = e.currentTarget.form;
-                if (!form) return;
-                form.querySelectorAll('input[name="documentsAr"]').forEach((n) => n.remove());
-                for (const item of items) {
-                  const i = document.createElement("input");
-                  i.type = "hidden";
-                  i.name = "documentsAr";
-                  i.value = item;
-                  form.appendChild(i);
-                }
-              }}
-            />
-          </div>
-          {/* Initial documents seeded as hidden inputs so the first submit also sends them */}
-          {(initial?.documentsEn ?? []).map((d, i) => (
-            <input key={`de-${i}`} type="hidden" name="documentsEn" value={d} />
-          ))}
-          {(initial?.documentsAr ?? []).map((d, i) => (
-            <input key={`da-${i}`} type="hidden" name="documentsAr" value={d} />
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Limits + Rates + Fees + Policy */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("limits")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <NumField
-            name="amountMinEgp"
-            label={tFields("amountMinEgp")}
-            defaultValue={initial?.amountMinEgp ?? 0}
-          />
-          <NumField
-            name="amountMaxEgp"
-            label={tFields("amountMaxEgp")}
-            defaultValue={initial?.amountMaxEgp ?? 0}
-          />
-          <NumField
-            name="tenureMinMonths"
-            label={tFields("tenureMinMonths")}
-            defaultValue={initial?.tenureMinMonths ?? 12}
-            step={1}
-          />
-          <NumField
-            name="tenureMaxMonths"
-            label={tFields("tenureMaxMonths")}
-            defaultValue={initial?.tenureMaxMonths ?? 60}
-            step={1}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("rates")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <NumField
-            name="flatInterestRateBps"
-            label={tFields("flatInterestRateBps")}
-            defaultValue={initial?.flatInterestRateBps ?? 0}
-            step={1}
-            help={t("rateHelp")}
-          />
-          <NumField
-            name="decliningInterestRateBps"
-            label={tFields("decliningInterestRateBps")}
-            defaultValue={initial?.decliningInterestRateBps ?? 0}
-            step={1}
-            help={t("rateHelp")}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("fees")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <NumField
-            name="adminFeeBps"
-            label={tFields("adminFeeBps")}
-            defaultValue={initial?.adminFeeBps ?? 0}
-            step={1}
-          />
-          <NumField
-            name="adminFeeMinEgp"
-            label={tFields("adminFeeMinEgp")}
-            defaultValue={initial?.adminFeeMinEgp ?? 0}
-          />
-          <NumField
-            name="adminFeeMaxEgp"
-            label={tFields("adminFeeMaxEgp")}
-            defaultValue={initial?.adminFeeMaxEgp ?? 0}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("policy")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <label className="flex items-center gap-2 self-end pb-2 text-sm">
-            <Checkbox name="insuranceRequired" defaultChecked={initial?.insuranceRequired} />
-            {tFields("insuranceRequired")}
-          </label>
-          <NumField
-            name="earlySettlementFeeBps"
-            label={tFields("earlySettlementFeeBps")}
-            defaultValue={initial?.earlySettlementFeeBps ?? 0}
-            step={1}
-          />
-          <NumField
-            name="latePaymentFeeBps"
-            label={tFields("latePaymentFeeBps")}
-            defaultValue={initial?.latePaymentFeeBps ?? 0}
-            step={1}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Variables editor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{tSect("variables")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <input type="hidden" name="variableCount" value={variables.length} />
-          {variables.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tVars("empty")}</p>
-          ) : null}
-          {variables.map((v, i) => (
-            <div key={i} className="grid gap-3 rounded-md border p-3 md:grid-cols-2">
+          {isVisible("eligibility") ? (
+            <>
               <div className="space-y-1.5">
-                <Label>{tVars("nameEn")}</Label>
-                <Input name={`variables[${i}].nameEn`} defaultValue={v.nameEn} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{tVars("nameAr")}</Label>
-                <Input name={`variables[${i}].nameAr`} defaultValue={v.nameAr} dir="rtl" required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{tVars("descriptionEn")}</Label>
+                <Label htmlFor="eligibilityEn">{tFields("eligibilityEn")}</Label>
                 <Textarea
-                  name={`variables[${i}].descriptionEn`}
-                  defaultValue={v.descriptionEn ?? ""}
+                  id="eligibilityEn"
+                  name="eligibilityEn"
+                  defaultValue={initial?.eligibilityEn ?? ""}
                   rows={2}
+                  required={isRequired("eligibility")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>{tVars("descriptionAr")}</Label>
+                <Label htmlFor="eligibilityAr">{tFields("eligibilityAr")}</Label>
                 <Textarea
-                  name={`variables[${i}].descriptionAr`}
-                  defaultValue={v.descriptionAr ?? ""}
+                  id="eligibilityAr"
+                  name="eligibilityAr"
+                  defaultValue={initial?.eligibilityAr ?? ""}
                   dir="rtl"
                   rows={2}
+                  required={isRequired("eligibility")}
                 />
               </div>
-              <div className="md:col-span-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setVariables(variables.filter((_, idx) => idx !== i))}
-                >
-                  {tVars("removeRow")}
-                </Button>
+            </>
+          ) : null}
+          {isVisible("documents") ? (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="documentsEn">{tFields("documentsEn")}</Label>
+                <Input
+                  id="documentsEn"
+                  name="_documentsEnCsv"
+                  defaultValue={(initial?.documentsEn ?? []).join(", ")}
+                  onChange={(e) => {
+                    // mirror into hidden multi-name fields
+                    const items = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    const form = e.currentTarget.form;
+                    if (!form) return;
+                    form.querySelectorAll('input[name="documentsEn"]').forEach((n) => n.remove());
+                    for (const item of items) {
+                      const i = document.createElement("input");
+                      i.type = "hidden";
+                      i.name = "documentsEn";
+                      i.value = item;
+                      form.appendChild(i);
+                    }
+                  }}
+                />
               </div>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              setVariables([
-                ...variables,
-                { nameEn: "", nameAr: "", descriptionEn: "", descriptionAr: "" },
-              ])
-            }
-          >
-            {tVars("addRow")}
-          </Button>
+              <div className="space-y-1.5">
+                <Label htmlFor="documentsAr">{tFields("documentsAr")}</Label>
+                <Input
+                  id="documentsAr"
+                  name="_documentsArCsv"
+                  defaultValue={(initial?.documentsAr ?? []).join(", ")}
+                  dir="rtl"
+                  onChange={(e) => {
+                    const items = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    const form = e.currentTarget.form;
+                    if (!form) return;
+                    form.querySelectorAll('input[name="documentsAr"]').forEach((n) => n.remove());
+                    for (const item of items) {
+                      const i = document.createElement("input");
+                      i.type = "hidden";
+                      i.name = "documentsAr";
+                      i.value = item;
+                      form.appendChild(i);
+                    }
+                  }}
+                />
+              </div>
+              {/* Initial documents seeded as hidden inputs so the first submit also sends them */}
+              {(initial?.documentsEn ?? []).map((d, i) => (
+                <input key={`de-${i}`} type="hidden" name="documentsEn" value={d} />
+              ))}
+              {(initial?.documentsAr ?? []).map((d, i) => (
+                <input key={`da-${i}`} type="hidden" name="documentsAr" value={d} />
+              ))}
+            </>
+          ) : null}
         </CardContent>
       </Card>
+
+      {/* Loan limits — gated by amountRange + tenureRange */}
+      {isVisible("amountRange") || isVisible("tenureRange") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("limits")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-4">
+            {isVisible("amountRange") ? (
+              <>
+                <NumField
+                  name="amountMinEgp"
+                  label={tFields("amountMinEgp")}
+                  defaultValue={initial?.amountMinEgp ?? 0}
+                  required={isRequired("amountRange")}
+                />
+                <NumField
+                  name="amountMaxEgp"
+                  label={tFields("amountMaxEgp")}
+                  defaultValue={initial?.amountMaxEgp ?? 0}
+                  required={isRequired("amountRange")}
+                />
+              </>
+            ) : null}
+            {isVisible("tenureRange") ? (
+              <>
+                <NumField
+                  name="tenureMinMonths"
+                  label={tFields("tenureMinMonths")}
+                  defaultValue={initial?.tenureMinMonths ?? 12}
+                  step={1}
+                  required={isRequired("tenureRange")}
+                />
+                <NumField
+                  name="tenureMaxMonths"
+                  label={tFields("tenureMaxMonths")}
+                  defaultValue={initial?.tenureMaxMonths ?? 60}
+                  step={1}
+                  required={isRequired("tenureRange")}
+                />
+              </>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label htmlFor="installmentPeriod">{tFields("installmentPeriod")}</Label>
+              <Select
+                id="installmentPeriod"
+                name="installmentPeriod"
+                defaultValue={initial?.installmentPeriod ?? "MONTHLY"}
+              >
+                <option value="MONTHLY">{tFields("periodMonthly")}</option>
+                <option value="QUARTERLY">{tFields("periodQuarterly")}</option>
+                <option value="ANNUALLY">{tFields("periodAnnually")}</option>
+              </Select>
+              <p className="text-xs text-muted-foreground">{tFields("installmentPeriodHint")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {isVisible("decliningRate") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("rates")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <PercentField
+              name="decliningInterestRateBps"
+              label={tFields("decliningInterestRateBps")}
+              defaultBps={initial?.decliningInterestRateBps ?? 0}
+              required={isRequired("decliningRate")}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {isVisible("adminFee") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("fees")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            <PercentField
+              name="adminFeeBps"
+              label={tFields("adminFeeBps")}
+              defaultBps={initial?.adminFeeBps ?? 0}
+              required={isRequired("adminFee")}
+            />
+            <NumField
+              name="adminFeeMinEgp"
+              label={tFields("adminFeeMinEgp")}
+              defaultValue={initial?.adminFeeMinEgp ?? 0}
+              required={isRequired("adminFee")}
+            />
+            <NumField
+              name="adminFeeMaxEgp"
+              label={tFields("adminFeeMaxEgp")}
+              defaultValue={initial?.adminFeeMaxEgp ?? 0}
+              required={isRequired("adminFee")}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {isVisible("insurance") || isVisible("earlySettlement") || isVisible("latePayment") ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("policy")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            {isVisible("insurance") ? (
+              <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                <Checkbox name="insuranceRequired" defaultChecked={initial?.insuranceRequired} />
+                {tFields("insuranceRequired")}
+              </label>
+            ) : null}
+            <PercentField
+              name="minDownPaymentBps"
+              label={tFields("minDownPaymentBps")}
+              defaultBps={initial?.minDownPaymentBps ?? 0}
+            />
+            {isVisible("earlySettlement") ? (
+              <PercentField
+                name="earlySettlementFeeBps"
+                label={tFields("earlySettlementFeeBps")}
+                defaultBps={initial?.earlySettlementFeeBps ?? 0}
+                required={isRequired("earlySettlement")}
+              />
+            ) : null}
+            {isVisible("latePayment") ? (
+              <PercentField
+                name="latePaymentFeeBps"
+                label={tFields("latePaymentFeeBps")}
+                defaultBps={initial?.latePaymentFeeBps ?? 0}
+                required={isRequired("latePayment")}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Custom attributes — fields appear when the chosen category has attributes */}
+      {activeCategory && activeCategory.attributes.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{tSect("customAttributes")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input
+              type="search"
+              placeholder={tCommon("search")}
+              value={attrSearch}
+              onChange={(e) => setAttrSearch(e.target.value)}
+              className="max-w-sm"
+            />
+            {(() => {
+              // Live-substitute the threshold amount X into the labels for the
+              // two threshold-dependent insurance rate fields. X itself stays
+              // editable as its own attribute; we only rewrite the label.
+              const thresholdAttr = activeCategory.attributes.find(
+                (a) => a.key === "insurance.threshold-amount-egp",
+              );
+              const xRaw = thresholdAttr ? (attrValues[thresholdAttr.id] ?? "") : "";
+              const xPretty =
+                xRaw && Number.isFinite(Number(xRaw))
+                  ? new Intl.NumberFormat("en-EG").format(Number(xRaw))
+                  : null;
+              const renderLabel = (attr: AttributeRef): { en: string; ar: string } => {
+                if (attr.key === "insurance.rate-under-threshold") {
+                  return xPretty
+                    ? {
+                        en: `Insurance rate for amount under ${xPretty} EGP (%)`,
+                        ar: `نسبة التأمين للمبالغ الأقل من ${xPretty} ج.م. (%)`,
+                      }
+                    : { en: attr.nameEn, ar: attr.nameAr };
+                }
+                if (attr.key === "insurance.rate-above-threshold") {
+                  return xPretty
+                    ? {
+                        en: `Insurance rate for amount above ${xPretty} EGP (%)`,
+                        ar: `نسبة التأمين للمبالغ الأكبر من ${xPretty} ج.م. (%)`,
+                      }
+                    : { en: attr.nameEn, ar: attr.nameAr };
+                }
+                return { en: attr.nameEn, ar: attr.nameAr };
+              };
+              return activeCategory.attributes.map((attr) => {
+                const value = attrValues[attr.id] ?? "";
+                const labels = renderLabel(attr);
+                const q = attrSearch.trim().toLowerCase();
+                const matches =
+                  q === "" ||
+                  labels.en.toLowerCase().includes(q) ||
+                  labels.ar.toLowerCase().includes(q) ||
+                  attr.key.toLowerCase().includes(q);
+                return (
+                  <div
+                    key={attr.id}
+                    className={`grid items-start gap-3 rounded-md border p-3 md:grid-cols-[1fr_2fr]${
+                      matches ? "" : "hidden"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{labels.en}</p>
+                      <p className="text-xs text-muted-foreground">{labels.ar}</p>
+                    </div>
+                    <div>
+                      <input type="hidden" name="attributeId" value={attr.id} />
+                      {attr.type === AttributeType.TEXT ? (
+                        <Input
+                          name="attributeValue"
+                          value={value}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        />
+                      ) : null}
+                      {attr.type === AttributeType.NUMBER ? (
+                        <MoneyInput
+                          name="attributeValue"
+                          value={value}
+                          onChange={(v) => setAttrValue(attr.id, v)}
+                        />
+                      ) : null}
+                      {attr.type === AttributeType.BOOLEAN ? (
+                        <Select
+                          name="attributeValue"
+                          value={value || "false"}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        >
+                          <option value="true">{tCommon("yes")}</option>
+                          <option value="false">{tCommon("no")}</option>
+                        </Select>
+                      ) : null}
+                      {attr.type === AttributeType.SELECT ? (
+                        <Select
+                          name="attributeValue"
+                          value={value}
+                          onChange={(e) => setAttrValue(attr.id, e.target.value)}
+                        >
+                          <option value="" disabled>
+                            —
+                          </option>
+                          {(attr.options ?? []).map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.labelEn}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Media */}
       <Card>
@@ -509,18 +656,24 @@ export function ProductForm({ businessLines, categories, productTypes, initial }
             </div>
           ) : null}
           <div>
-            <Label htmlFor="hero-upload">{t("uploadImage")}</Label>
-            <input
-              id="hero-upload"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              disabled={uploading}
-              onChange={(e) => {
-                const f = e.currentTarget.files?.[0];
-                if (f) void handleUpload(f);
-              }}
-              className="block w-full text-sm"
-            />
+            {uploadsEnabled ? (
+              <>
+                <Label htmlFor="hero-upload">{t("uploadImage")}</Label>
+                <input
+                  id="hero-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0];
+                    if (f) void handleUpload(f);
+                  }}
+                  className="block w-full text-sm"
+                />
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("uploadDisabled")}</p>
+            )}
             {uploading ? (
               <p className="mt-1 text-xs text-muted-foreground">{t("uploadingImage")}</p>
             ) : null}
@@ -558,23 +711,65 @@ function NumField({
   defaultValue,
   step,
   help,
+  required,
 }: {
   name: string;
   label: string;
   defaultValue: number | string;
   step?: number;
   help?: string;
+  required?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={name}>{label}</Label>
-      <Input
+      <Label htmlFor={name}>
+        {label}
+        {required ? <span className="ms-1 text-destructive">*</span> : null}
+      </Label>
+      <MoneyInput
         id={name}
         name={name}
-        type="number"
         defaultValue={defaultValue}
-        step={step ?? "0.01"}
+        allowDecimals={step !== 1}
+        required={required}
       />
+      {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
+    </div>
+  );
+}
+
+function PercentField({
+  name,
+  label,
+  defaultBps,
+  help,
+  required,
+}: {
+  name: string;
+  label: string;
+  defaultBps: number;
+  help?: string;
+  required?: boolean;
+}) {
+  const [percent, setPercent] = useState<string>(defaultBps ? (defaultBps / 100).toString() : "");
+  const bps = percent === "" ? 0 : Math.round(Number(percent) * 100);
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={name}>
+        {label}
+        {required ? <span className="ms-1 text-destructive">*</span> : null}
+      </Label>
+      <Input
+        id={name}
+        type="number"
+        value={percent}
+        onChange={(e) => setPercent(e.target.value)}
+        step="0.01"
+        min={0}
+        required={required}
+        inputMode="decimal"
+      />
+      <input type="hidden" name={name} value={bps} />
       {help ? <p className="text-xs text-muted-foreground">{help}</p> : null}
     </div>
   );

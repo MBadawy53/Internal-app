@@ -1,0 +1,288 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  createCampaignAction,
+  updateCampaignAction,
+  type CreateCampaignState,
+  type UpdateCampaignState,
+} from "@/server/actions/qr";
+import { LeadFieldsBuilder, type CopySource } from "@/components/portal/LeadFieldsBuilder";
+import type { LeadFormField } from "@/lib/leadForm/types";
+
+interface ProductOption {
+  id: string;
+  name: string;
+  businessLineId: string;
+}
+
+export interface CampaignInitial {
+  id?: string;
+  name?: string;
+  kind?: "LEAD_CAPTURE" | "AMBASSADOR_INVITE";
+  productId?: string | null;
+  headerImageUrl?: string | null;
+  titleEn?: string | null;
+  titleAr?: string | null;
+  subtitleEn?: string | null;
+  subtitleAr?: string | null;
+  bodyMdEn?: string | null;
+  bodyMdAr?: string | null;
+  customFields?: LeadFormField[];
+}
+
+export interface TemplateOption {
+  id: string;
+  name: string;
+  headerImageUrl: string | null;
+  titleEn: string | null;
+  titleAr: string | null;
+  subtitleEn: string | null;
+  subtitleAr: string | null;
+  bodyMdEn: string | null;
+  bodyMdAr: string | null;
+}
+
+interface Props {
+  products: ProductOption[];
+  templates?: TemplateOption[];
+  copySources?: CopySource[];
+  initial?: CampaignInitial;
+}
+
+export function QrCampaignForm({ products, templates = [], copySources = [], initial }: Props) {
+  const t = useTranslations("qr.form");
+  const tCommon = useTranslations("common");
+  const isEdit = !!initial?.id;
+
+  // Landing fields are controlled so picking a template can populate them.
+  const [headerImageUrl, setHeaderImageUrl] = useState(initial?.headerImageUrl ?? "");
+  const [titleEn, setTitleEn] = useState(initial?.titleEn ?? "");
+  const [titleAr, setTitleAr] = useState(initial?.titleAr ?? "");
+  const [subtitleEn, setSubtitleEn] = useState(initial?.subtitleEn ?? "");
+  const [subtitleAr, setSubtitleAr] = useState(initial?.subtitleAr ?? "");
+  const [bodyMdEn, setBodyMdEn] = useState(initial?.bodyMdEn ?? "");
+  const [bodyMdAr, setBodyMdAr] = useState(initial?.bodyMdAr ?? "");
+
+  function applyTemplate(id: string) {
+    if (!id) return;
+    const tpl = templates.find((x) => x.id === id);
+    if (!tpl) return;
+    setHeaderImageUrl(tpl.headerImageUrl ?? "");
+    setTitleEn(tpl.titleEn ?? "");
+    setTitleAr(tpl.titleAr ?? "");
+    setSubtitleEn(tpl.subtitleEn ?? "");
+    setSubtitleAr(tpl.subtitleAr ?? "");
+    setBodyMdEn(tpl.bodyMdEn ?? "");
+    setBodyMdAr(tpl.bodyMdAr ?? "");
+  }
+
+  type AnyState = CreateCampaignState | UpdateCampaignState;
+  const action = (
+    isEdit ? updateCampaignAction.bind(null, initial!.id!) : createCampaignAction
+  ) as (prev: AnyState | null, fd: FormData) => Promise<AnyState>;
+
+  const [state, formAction, pending] = useActionState<AnyState | null, FormData>(action, null);
+
+  const [kind, setKind] = useState<"LEAD_CAPTURE" | "AMBASSADOR_INVITE">(
+    initial?.kind ?? "LEAD_CAPTURE",
+  );
+  const isAmbassadorInvite = kind === "AMBASSADOR_INVITE";
+
+  return (
+    <form action={formAction} className="space-y-5">
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="qr-name">{t("name")}</Label>
+          <Input
+            id="qr-name"
+            name="name"
+            required
+            minLength={2}
+            maxLength={120}
+            defaultValue={initial?.name ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="qr-kind">{t("kind")}</Label>
+          <Select
+            id="qr-kind"
+            name="kind"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as "LEAD_CAPTURE" | "AMBASSADOR_INVITE")}
+            disabled={isEdit}
+          >
+            <option value="LEAD_CAPTURE">{t("kindLeadCapture")}</option>
+            <option value="AMBASSADOR_INVITE">{t("kindAmbassadorInvite")}</option>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {isAmbassadorInvite ? t("kindHintAmbassador") : t("kindHintLead")}
+          </p>
+        </div>
+        {!isAmbassadorInvite ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-product">{t("product")}</Label>
+            <Select id="qr-product" name="productId" defaultValue={initial?.productId ?? ""}>
+              <option value="">{tCommon("all")}</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : (
+          // Keep the field present (as hidden) so the form payload always has a productId entry.
+          <input type="hidden" name="productId" value="" />
+        )}
+      </div>
+
+      <fieldset className="space-y-3 rounded-md border p-3">
+        <legend className="px-1 text-sm font-medium">{t("landingSection")}</legend>
+
+        {templates.length > 0 ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-template">{t("template")}</Label>
+            <Select
+              id="qr-template"
+              onChange={(e) => applyTemplate(e.target.value)}
+              defaultValue=""
+            >
+              <option value="">{t("templatePlaceholder")}</option>
+              {templates.map((tpl) => (
+                <option key={tpl.id} value={tpl.id}>
+                  {tpl.name}
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("templateHint")}</p>
+          </div>
+        ) : null}
+
+        <div className="space-y-1.5">
+          <Label htmlFor="qr-header-image">{t("headerImageUrl")}</Label>
+          <Input
+            id="qr-header-image"
+            name="headerImageUrl"
+            type="url"
+            placeholder="https://…"
+            value={headerImageUrl}
+            onChange={(e) => setHeaderImageUrl(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">{t("headerImageHint")}</p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-title-en">{t("titleEn")}</Label>
+            <Input
+              id="qr-title-en"
+              name="titleEn"
+              maxLength={120}
+              value={titleEn}
+              onChange={(e) => setTitleEn(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-title-ar">{t("titleAr")}</Label>
+            <Input
+              id="qr-title-ar"
+              name="titleAr"
+              maxLength={120}
+              dir="rtl"
+              value={titleAr}
+              onChange={(e) => setTitleAr(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-subtitle-en">{t("subtitleEn")}</Label>
+            <Input
+              id="qr-subtitle-en"
+              name="subtitleEn"
+              maxLength={240}
+              value={subtitleEn}
+              onChange={(e) => setSubtitleEn(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-subtitle-ar">{t("subtitleAr")}</Label>
+            <Input
+              id="qr-subtitle-ar"
+              name="subtitleAr"
+              maxLength={240}
+              dir="rtl"
+              value={subtitleAr}
+              onChange={(e) => setSubtitleAr(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-body-en">{t("bodyEn")}</Label>
+            <Textarea
+              id="qr-body-en"
+              name="bodyMdEn"
+              rows={6}
+              maxLength={5000}
+              value={bodyMdEn}
+              onChange={(e) => setBodyMdEn(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t("bodyHint")}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qr-body-ar">{t("bodyAr")}</Label>
+            <Textarea
+              id="qr-body-ar"
+              name="bodyMdAr"
+              rows={6}
+              maxLength={5000}
+              dir="rtl"
+              value={bodyMdAr}
+              onChange={(e) => setBodyMdAr(e.target.value)}
+            />
+          </div>
+        </div>
+      </fieldset>
+
+      {!isAmbassadorInvite ? (
+        <LeadFieldsBuilder initial={initial?.customFields ?? []} copySources={copySources} />
+      ) : null}
+
+      <div className="space-y-3">
+        {state && state.ok === false ? (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {state.message}
+          </div>
+        ) : null}
+        {state && state.ok && "slug" in state ? (
+          <div
+            role="status"
+            className="rounded-md border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            ✓ {t("created", { slug: state.slug })}
+          </div>
+        ) : null}
+        {state && state.ok && !("slug" in state) ? (
+          <div
+            role="status"
+            className="rounded-md border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            ✓ {tCommon("savedSuccess")}
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={pending}>
+            {pending ? tCommon("saving") : isEdit ? tCommon("save") : t("create")}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}

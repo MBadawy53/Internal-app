@@ -6,9 +6,6 @@ const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  // Optional. On Neon, DATABASE_URL is the pooled connection string and
-  // DIRECT_URL is the direct connection used by Prisma Migrate.
-  DIRECT_URL: z.string().optional(),
 
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET must be at least 16 characters"),
   AUTH_TRUST_HOST: z
